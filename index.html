@@ -1,0 +1,38 @@
+<html>
+<head>
+<title>Modest Maps JS</title>
+<style type="text/css">
+    #map {
+        position: relative;
+        width: 640px;
+        height: 480px;
+        border: 1px solid red;
+        overflow: hidden;
+    }
+</style>
+<script type="text/javascript" src="modestmaps.js"></script>
+<script type="text/javascript">
+    function initMap() {
+        var provider = new BlueMarbleProvider()
+        var coordinate = provider.locationCoordinate(new Location(37.775196, -122.419204)).zoomTo(6)
+        var center = calculateMapCenter(provider, coordinate);
+        var map = new Map('map', provider, new Point(640,480), center[0], center[1])
+        map.draw();
+    }
+</script>
+</head>
+<body onload="initMap()">
+<h1>Modest Maps JS</h1>
+<p>The following div is a static map initialized like so:</p>
+<pre>
+        var provider = new BlueMarbleProvider()
+        var coordinate = provider.locationCoordinate(new Location(37.775196, -122.419204)).zoomTo(6)
+        var center = calculateMapCenter(provider, coordinate);
+        var map = new Map('map', provider, new Point(640,480), center[0], center[1])
+        map.draw();
+</pre>
+<div id="map">
+</div>
+<p>Hands up who wants interactivity?</p>
+</body>
+</html>
