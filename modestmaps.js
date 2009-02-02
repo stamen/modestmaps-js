@@ -400,21 +400,92 @@ function Map(parent, provider, dimensions, coordinate, offset) {
             parent = document.getElementById(parent)
         }
         this.parent = parent
+        this.parent.onmousedown = this.onMouseDown
         this.provider = provider
         this.dimensions = dimensions
         this.coordinate = coordinate
         this.offset = offset
+        this.tiles = {}
+        this.requestedTiles = {}
 }
 
 Map.prototype = {
+
     parent: null,
     provider: null,
     dimensions: null,
     coordinate: null,
     offset: null,
 
+    tiles: null,
+    requestedTiles: null,
+
     toString: function() {
         return 'Map(' + provider.toString() + dimensions + coordinate.toString() + offset.toString();
+    },
+
+    onMouseDown: function(e) {
+    	if (!e) var e = window.event;
+
+        document.onmouseup = map.onMouseUp;
+        document.onmousemove = map.onMouseMove;
+    	
+    	map.prevMouse = new Point(e.clientX, e.clientY);
+    	
+	    e.cancelBubble = true;
+    	if (e.stopPropagation) e.stopPropagation();
+    	return false;
+    },
+    
+    onMouseMove: function(e) {
+    	if (!e) var e = window.event;
+
+        if (map.prevMouse) {
+            map.panBy(e.clientX - map.prevMouse.x, e.clientY - map.prevMouse.y);
+        	map.prevMouse.x = e.clientX
+        	map.prevMouse.y = e.clientY
+        }
+    	
+	    e.cancelBubble = true;
+    	if (e.stopPropagation) e.stopPropagation();
+    	return false;    	
+    },
+
+    onMouseUp: function(e) {
+    	if (!e) var e = window.event;
+
+        document.onmouseup = null;
+        document.onmousemove = null;
+        map.prevMouse = null;
+
+	    e.cancelBubble = true;
+    	if (e.stopPropagation) e.stopPropagation();
+    	return false;    	
+    },
+    
+    zoomIn: function() {
+        this.zoomBy(1);
+    },
+
+    zoomOut: function() {
+        this.zoomBy(-1);
+    },
+    
+    zoomBy: function(zoomOffset) {
+        this.coordinate.column -= this.offset.x / this.provider.tileWidth();
+        this.coordinate.row -= this.offset.y / this.provider.tileHeight();
+        this.coordinate = this.coordinate.zoomBy(zoomOffset);
+        var container = this.coordinate.container();
+        this.offset.x = (container.column - this.coordinate.column) * this.provider.tileWidth()
+        this.offset.y = (container.row - this.coordinate.row) * this.provider.tileHeight()
+        this.coordinate = container;
+        this.draw();
+    },
+    
+    panBy: function(dx, dy) {
+        this.offset.x += dx;
+        this.offset.y += dy;
+        this.draw();
     },
     
     locationPoint: function(location) {
@@ -465,9 +536,28 @@ Map.prototype = {
     
     draw: function() {
         
+        while (this.offset.x <= -this.provider.tileWidth()) {
+            this.coordinate = this.coordinate.right();
+            this.offset.x += this.provider.tileWidth();
+        }
+        while (this.offset.y <= -this.provider.tileHeight()) {
+            this.coordinate = this.coordinate.down();
+            this.offset.y += this.provider.tileHeight();
+        }
+        while (this.offset.x > 0) {
+            this.coordinate = this.coordinate.left();
+            this.offset.x -= this.provider.tileWidth();
+        }
+        while (this.offset.y > 0) {
+            this.coordinate = this.coordinate.up();
+            this.offset.y -= this.provider.tileHeight();
+        }
+        
+        // so this is the center, taking the offset into account
         var coord = this.coordinate.copy()
         var corner = new Point(Math.floor(this.offset.x + this.dimensions.x/2), Math.floor(this.offset.y + this.dimensions.y/2))
 
+        // get back to the top left
         while (corner.x > 0) {
             corner.x -= this.provider.tileWidth()
             coord = coord.left()
@@ -476,24 +566,79 @@ Map.prototype = {
             corner.y -= this.provider.tileHeight()
             coord = coord.up()
         }
+
+        var wantedTiles = {};
         
         var rowCoord = coord.copy()
         for (var y = corner.y; y < this.dimensions.y; y += this.provider.tileHeight()) {
             var tileCoord = rowCoord.copy()
             for (var x = corner.x; x < this.dimensions.x; x += this.provider.tileWidth()) {
-                var tile = new Image()
-                tile.src = this.provider.getTileUrls(tileCoord)
-                tile.width = this.provider.tileWidth()
-                tile.height = this.provider.tileHeight()
-                tile.style.position = 'absolute'
-                tile.style.left = x + 'px'
-                tile.style.top = y + 'px'
-                this.parent.appendChild(tile)
+                var tileKey = tileCoord.toString();
+                wantedTiles[tileKey] = true;
+                if (!this.tiles[tileKey]) {
+                    if (!this.requestedTiles[tileKey]) {
+                        this.requestTile(tileCoord);
+                    }
+                }
+                else {
+                    var tile = this.tiles[tileKey];
+                    if (!document.getElementById(tileKey)) {
+                        tile.style.position = 'absolute'
+                        this.parent.appendChild(tile)
+                    }
+                    tile.style.left = x + 'px'
+                    tile.style.top = y + 'px'
+                }
                 tileCoord = tileCoord.right()
             }
             rowCoord = rowCoord.down()
         }
         
+        var visibleTiles = this.parent.getElementsByTagName('img');
+        var condemnedTiles = new Array()
+        for (var i = visibleTiles.length-1; i >= 0; i--) {
+            if (!wantedTiles[visibleTiles[i].id]) {
+                condemnedTiles.push(visibleTiles[i]);
+            }
+        }
+        
+        while (condemnedTiles.length > 0) {
+            this.parent.removeChild(condemnedTiles.pop());        
+        }
     },
+    
+    requestTile: function(tileCoord) {
+        var tileKey = tileCoord.toString();
+        if (!this.requestedTiles[tileKey]) {
+            var tile = new Image()
+            tile.id = tileKey;
+            tile.src = this.provider.getTileUrls(tileCoord)
+            tile.width = this.provider.tileWidth()
+            tile.height = this.provider.tileHeight()
+            this.requestedTiles[tileKey] = tile;
+            var theMap = this;
+            var theTiles = this.tiles;
+            var theRequestedTiles = this.requestedTiles;
+            tile.onload = function() {
+                theTiles[tileKey] = tile;
+                delete theRequestedTiles[tileKey];
+                theMap.draw()
+                if (tile.style.opacity) {
+                    tile.style.opacity = 0;
+                    tile.interval = setInterval(theMap.fadeTile, 25, tile);
+                }
+            }
+        }
+    },
+    
+    fadeTile: function(tile) {
+        if (tile.style.opacity < 1) {
+            tile.style.opacity = parseFloat(tile.style.opacity) + 0.05;
+        }
+        else {
+            tile.style.opacity = 1;
+            clearInterval(tile.interval);
+        }
+    }
     
 }
