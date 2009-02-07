@@ -305,80 +305,7 @@ extend(BlueMarbleProvider, MapProvider);
 
 //////////////////////////// Map
 
-function calculateMapCenter(provider, centerCoord) {
-    /* Based on a center coordinate, returns the coordinate
-        of an initial tile and its point placement, relative to
-        the map center.
-    */
-
-    // initial tile coordinate
-    var initTileCoord = centerCoord.container()
-
-    // initial tile position, assuming centered tile well in grid
-    initX = (initTileCoord.column - centerCoord.column) * provider.tileWidth()
-    initY = (initTileCoord.row - centerCoord.row) * provider.tileHeight()
-    initPoint = new Point(Math.round(initX), Math.round(initY))
-    
-    return [ initTileCoord, initPoint ]
-}
-
-function calculateMapExtent(provider, width, height, locations) {
-
-    var coordinates = new Array();
-    
-    var TL, BR;
-    for (var i = 0; i < locations.length; i++) {
-        coordinates[i] = provider.locationCoordinate(locations[i])
-        if (TL) {
-            TL.row = Math.min(TL.row, coordinates[i].row);
-            TL.column = Math.min(TL.column, coordinates[i].column);
-            TL.zoom = Math.min(TL.zoom, coordinates[i].zoom);
-            BR.row = Math.max(BR.row, coordinates[i].row);
-            BR.column = Math.max(BR.column, coordinates[i].column);
-            BR.zoom = Math.max(BR.zoom, coordinates[i].zoom);
-        }
-        else {
-            TL = coordinates[i].copy();
-            BR = coordinates[i].copy();
-        }
-    }
-    
-    // multiplication factor between horizontal span and map width
-    var hFactor = (BR.column - TL.column) / (width / provider.tileWidth())
-
-    // multiplication factor expressed as base-2 logarithm, for zoom difference
-    var hZoomDiff = Math.log(hFactor) / Math.log(2)
-        
-    // possible horizontal zoom to fit geographical extent in map width
-    var hPossibleZoom = TL.zoom - Math.ceil(hZoomDiff)
-        
-    // multiplication factor between vertical span and map height
-    var vFactor = (BR.row - TL.row) / (height / provider.tileHeight())
-        
-    // multiplication factor expressed as base-2 logarithm, for zoom difference
-    var vZoomDiff = Math.log(vFactor) / Math.log(2)
-        
-    // possible vertical zoom to fit geographical extent in map height
-    var vPossibleZoom = TL.zoom - Math.ceil(vZoomDiff)
-        
-    // initial zoom to fit extent vertically and horizontally
-    var initZoom = Math.min(hPossibleZoom, vPossibleZoom)
-
-    // additionally, make sure it's not outside the boundaries set by provider limits
-    // initZoom = min(initZoom, provider.outerLimits()[1].zoom)
-    // initZoom = max(initZoom, provider.outerLimits()[0].zoom)
-
-    // coordinate of extent center
-    centerRow = (TL.row + BR.row) / 2
-    centerColumn = (TL.column + BR.column) / 2
-    centerZoom = (TL.zoom + BR.zoom) / 2
-    centerCoord = new Coordinate(centerRow, centerColumn, centerZoom).zoomTo(initZoom)
-    
-    return calculateMapCenter(provider, centerCoord)
-}
-
-
-function Map(parent, provider, dimensions, coordinate, offset) {
+function Map(parent, provider, dimensions) {
     /* Instance of a map intended for drawing to a div.
     
         parent
@@ -389,33 +316,27 @@ function Map(parent, provider, dimensions, coordinate, offset) {
             
         dimensions
             Size of output image, instance of Point
-            
-        coordinate
-            Base tile, instance of Coordinate
-            
-        offset
-            Position of base tile relative to map center, instance of Point
+
     */
     if (typeof parent == 'string') {
         parent = document.getElementById(parent)
     }
     this.parent = parent
     
-    parent.style.position = 'relative';
-    parent.style.width = dimensions.x + 'px';
-    parent.style.height = dimensions.y + 'px';
-    //parent.style.border = '1px solid red';
-    parent.style.overflow = 'hidden'
+    this.parent.style.position = 'relative'
+    this.parent.style.width = dimensions.x + 'px'
+    this.parent.style.height = dimensions.y + 'px'
+    this.parent.style.overflow = 'hidden'
+    this.parent.style.backgroundColor = '#eee'
     
     // TODO addEvent        
     this.parent.onmousedown = this.getMouseDown()
     
     this.provider = provider
     this.dimensions = dimensions
-    this.coordinate = coordinate || new Coordinate(0,0,0)
-    this.offset = offset || new Point(-128,-128)
-    this.tiles = {}
-    this.requestedTiles = {}
+    this.coordinate = new Coordinate(0.5,0.5,0)
+    this.tiles = new Object()
+    this.requestedTiles = new Object()
 }
 
 Map.prototype = {
@@ -424,13 +345,12 @@ Map.prototype = {
     provider: null,
     dimensions: null,
     coordinate: null,
-    offset: null,
 
     tiles: null,
     requestedTiles: null,
 
     toString: function() {
-        return 'Map(' + provider.toString() + dimensions + coordinate.toString() + offset.toString();
+        return 'Map(' + provider.toString() + dimensions + coordinate.toString() + ')';
     },
 
     getMouseDown: function() {
@@ -496,13 +416,7 @@ Map.prototype = {
     },
     
     zoomBy: function(zoomOffset) {
-        this.coordinate.column -= this.offset.x / this.provider.tileWidth();
-        this.coordinate.row -= this.offset.y / this.provider.tileHeight();
         this.coordinate = this.coordinate.zoomBy(zoomOffset);
-        var container = this.coordinate.container();
-        this.offset.x = (container.column - this.coordinate.column) * this.provider.tileWidth()
-        this.offset.y = (container.row - this.coordinate.row) * this.provider.tileHeight()
-        this.coordinate = container;
         this.draw();
     },
     
@@ -512,33 +426,87 @@ Map.prototype = {
     
     setCenterZoom: function(location, zoom) {
         this.coordinate = this.provider.locationCoordinate(location).zoomTo(zoom);
-        console.log(this.coordinate);
-        var container = this.coordinate.container();
-        this.offset.x = (container.column - this.coordinate.column) * this.provider.tileWidth()
-        this.offset.y = (container.row - this.coordinate.row) * this.provider.tileHeight()
-        this.coordinate = container;
         this.draw();
     },
     
     panBy: function(dx, dy) {
-        this.offset.x += dx;
-        this.offset.y += dy;
+        this.coordinate.column -= dx / 256.0;
+        this.coordinate.row -= dy / 256.0;
+        this.draw();
+    },
+
+    setExtent: function(locations) {
+
+        var TL, BR;
+        for (var i = 0; i < locations.length; i++) {
+            var coordinate = this.provider.locationCoordinate(locations[i])
+            if (TL) {
+                TL.row = Math.min(TL.row, coordinate.row);
+                TL.column = Math.min(TL.column, coordinate.column);
+                TL.zoom = Math.min(TL.zoom, coordinate.zoom);
+                BR.row = Math.max(BR.row, coordinate.row);
+                BR.column = Math.max(BR.column, coordinate.column);
+                BR.zoom = Math.max(BR.zoom, coordinate.zoom);
+            }
+            else {
+                TL = coordinate.copy();
+                BR = coordinate.copy();
+            }
+        }
+        
+        var width = this.dimensions.x + 1;
+        var height = this.dimensions.y + 1;
+        
+        // multiplication factor between horizontal span and map width
+        var hFactor = (BR.column - TL.column) / (width / this.provider.tileWidth())
+    
+        // multiplication factor expressed as base-2 logarithm, for zoom difference
+        var hZoomDiff = Math.log(hFactor) / Math.log(2)
+            
+        // possible horizontal zoom to fit geographical extent in map width
+        var hPossibleZoom = TL.zoom - Math.ceil(hZoomDiff)
+            
+        // multiplication factor between vertical span and map height
+        var vFactor = (BR.row - TL.row) / (height / this.provider.tileHeight())
+            
+        // multiplication factor expressed as base-2 logarithm, for zoom difference
+        var vZoomDiff = Math.log(vFactor) / Math.log(2)
+            
+        // possible vertical zoom to fit geographical extent in map height
+        var vPossibleZoom = TL.zoom - Math.ceil(vZoomDiff)
+            
+        // initial zoom to fit extent vertically and horizontally
+        var initZoom = Math.min(hPossibleZoom, vPossibleZoom)
+    
+        // additionally, make sure it's not outside the boundaries set by provider limits
+        // initZoom = min(initZoom, provider.outerLimits()[1].zoom)
+        // initZoom = max(initZoom, provider.outerLimits()[0].zoom)
+    
+        // coordinate of extent center
+        centerRow = (TL.row + BR.row) / 2
+        centerColumn = (TL.column + BR.column) / 2
+        centerZoom = (TL.zoom + BR.zoom) / 2
+        
+        this.coordinate = new Coordinate(centerRow, centerColumn, centerZoom).zoomTo(initZoom);
         this.draw();
     },
     
+    getExtent: function() {
+        var extent = new Array();
+        extent.push(this.pointLocation(new Point(0,0)));
+        extent.push(this.pointLocation(this.dimensions));
+        return extent;
+    },
+
     locationPoint: function(location) {
         /* Return an x, y point on the map image for a given geographical location. */
         
-        var point = new Point(this.offset.x, this.offset.y)
         var coord = this.provider.locationCoordinate(location).zoomTo(this.coordinate.zoom)
         
         // distance from the known coordinate offset
-        point.x += this.provider.tileWidth() * (coord.column - this.coordinate.column)
-        point.y += this.provider.tileHeight() * (coord.row - this.coordinate.row)
-        
-        // because of the center/corner business
-        point.x += this.dimensions.x/2
-        point.y += this.dimensions.y/2
+        var point = new Point(0, 0)
+        point.x = this.provider.tileWidth() * (coord.column - this.coordinate.column)
+        point.y = this.provider.tileHeight() * (coord.row - this.coordinate.row)
         
         return point
     },
@@ -546,19 +514,19 @@ Map.prototype = {
     pointLocation: function(point) {
         /* Return a geographical location on the map image for a given x, y point. */
         
-        var hizoomCoord = this.coordinate.zoomTo(Coordinate.MAX_ZOOM)
+        var hizoomCoord = this.coordinate.zoomTo(20)
         
         // because of the center/corner business
         point = new Point(point.x - this.dimensions.x/2,
                            point.y - this.dimensions.y/2)
         
         // distance in tile widths from reference tile to point
-        var xTiles = (point.x - this.offset.x) / this.provider.tileWidth();
-        var yTiles = (point.y - this.offset.y) / this.provider.tileHeight();
+        var xTiles = point.x / this.provider.tileWidth();
+        var yTiles = point.y / this.provider.tileHeight();
         
         // distance in rows & columns at maximum zoom
-        var xDistance = xTiles * Math.pow(2, (Coordinate.MAX_ZOOM - this.coordinate.zoom));
-        var yDistance = yTiles * Math.pow(2, (Coordinate.MAX_ZOOM - this.coordinate.zoom));
+        var xDistance = xTiles * Math.pow(2, (20 - this.coordinate.zoom));
+        var yDistance = yTiles * Math.pow(2, (20 - this.coordinate.zoom));
         
         // new point coordinate reflecting that distance
         var coord = new Coordinate(Math.round(hizoomCoord.row + yDistance),
@@ -574,26 +542,11 @@ Map.prototype = {
     
     draw: function() {
         
-        while (this.offset.x <= -this.provider.tileWidth()) {
-            this.coordinate = this.coordinate.right();
-            this.offset.x += this.provider.tileWidth();
-        }
-        while (this.offset.y <= -this.provider.tileHeight()) {
-            this.coordinate = this.coordinate.down();
-            this.offset.y += this.provider.tileHeight();
-        }
-        while (this.offset.x > 0) {
-            this.coordinate = this.coordinate.left();
-            this.offset.x -= this.provider.tileWidth();
-        }
-        while (this.offset.y > 0) {
-            this.coordinate = this.coordinate.up();
-            this.offset.y -= this.provider.tileHeight();
-        }
-        
-        // so this is the center, taking the offset into account
-        var coord = this.coordinate.copy()
-        var corner = new Point(Math.floor(this.offset.x + this.dimensions.x/2), Math.floor(this.offset.y + this.dimensions.y/2))
+        // so this is the corner, taking the container offset into account
+        var coord = this.coordinate.container()
+        var corner = new Point(this.dimensions.x/2, this.dimensions.y/2);
+        corner.x += (coord.column - this.coordinate.column) * this.provider.tileWidth()
+        corner.y += (coord.row - this.coordinate.row) * this.provider.tileHeight()
 
         // get back to the top left
         while (corner.x > 0) {
@@ -605,7 +558,7 @@ Map.prototype = {
             coord = coord.up()
         }
 
-        var wantedTiles = {};
+        var wantedTiles = new Object()
         
         var rowCoord = coord.copy()
         for (var y = corner.y; y < this.dimensions.y; y += this.provider.tileHeight()) {
@@ -632,44 +585,43 @@ Map.prototype = {
             rowCoord = rowCoord.down()
         }
         
-        var visibleTiles = this.parent.getElementsByTagName('img');
+        var visibleTiles = this.parent.getElementsByTagName('img')
         var condemnedTiles = new Array()
         for (var i = visibleTiles.length-1; i >= 0; i--) {
             if (!wantedTiles[visibleTiles[i].id]) {
-                condemnedTiles.push(visibleTiles[i]);
+                condemnedTiles.push(visibleTiles[i])
             }
         }
         
         while (condemnedTiles.length > 0) {
-            this.parent.removeChild(condemnedTiles.pop());        
+            this.parent.removeChild(condemnedTiles.pop())
         }
     },
+    
     
     requestTile: function(tileCoord) {
         var tileKey = tileCoord.toString();
         if (!this.requestedTiles[tileKey]) {
             var tile = new Image()
-            tile.id = tileKey;
+            tile.id = tileKey
             tile.src = this.provider.getTileUrls(tileCoord)
             tile.width = this.provider.tileWidth()
             tile.height = this.provider.tileHeight()
-            this.requestedTiles[tileKey] = tile;
-            var theMap = this;
-            var theTiles = this.tiles;
-            var theRequestedTiles = this.requestedTiles;
+            this.requestedTiles[tileKey] = tile
+            var theMap = this
+            var theTiles = this.tiles
+            var theRequestedTiles = this.requestedTiles
             tile.onload = function() {
-                theTiles[tileKey] = tile;
-                delete theRequestedTiles[tileKey];
+                theTiles[tileKey] = tile
+                delete theRequestedTiles[tileKey]
                 theMap.draw()
-                if (tile.style.opacity) {
-                    tile.style.opacity = 0;
-                    tile.interval = setInterval(theMap.fadeTile, 25, tile);
-                }
+                //tile.style.opacity = 0;
+                //tile.interval = setInterval(theMap.fadeTile, 25, tile);
             }
         }
-    },
+    }//,
     
-    fadeTile: function(tile) {
+/*    fadeTile: function(tile) {
         if (tile.style.opacity < 1) {
             tile.style.opacity = parseFloat(tile.style.opacity) + 0.05;
         }
@@ -677,6 +629,6 @@ Map.prototype = {
             tile.style.opacity = 1;
             clearInterval(tile.interval);
         }
-    }
+    } */
     
 }

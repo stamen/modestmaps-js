@@ -5,9 +5,9 @@
 <script type="text/javascript">
     var map;
     function initMap() {
-        var provider = new BlueMarbleProvider()
+        var provider = new BlueMarbleProvider();
         map = new Map('map', provider, new Point(640,480))
-        map.setCenterZoom(new Location(37.775196, -122.419204), 6);
+        map.setExtent(new Array(new Location(57.526, -13.297),new Location(44.354, 14.828)));
         map.draw();
     }
 </script>
@@ -18,7 +18,7 @@
 <pre>
     var provider = new BlueMarbleProvider()
     var map = new Map('map', provider, new Point(640,480))
-    map.setCenterZoom(new Location(37.775196, -122.419204), 6);
+    map.setExtent(new Array(new Location(57.526, -13.297),new Location(44.354, 14.828)));
     map.draw();
 </pre>
 <p><a href="javascript:map.zoomIn()">zoom in</a> | <a href="javascript:map.zoomOut()">zoom out</a></p>
