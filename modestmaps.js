@@ -380,33 +380,42 @@ function calculateMapExtent(provider, width, height, locations) {
 
 function Map(parent, provider, dimensions, coordinate, offset) {
     /* Instance of a map intended for drawing to a div.
-        
-            parent
-                DOM element
-        
-            provider
-                Instance of IMapProvider
-                
-            dimensions
-                Size of output image, instance of Point
-                
-            coordinate
-                Base tile, instance of Coordinate
-                
-            offset
-                Position of base tile relative to map center, instance of Point
-        */
-        if (typeof parent == 'string') {
-            parent = document.getElementById(parent)
-        }
-        this.parent = parent
-        this.parent.onmousedown = this.onMouseDown
-        this.provider = provider
-        this.dimensions = dimensions
-        this.coordinate = coordinate
-        this.offset = offset
-        this.tiles = {}
-        this.requestedTiles = {}
+    
+        parent
+            DOM element
+    
+        provider
+            Instance of IMapProvider
+            
+        dimensions
+            Size of output image, instance of Point
+            
+        coordinate
+            Base tile, instance of Coordinate
+            
+        offset
+            Position of base tile relative to map center, instance of Point
+    */
+    if (typeof parent == 'string') {
+        parent = document.getElementById(parent)
+    }
+    this.parent = parent
+    
+    parent.style.position = 'relative';
+    parent.style.width = dimensions.x + 'px';
+    parent.style.height = dimensions.y + 'px';
+    //parent.style.border = '1px solid red';
+    parent.style.overflow = 'hidden'
+    
+    // TODO addEvent        
+    this.parent.onmousedown = this.getMouseDown()
+    
+    this.provider = provider
+    this.dimensions = dimensions
+    this.coordinate = coordinate || new Coordinate(0,0,0)
+    this.offset = offset || new Point(-128,-128)
+    this.tiles = {}
+    this.requestedTiles = {}
 }
 
 Map.prototype = {
@@ -424,43 +433,54 @@ Map.prototype = {
         return 'Map(' + provider.toString() + dimensions + coordinate.toString() + offset.toString();
     },
 
-    onMouseDown: function(e) {
-    	if (!e) var e = window.event;
+    getMouseDown: function() {
+        var theMap = this;
+        return function(e) {
+    	    if (!e) var e = window.event;
 
-        document.onmouseup = map.onMouseUp;
-        document.onmousemove = map.onMouseMove;
+            // TODO addEvent
+            document.onmouseup = theMap.getMouseUp();
+            document.onmousemove = theMap.getMouseMove();
     	
-    	map.prevMouse = new Point(e.clientX, e.clientY);
+        	theMap.prevMouse = new Point(e.clientX, e.clientY);
     	
-	    e.cancelBubble = true;
-    	if (e.stopPropagation) e.stopPropagation();
-    	return false;
+    	    e.cancelBubble = true;
+    	    if (e.stopPropagation) e.stopPropagation();
+        	return false;
+        };
     },
     
-    onMouseMove: function(e) {
-    	if (!e) var e = window.event;
+    getMouseMove: function() {
+        var theMap = this;
+        return function(e) {
+        	if (!e) var e = window.event;
 
-        if (map.prevMouse) {
-            map.panBy(e.clientX - map.prevMouse.x, e.clientY - map.prevMouse.y);
-        	map.prevMouse.x = e.clientX
-        	map.prevMouse.y = e.clientY
-        }
+            if (theMap.prevMouse) {
+                theMap.panBy(e.clientX - theMap.prevMouse.x, e.clientY - theMap.prevMouse.y);
+        	    theMap.prevMouse.x = e.clientX
+            	theMap.prevMouse.y = e.clientY
+            }
     	
-	    e.cancelBubble = true;
-    	if (e.stopPropagation) e.stopPropagation();
-    	return false;    	
+    	    e.cancelBubble = true;
+        	if (e.stopPropagation) e.stopPropagation();
+    	    return false;
+    	};
     },
 
-    onMouseUp: function(e) {
-    	if (!e) var e = window.event;
-
-        document.onmouseup = null;
-        document.onmousemove = null;
-        map.prevMouse = null;
-
-	    e.cancelBubble = true;
-    	if (e.stopPropagation) e.stopPropagation();
-    	return false;    	
+    getMouseUp: function() {
+        var theMap = this;
+        return function(e) {
+            if (!e) var e = window.event;
+    
+            // TODO removeEvent
+            document.onmouseup = null;
+            document.onmousemove = null;
+            theMap.prevMouse = null;
+    
+            e.cancelBubble = true;
+            if (e.stopPropagation) e.stopPropagation();
+            return false;    	
+        }
     },
     
     zoomIn: function() {
@@ -471,10 +491,28 @@ Map.prototype = {
         this.zoomBy(-1);
     },
     
+    setZoom: function(z) {
+        this.zoomBy(z - this.coordinate.zoom);
+    },
+    
     zoomBy: function(zoomOffset) {
         this.coordinate.column -= this.offset.x / this.provider.tileWidth();
         this.coordinate.row -= this.offset.y / this.provider.tileHeight();
         this.coordinate = this.coordinate.zoomBy(zoomOffset);
+        var container = this.coordinate.container();
+        this.offset.x = (container.column - this.coordinate.column) * this.provider.tileWidth()
+        this.offset.y = (container.row - this.coordinate.row) * this.provider.tileHeight()
+        this.coordinate = container;
+        this.draw();
+    },
+    
+    setCenter: function(location) {
+        this.setCenterZoom(location, this.coordinate.zoom);
+    },
+    
+    setCenterZoom: function(location, zoom) {
+        this.coordinate = this.provider.locationCoordinate(location).zoomTo(zoom);
+        console.log(this.coordinate);
         var container = this.coordinate.container();
         this.offset.x = (container.column - this.coordinate.column) * this.provider.tileWidth()
         this.offset.y = (container.row - this.coordinate.row) * this.provider.tileHeight()

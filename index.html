@@ -1,36 +1,25 @@
 <html>
 <head>
 <title>Modest Maps JS</title>
-<style type="text/css">
-    #map {
-        position: relative;
-        width: 640px;
-        height: 480px;
-        border: 1px solid red;
-        overflow: hidden;
-    }
-</style>
 <script type="text/javascript" src="modestmaps.js"></script>
 <script type="text/javascript">
     var map;
     function initMap() {
         var provider = new BlueMarbleProvider()
-        var coordinate = provider.locationCoordinate(new Location(37.775196, -122.419204)).zoomTo(6)
-        var center = calculateMapCenter(provider, coordinate);
-        map = new Map('map', provider, new Point(640,480), center[0], center[1])
+        map = new Map('map', provider, new Point(640,480))
+        map.setCenterZoom(new Location(37.775196, -122.419204), 6);
         map.draw();
     }
 </script>
 </head>
 <body onload="initMap()">
 <h1>Modest Maps JS</h1>
-<p>The following div is a static map initialized like so:</p>
+<p>The following div is a map initialized like so:</p>
 <pre>
-        var provider = new BlueMarbleProvider()
-        var coordinate = provider.locationCoordinate(new Location(37.775196, -122.419204)).zoomTo(6)
-        var center = calculateMapCenter(provider, coordinate);
-        var map = new Map('map', provider, new Point(640,480), center[0], center[1])
-        map.draw();
+    var provider = new BlueMarbleProvider()
+    var map = new Map('map', provider, new Point(640,480))
+    map.setCenterZoom(new Location(37.775196, -122.419204), 6);
+    map.draw();
 </pre>
 <p><a href="javascript:map.zoomIn()">zoom in</a> | <a href="javascript:map.zoomOut()">zoom out</a></p>
 <div id="map">
