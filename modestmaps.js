@@ -13,7 +13,7 @@ function extend(child, parent)
 
 function Point(x,y) {
     this.x = parseFloat(x)
-    this.y = parseFloat(y)    
+    this.y = parseFloat(y)
 }
 
 Point.prototype = {
@@ -222,6 +222,7 @@ LinearProjection.prototype = {
 extend(LinearProjection, Projection);
 
 function MercatorProjection(zoom, transformation) {
+    // super!
     Projection.call(this, zoom, transformation);
 }
 
@@ -241,22 +242,21 @@ extend(MercatorProjection, Projection);
 
 //////////////////////////// Providers
 
-function MapProvider() {
-    alert("Abstract method not implemented by subclass.")
+function MapProvider(getTileUrls) {
+    if (getTileUrls) {
+        this.getTileUrls = getTileUrls;
+    }
 }
 
 MapProvider.prototype = {
-    projection: null,
+
+    // defaults to Google-y Mercator style maps
+    // see http://modestmaps.com/calculator.html for how to generate these magic numbers
+    projection: new MercatorProjection(26, new Transformation(1.068070779e7, 0, 3.355443185e7, 0, -1.068070890e7, 3.355443057e7)),
+    tileWidth: 256,
+    tileHeight: 256,
 
     getTileUrls: function(coordinate) {
-        alert("Abstract method not implemented by subclass.")
-    },
-
-    tileWidth: function() {
-        alert("Abstract method not implemented by subclass.")
-    },
-    
-    tileHeight: function() {
         alert("Abstract method not implemented by subclass.")
     },
     
@@ -283,22 +283,10 @@ MapProvider.prototype = {
 }
 
 function BlueMarbleProvider() {
-    var t = new Transformation(1.068070779e7, 0, 3.355443185e7,
-		                       0, -1.068070890e7, 3.355443057e7)
-    this.projection = new MercatorProjection(26, t)
-}
-
-BlueMarbleProvider.prototype = {
-    tileWidth: function() {
-        return 256
-    },
-    tileHeight: function() {
-        return 256
-    },
-    getTileUrls: function(coordinate) {
+    MapProvider.call(this, function(coordinate) {
         var img = coordinate.zoom.toFixed(0) +'-r'+ coordinate.row.toFixed(0) +'-c'+ coordinate.column.toFixed(0) + '.jpg';
         return 'http://s3.amazonaws.com/com.modestmaps.bluemarble/' + img;
-    }
+    });
 }
 
 extend(BlueMarbleProvider, MapProvider);
@@ -435,6 +423,22 @@ Map.prototype = {
         this.draw();
     },
 
+    panLeft: function() {
+        this.panBy(100,0);
+    },
+    
+    panRight: function() {
+        this.panBy(-100,0);
+    },
+    
+    panDown: function() {
+        this.panBy(0,-100);
+    },
+    
+    panUp: function() {
+        this.panBy(0,100);
+    },
+
     setExtent: function(locations) {
 
         var TL, BR;
@@ -458,7 +462,7 @@ Map.prototype = {
         var height = this.dimensions.y + 1;
         
         // multiplication factor between horizontal span and map width
-        var hFactor = (BR.column - TL.column) / (width / this.provider.tileWidth())
+        var hFactor = (BR.column - TL.column) / (width / this.provider.tileWidth)
     
         // multiplication factor expressed as base-2 logarithm, for zoom difference
         var hZoomDiff = Math.log(hFactor) / Math.log(2)
@@ -467,7 +471,7 @@ Map.prototype = {
         var hPossibleZoom = TL.zoom - Math.ceil(hZoomDiff)
             
         // multiplication factor between vertical span and map height
-        var vFactor = (BR.row - TL.row) / (height / this.provider.tileHeight())
+        var vFactor = (BR.row - TL.row) / (height / this.provider.tileHeight)
             
         // multiplication factor expressed as base-2 logarithm, for zoom difference
         var vZoomDiff = Math.log(vFactor) / Math.log(2)
@@ -505,8 +509,8 @@ Map.prototype = {
         
         // distance from the known coordinate offset
         var point = new Point(0, 0)
-        point.x = this.provider.tileWidth() * (coord.column - this.coordinate.column)
-        point.y = this.provider.tileHeight() * (coord.row - this.coordinate.row)
+        point.x = this.provider.tileWidth * (coord.column - this.coordinate.column)
+        point.y = this.provider.tileHeight * (coord.row - this.coordinate.row)
         
         return point
     },
@@ -521,8 +525,8 @@ Map.prototype = {
                            point.y - this.dimensions.y/2)
         
         // distance in tile widths from reference tile to point
-        var xTiles = point.x / this.provider.tileWidth();
-        var yTiles = point.y / this.provider.tileHeight();
+        var xTiles = point.x / this.provider.tileWidth;
+        var yTiles = point.y / this.provider.tileHeight;
         
         // distance in rows & columns at maximum zoom
         var xDistance = xTiles * Math.pow(2, (20 - this.coordinate.zoom));
@@ -545,25 +549,25 @@ Map.prototype = {
         // so this is the corner, taking the container offset into account
         var coord = this.coordinate.container()
         var corner = new Point(this.dimensions.x/2, this.dimensions.y/2);
-        corner.x += (coord.column - this.coordinate.column) * this.provider.tileWidth()
-        corner.y += (coord.row - this.coordinate.row) * this.provider.tileHeight()
+        corner.x += (coord.column - this.coordinate.column) * this.provider.tileWidth
+        corner.y += (coord.row - this.coordinate.row) * this.provider.tileHeight
 
         // get back to the top left
         while (corner.x > 0) {
-            corner.x -= this.provider.tileWidth()
+            corner.x -= this.provider.tileWidth
             coord = coord.left()
         }
         while (corner.y > 0) {
-            corner.y -= this.provider.tileHeight()
+            corner.y -= this.provider.tileHeight
             coord = coord.up()
         }
 
         var wantedTiles = new Object()
         
         var rowCoord = coord.copy()
-        for (var y = corner.y; y < this.dimensions.y; y += this.provider.tileHeight()) {
+        for (var y = corner.y; y < this.dimensions.y; y += this.provider.tileHeight) {
             var tileCoord = rowCoord.copy()
-            for (var x = corner.x; x < this.dimensions.x; x += this.provider.tileWidth()) {
+            for (var x = corner.x; x < this.dimensions.x; x += this.provider.tileWidth) {
                 var tileKey = tileCoord.toString();
                 wantedTiles[tileKey] = true;
                 if (!this.tiles[tileKey]) {
@@ -605,8 +609,8 @@ Map.prototype = {
             var tile = new Image()
             tile.id = tileKey
             tile.src = this.provider.getTileUrls(tileCoord)
-            tile.width = this.provider.tileWidth()
-            tile.height = this.provider.tileHeight()
+            tile.width = this.provider.tileWidth
+            tile.height = this.provider.tileHeight
             this.requestedTiles[tileKey] = tile
             var theMap = this
             var theTiles = this.tiles

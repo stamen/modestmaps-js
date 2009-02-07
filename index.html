@@ -5,9 +5,12 @@
 <script type="text/javascript">
     var map;
     function initMap() {
-        var provider = new BlueMarbleProvider();
+        var provider = new MapProvider(function(coord) {
+            var img = parseInt(coord.zoom) +'-r'+ parseInt(coord.row) +'-c'+ parseInt(coord.column) + '.jpg';
+            return 'http://osm-bayarea.s3.amazonaws.com/' + img;
+        });
         map = new Map('map', provider, new Point(640,480))
-        map.setExtent(new Array(new Location(57.526, -13.297),new Location(44.354, 14.828)));
+        map.setCenterZoom(new Location(37.804656, -122.263606), 14);
         map.draw();
     }
 </script>
@@ -16,15 +19,19 @@
 <h1>Modest Maps JS</h1>
 <p>The following div is a map initialized like so:</p>
 <pre>
-    var provider = new BlueMarbleProvider()
+    var provider = new MapProvider(function(coord) {
+        var img = parseInt(coord.zoom) +'-r'+ parseInt(coord.row) +'-c'+ parseInt(coord.column) + '.png';
+        return 'http://osm-bayarea.s3.amazonaws.com/' + img;
+    });
     var map = new Map('map', provider, new Point(640,480))
-    map.setExtent(new Array(new Location(57.526, -13.297),new Location(44.354, 14.828)));
+    map.setCenterZoom(new Location(37.804656, -122.263606), 14);
     map.draw();
 </pre>
-<p><a href="javascript:map.zoomIn()">zoom in</a> | <a href="javascript:map.zoomOut()">zoom out</a></p>
+<p><a href="javascript:map.zoomIn()">zoom in</a> | <a href="javascript:map.zoomOut()">zoom out</a>
+<br><a href="javascript:map.panLeft()">pan left</a> | <a href="javascript:map.panRight()">pan right</a> | <a href="javascript:map.panDown()">pan down</a> | <a href="javascript:map.panUp()">pan up</a></p>
 <div id="map">
 </div>
-<p>Hands up who wants interactivity?</p>
+<p>Hands up who wants overlays?</p>
 <div id="log"></div>
 </body>
 </html>
