@@ -242,9 +242,9 @@ extend(MercatorProjection, Projection);
 
 //////////////////////////// Providers
 
-function MapProvider(getTileUrls) {
-    if (getTileUrls) {
-        this.getTileUrls = getTileUrls;
+function MapProvider(getTileUrl) {
+    if (getTileUrl) {
+        this.getTileUrl = getTileUrl
     }
 }
 
@@ -256,7 +256,7 @@ MapProvider.prototype = {
     tileWidth: 256,
     tileHeight: 256,
 
-    getTileUrls: function(coordinate) {
+    getTileUrl: function(coordinate) {
         alert("Abstract method not implemented by subclass.")
     },
     
@@ -266,10 +266,6 @@ MapProvider.prototype = {
 
     coordinateLocation: function(location) {
         return this.projection.coordinateLocation(location)
-    },
-
-    sourceCoordinate: function(coordinate) {
-        alert("Abstract method not implemented by subclass.")
     },
 
     sourceCoordinate: function(coordinate) {
@@ -320,6 +316,11 @@ function Map(parent, provider, dimensions) {
     // TODO addEvent        
     this.parent.onmousedown = this.getMouseDown()
     
+    if (this.parent.addEventListener) {
+        this.parent.addEventListener('DOMMouseScroll', this.getMouseWheel(), false);
+    }
+    this.parent.onmousewheel = this.getMouseWheel()
+    
     this.provider = provider
     this.dimensions = dimensions
     this.coordinate = new Coordinate(0.5,0.5,0)
@@ -338,8 +339,10 @@ Map.prototype = {
     requestedTiles: null,
 
     toString: function() {
-        return 'Map(' + provider.toString() + dimensions + coordinate.toString() + ')';
+        return 'Map(' + this.provider.toString() + this.dimensions.toString() + this.coordinate.toString() + ')';
     },
+
+    // events
 
     getMouseDown: function() {
         var theMap = this;
@@ -376,7 +379,6 @@ Map.prototype = {
     },
 
     getMouseUp: function() {
-        var theMap = this;
         return function(e) {
             if (!e) var e = window.event;
     
@@ -390,6 +392,46 @@ Map.prototype = {
             return false;    	
         }
     },
+
+    getMouseWheel: function() {
+        var theMap = this;
+        var prevTime = new Date().getTime();
+        return function(e) {
+    	    if (!e) var e = window.event;
+
+            var delta = 0;
+            
+            if (e.wheelDelta) {
+                delta = e.wheelDelta;
+            }
+            else if (e.detail) {
+                delta = -e.detail;
+            }
+
+            // limit mousewheeling to once every 200ms
+            var timeSince = new Date().getTime() - prevTime;
+
+            if (delta != 0 && (timeSince > 200)) {
+            	
+            	var point = new Point(e.clientX, e.clientY);
+            	point.x += document.body.scrollLeft + document.documentElement.scrollLeft;
+            	point.x -= map.parent.offsetLeft;
+            	point.y += document.body.scrollTop + document.documentElement.scrollTop;
+            	point.y -= map.parent.offsetTop;
+            	
+            	theMap.zoomByAbout(delta > 0 ? 1 : -1, point);
+            	
+            	prevTime = new Date().getTime();
+            }
+ 
+            e.cancelBubble = true;
+            if (e.stopPropagation) e.stopPropagation();
+            
+            return false;
+        };
+    },
+        
+    // zooming
     
     zoomIn: function() {
         this.zoomBy(1);
@@ -408,18 +450,18 @@ Map.prototype = {
         this.draw();
     },
     
-    setCenter: function(location) {
-        this.setCenterZoom(location, this.coordinate.zoom);
+    zoomByAbout: function(zoomOffset, point) {
+        var location = this.pointLocation(point)
+        this.coordinate = this.coordinate.zoomBy(zoomOffset)
+        var newPoint = this.locationPoint(location)
+        this.panBy(point.x - newPoint.x, point.y - newPoint.y)
     },
-    
-    setCenterZoom: function(location, zoom) {
-        this.coordinate = this.provider.locationCoordinate(location).zoomTo(zoom);
-        this.draw();
-    },
+
+    // panning
     
     panBy: function(dx, dy) {
-        this.coordinate.column -= dx / 256.0;
-        this.coordinate.row -= dy / 256.0;
+        this.coordinate.column -= dx / this.provider.tileWidth;
+        this.coordinate.row -= dy / this.provider.tileHeight;
         this.draw();
     },
 
@@ -437,6 +479,17 @@ Map.prototype = {
     
     panUp: function() {
         this.panBy(0,100);
+    },
+    
+    // positioning
+    
+    setCenter: function(location) {
+        this.setCenterZoom(location, this.coordinate.zoom);
+    },
+    
+    setCenterZoom: function(location, zoom) {
+        this.coordinate = this.provider.locationCoordinate(location).zoomTo(zoom);
+        this.draw();
     },
 
     setExtent: function(locations) {
@@ -495,22 +548,17 @@ Map.prototype = {
         this.draw();
     },
     
-    getExtent: function() {
-        var extent = new Array();
-        extent.push(this.pointLocation(new Point(0,0)));
-        extent.push(this.pointLocation(this.dimensions));
-        return extent;
-    },
+    // projecting points on and off screen
 
     locationPoint: function(location) {
         /* Return an x, y point on the map image for a given geographical location. */
         
         var coord = this.provider.locationCoordinate(location).zoomTo(this.coordinate.zoom)
         
-        // distance from the known coordinate offset
-        var point = new Point(0, 0)
-        point.x = this.provider.tileWidth * (coord.column - this.coordinate.column)
-        point.y = this.provider.tileHeight * (coord.row - this.coordinate.row)
+        // distance from the center of the map
+        var point = new Point(this.dimensions.x/2, this.dimensions.y/2)
+        point.x += this.provider.tileWidth * (coord.column - this.coordinate.column)
+        point.y += this.provider.tileHeight * (coord.row - this.coordinate.row)
         
         return point
     },
@@ -518,31 +566,32 @@ Map.prototype = {
     pointLocation: function(point) {
         /* Return a geographical location on the map image for a given x, y point. */
         
-        var hizoomCoord = this.coordinate.zoomTo(20)
+        // new point coordinate reflecting distance from map center, in tile widths
+        var coord = this.coordinate.copy();
+        coord.column += (point.x - this.dimensions.x/2) / this.provider.tileWidth;
+        coord.row += (point.y - this.dimensions.y/2) / this.provider.tileHeight;
         
-        // because of the center/corner business
-        point = new Point(point.x - this.dimensions.x/2,
-                           point.y - this.dimensions.y/2)
-        
-        // distance in tile widths from reference tile to point
-        var xTiles = point.x / this.provider.tileWidth;
-        var yTiles = point.y / this.provider.tileHeight;
-        
-        // distance in rows & columns at maximum zoom
-        var xDistance = xTiles * Math.pow(2, (20 - this.coordinate.zoom));
-        var yDistance = yTiles * Math.pow(2, (20 - this.coordinate.zoom));
-        
-        // new point coordinate reflecting that distance
-        var coord = new Coordinate(Math.round(hizoomCoord.row + yDistance),
-                                   Math.round(hizoomCoord.column + xDistance),
-                                   hizoomCoord.zoom)
-
-        coord = coord.zoomTo(this.coordinate.zoom)
-        
-        var location = this.provider.coordinateLocation(coord)
-        
-        return location
+        return this.provider.coordinateLocation(coord);
     },
+    
+    // inspecting
+
+    getExtent: function() {
+        var extent = new Array();
+        extent.push(this.pointLocation(new Point(0,0)));
+        extent.push(this.pointLocation(this.dimensions));
+        return extent;
+    },
+    
+    getCenter: function() {
+        return this.provider.coordinateLocation(this.coordinate);
+    },
+    
+    getZoom: function() {
+        return this.coordinate.zoom;
+    },
+    
+    // rendering    
     
     draw: function() {
         
@@ -555,18 +604,17 @@ Map.prototype = {
         // get back to the top left
         while (corner.x > 0) {
             corner.x -= this.provider.tileWidth
-            coord = coord.left()
+            coord.column -= 1;
         }
         while (corner.y > 0) {
             corner.y -= this.provider.tileHeight
-            coord = coord.up()
+            coord.row -= 1;
         }
 
         var wantedTiles = new Object()
         
-        var rowCoord = coord.copy()
+        var tileCoord = coord.copy()
         for (var y = corner.y; y < this.dimensions.y; y += this.provider.tileHeight) {
-            var tileCoord = rowCoord.copy()
             for (var x = corner.x; x < this.dimensions.x; x += this.provider.tileWidth) {
                 var tileKey = tileCoord.toString();
                 wantedTiles[tileKey] = true;
@@ -577,22 +625,23 @@ Map.prototype = {
                 }
                 else {
                     var tile = this.tiles[tileKey];
-                    if (!document.getElementById(tileKey)) {
-                        tile.style.position = 'absolute'
+                    if (!document.getElementById(tile.id)) {
                         this.parent.appendChild(tile)
                     }
                     tile.style.left = x + 'px'
                     tile.style.top = y + 'px'
                 }
-                tileCoord = tileCoord.right()
+                tileCoord.column += 1
             }
-            rowCoord = rowCoord.down()
+            tileCoord.row += 1
+            tileCoord.column = coord.column
         }
         
         var visibleTiles = this.parent.getElementsByTagName('img')
         var condemnedTiles = new Array()
         for (var i = visibleTiles.length-1; i >= 0; i--) {
             if (!wantedTiles[visibleTiles[i].id]) {
+                // get rid of it (in a moment)
                 condemnedTiles.push(visibleTiles[i])
             }
         }
@@ -602,23 +651,27 @@ Map.prototype = {
         }
     },
     
-    
     requestTile: function(tileCoord) {
         var tileKey = tileCoord.toString();
         if (!this.requestedTiles[tileKey]) {
             var tile = new Image()
             tile.id = tileKey
-            tile.src = this.provider.getTileUrls(tileCoord)
+            tile.src = this.provider.getTileUrl(tileCoord)
             tile.width = this.provider.tileWidth
             tile.height = this.provider.tileHeight
+            tile.style.position = 'absolute'
             this.requestedTiles[tileKey] = tile
+            this.tiles[tileKey] = tile            
             var theMap = this
-            var theTiles = this.tiles
             var theRequestedTiles = this.requestedTiles
             tile.onload = function() {
-                theTiles[tileKey] = tile
                 delete theRequestedTiles[tileKey]
+                // TODO: can we position the tile here instead of redrawing all tiles?
                 theMap.draw()
+                // tidy closure?
+                theMap = null;
+                theRequestedTiles = null;
+                tile = null;
                 //tile.style.opacity = 0;
                 //tile.interval = setInterval(theMap.fadeTile, 25, tile);
             }
