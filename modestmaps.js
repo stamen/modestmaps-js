@@ -379,6 +379,7 @@ Map.prototype = {
     },
 
     getMouseUp: function() {
+        var theMap = this;
         return function(e) {
             if (!e) var e = window.event;
     
