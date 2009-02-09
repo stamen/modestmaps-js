@@ -339,6 +339,7 @@ function Map(parent, provider, dimensions) {
         layer.style.position = 'absolute'
         layer.style.top = '0px'
         layer.style.left = '0px'
+        layer.style.webkitTransition = '-webkit-transform 1s ease'
         this.parent.appendChild(layer);
         this.layers.push(layer)
     }
@@ -619,7 +620,7 @@ Map.prototype = {
     
     draw: function(onlyThisLayer) {
 
-        console.log('--- begin draw ' + onlyThisLayer);
+        //console.log('--- begin draw ' + onlyThisLayer);
         
         // so this is the corner, taking the container offset into account
         var coord = this.coordinate.container()
@@ -672,17 +673,15 @@ Map.prototype = {
                     if (!document.getElementById(tile.id)) {
                         thisLayer.appendChild(tile)
                     }
-                    // TODO: for opacity to work, fadeTile needs to trigger a redraw when it ends
-/*                    if (tile.style.opacity < 1) {
+                    var computedStyle = document.defaultView.getComputedStyle(tile,null);
+                    if (computedStyle.opacity < 1) {
+                        //console.log(tile.id + ' opacity: ' + computedStyle.opacity);
                         showParentLayer = true
-                        if (!tile.interval) {
-                            tile.interval = setInterval(this.fadeTile, 25, tile);
-                        }
                         for (var pz = 1; pz <= 5; pz++) {
                             var parentKey = tileCoord.zoomBy(-pz).container().toString();
                             wantedTiles[parentKey] = true;
                         }
-                    } */
+                    }
                     tile.style.left = x + 'px'
                     tile.style.top = y + 'px'
                 }
@@ -692,41 +691,67 @@ Map.prototype = {
             tileCoord.column = coord.column
         }
         
+        //console.log(showParentLayer);
+        
         if (!onlyThisLayer || !showParentLayer) {
             for (var i = 0; i < this.layers.length; i++) {
                 var layer = this.layers[i];
-                if (i == parseInt(coord.zoom)) {
-                    layer.style.display = 'block'
-                    layer.style.webkitTransform = null;
-                }
-                else if (showParentLayer && layer.coordinate && Math.abs(i - parseInt(coord.zoom)) < 5) {
-                    layer.style.display = 'block'
+
+//                if (i == parseInt(coord.zoom)) {
+//                    layer.style.display = 'block';
+//                    layer.style.webkitTransform = 'translate(0px, 0px) scale(1)';
+//                }
+                //else
+                if (layer.coordinate) { // && Math.abs(i - parseInt(coord.zoom)) < 5) {
+                    layer.style.display = 'block';
                     var layerCoord = layer.coordinate.zoomTo(coord.zoom);
                     var tx = (layerCoord.column - this.coordinate.column) * this.provider.tileWidth;
                     var ty = (layerCoord.row - this.coordinate.row) * this.provider.tileHeight;
                     var scale = Math.pow(2, coord.zoom - layer.coordinate.zoom);
-                    layer.style.webkitTransform = 'translate('+parseInt(tx)+'px, '+parseInt(ty)+'px) scale('+scale+')';
+                    layer.style.webkitTransform = 'translate('+parseInt(tx)+'px, '+parseInt(ty)+'px) scale('+scale+')';                
                 }
                 else {
-                    layer.style.display = 'none'
+                    layer.style.display = 'none';
                     layer.style.webkitTransform = null;
                 }
+
                 var visibleTiles = layer.getElementsByTagName('img');
                 // loop backwards so removals don't affect iteration
                 for (var j = visibleTiles.length-1; j >= 0; j--) {
                     if (!wantedTiles[visibleTiles[j].id]) {
                         // get rid of it
                         var tile = visibleTiles[j];
-                        //if (tile.interval) clearInterval(tile.interval);
-                        //tile.style.opacity = 0
                         layer.removeChild(tile)
+                        if (requestedTiles[tile.id]) {
+                            tile.src = null
+                            tile.onload = null;
+                            tile.onerror = null;
+                            delete requestedTiles[tile.id]
+                        }
+                        delete tiles[tile.id];
                     }
                 }
             }
+            
+            /* var layerIndexes = new Array();
+            for (var i = 0; i < this.layers.length; i++) {
+                layerIndexes.push(i);
+            }
+            layerIndexes.sort(function compare(a, b) {
+                var aDiff = Math.abs(a-coord.zoom);
+                var bDiff = Math.abs(b-coord.zoom);
+                return aDiff < bDiff ? -1 : aDiff > bDiff ? 1 : a == b ? 0 : a > b ? 1 : -1;
+            });
+
+            for (var i = 0; i < this.layers.length; i++) {
+                this.parent.appendChild(this.parent.removeChild(this.layers[layerIndexes[i]]));
+            } */
         }
         
-        console.log('--- end draw ' + onlyThisLayer);
+        //console.log('--- end draw ' + onlyThisLayer);
     },
+    
+    redrawTimer: undefined,
     
     requestTile: function(tileCoord) {
         var tileKey = tileCoord.toString();
@@ -737,7 +762,7 @@ Map.prototype = {
             tile.width = this.provider.tileWidth
             tile.height = this.provider.tileHeight
             tile.style.position = 'absolute'
-            //tile.style.opacity = 0
+            tile.className = 'tile'            
             this.requestedTiles[tileKey] = tile
             var theMap = this
             var theTiles = this.tiles
@@ -747,8 +772,15 @@ Map.prototype = {
                 theTiles[tileKey] = tile
                 // TODO: can we position the tile here instead of redrawing all tiles?
                 theMap.draw(true)
+                // TODO: for opacity to work, we need to trigger a redraw when this ends (ontransitionend?)
+                tile.className = 'loaded tile'
+                if (theMap.redrawTimer) clearTimeout(redrawTimer);
+                function redraw() {
+                    theMap.draw(true);
+                    theMap = null;
+                }
+                redrawTimer = setTimeout(redraw, 1000);
                 // tidy closure?
-                theMap = null;
                 theTiles = null;
                 theRequestedTiles = null;
                 tile = null;
@@ -756,16 +788,6 @@ Map.prototype = {
             tile.onload = loadComplete;
             tile.onerror = loadComplete;
         }
-    },
-    
-    fadeTile: function(tile) {
-        if (tile.style.opacity < 1) {
-            tile.style.opacity = parseFloat(tile.style.opacity) + 0.2;
-        }
-        else {
-            tile.style.opacity = 1;
-            clearInterval(tile.interval);
-        }
     }
-    
+        
 }
