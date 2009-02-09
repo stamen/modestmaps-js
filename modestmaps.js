@@ -31,15 +31,19 @@ function Coordinate(row, column, zoom) {
 }
 
 Coordinate.prototype = {
+
     row: 0,
     column: 0,
     zoom: 0,
+
     toString: function() {
         return "(" + this.row.toFixed(3) + ", " + this.column.toFixed(3) + " @" + this.zoom.toFixed(3) + ")"
     },
+
     copy: function() {
         return new Coordinate(this.row, this.column, this.zoom)
     },
+
     container: function() {
         return new Coordinate(Math.floor(this.row), Math.floor(this.column), Math.floor(this.zoom))
     },
@@ -310,6 +314,7 @@ function Map(parent, provider, dimensions) {
     this.parent.style.position = 'relative'
     this.parent.style.width = dimensions.x + 'px'
     this.parent.style.height = dimensions.y + 'px'
+    this.parent.style.padding = '0'
     this.parent.style.overflow = 'hidden'
     this.parent.style.backgroundColor = '#eee'
     
@@ -320,6 +325,23 @@ function Map(parent, provider, dimensions) {
         this.parent.addEventListener('DOMMouseScroll', this.getMouseWheel(), false);
     }
     this.parent.onmousewheel = this.getMouseWheel()
+
+    this.layers = new Array();
+
+    // add a div for each zoom level
+    for (var z = 0; z <= 20; z++) {
+        var layer = document.createElement('div')
+        layer.id = 'zoom-'+z;
+        layer.style.margin = '0'
+        layer.style.padding = '0'
+        layer.style.width = '100%'
+        layer.style.height = '100%'
+        layer.style.position = 'absolute'
+        layer.style.top = '0px'
+        layer.style.left = '0px'
+        this.parent.appendChild(layer);
+        this.layers.push(layer)
+    }
     
     this.provider = provider
     this.dimensions = dimensions
@@ -337,6 +359,7 @@ Map.prototype = {
 
     tiles: null,
     requestedTiles: null,
+    layers: null,
 
     toString: function() {
         return 'Map(' + this.provider.toString() + this.dimensions.toString() + this.coordinate.toString() + ')';
@@ -594,7 +617,9 @@ Map.prototype = {
     
     // rendering    
     
-    draw: function() {
+    draw: function(onlyThisLayer) {
+
+        //console.log('--- begin draw ' + onlyThisLayer);
         
         // so this is the corner, taking the container offset into account
         var coord = this.coordinate.container()
@@ -614,6 +639,11 @@ Map.prototype = {
 
         var wantedTiles = new Object()
         
+        var thisLayer = document.getElementById('zoom-'+parseInt(coord.zoom));
+        thisLayer.coordinate = this.coordinate.copy();
+        
+        var showParentLayer = false
+        
         var tileCoord = coord.copy()
         for (var y = corner.y; y < this.dimensions.y; y += this.provider.tileHeight) {
             for (var x = corner.x; x < this.dimensions.x; x += this.provider.tileWidth) {
@@ -623,11 +653,24 @@ Map.prototype = {
                     if (!this.requestedTiles[tileKey]) {
                         this.requestTile(tileCoord);
                     }
+                    showParentLayer = true
+                    if (!onlyThisLayer) {
+                        for (var pz = 1; pz <= 5; pz++) {
+                            var parentKey = tileCoord.zoomBy(-pz).container().toString();
+                            wantedTiles[parentKey] = true;
+                        }
+                        var childCoord = tileCoord.zoomBy(1);
+                        wantedTiles[childCoord.toString()] = true;
+                        wantedTiles[childCoord.right().toString()] = true;
+                        childCoord = childCoord.down();
+                        wantedTiles[childCoord.toString()] = true;
+                        wantedTiles[childCoord.right().toString()] = true;
+                    }
                 }
                 else {
                     var tile = this.tiles[tileKey];
                     if (!document.getElementById(tile.id)) {
-                        this.parent.appendChild(tile)
+                        thisLayer.appendChild(tile)
                     }
                     tile.style.left = x + 'px'
                     tile.style.top = y + 'px'
@@ -638,55 +681,110 @@ Map.prototype = {
             tileCoord.column = coord.column
         }
         
-        var visibleTiles = this.parent.getElementsByTagName('img')
-        var condemnedTiles = new Array()
-        for (var i = visibleTiles.length-1; i >= 0; i--) {
-            if (!wantedTiles[visibleTiles[i].id]) {
-                // get rid of it (in a moment)
-                condemnedTiles.push(visibleTiles[i])
+        //console.log(showParentLayer);
+        
+        if (!onlyThisLayer || !showParentLayer) {
+
+            for (var i = 0; i < coord.zoom-5; i++) {
+                var layer = this.layers[i];
+                layer.style.display = 'none'
+
+                var visibleTiles = layer.getElementsByTagName('img');
+                for (var j = visibleTiles.length-1; j >= 0; j--) {
+                    layer.removeChild(visibleTiles[j])
+                }                    
             }
+
+            for (var i = coord.zoom+2; i < this.layers.length; i++) {
+                var layer = this.layers[i];
+                layer.style.display = 'none'
+
+                var visibleTiles = layer.getElementsByTagName('img');
+                for (var j = visibleTiles.length-1; j >= 0; j--) {
+                    layer.removeChild(visibleTiles[j])
+                }                    
+            }
+        
+            for (var i = coord.zoom-5; i < Math.min(coord.zoom+2, this.layers.length); i++) {
+
+                var layer = this.layers[i];
+
+                var scale = 1;
+
+                var theCoord = null;
+
+                if (layer.coordinate) {
+                    layer.style.display = 'block';
+                    if (layer != thisLayer) {
+                        theCoord = this.coordinate.zoomTo(layer.coordinate.zoom);
+                        scale = Math.pow(2, this.coordinate.zoom - layer.coordinate.zoom);
+                    }
+                }
+                else {
+                    layer.style.display = 'none';
+                }
+
+                var visibleTiles = layer.getElementsByTagName('img');
+                for (var j = visibleTiles.length-1; j >= 0; j--) {
+                    var tile = visibleTiles[j];
+                    if (!wantedTiles[tile.id]) {
+                        layer.removeChild(tile)
+                    }
+                    else if (theCoord) {
+                        var tx = ((this.dimensions.x/2) + (tile.coord.column - theCoord.column) * this.provider.tileWidth * scale);
+                        var ty = ((this.dimensions.y/2) + (tile.coord.row - theCoord.row) * this.provider.tileHeight * scale);
+                        tile.style.left = parseInt(tx) + 'px'; 
+                        tile.style.top = parseInt(ty) + 'px'; 
+                        tile.width = this.provider.tileWidth * scale;
+                        tile.height = this.provider.tileHeight * scale;
+                    }
+                    else {
+                        tile.width = this.provider.tileWidth;
+                        tile.height = this.provider.tileHeight;                    
+                    }
+                }
+            }
+            
         }
         
-        while (condemnedTiles.length > 0) {
-            this.parent.removeChild(condemnedTiles.pop())
-        }
+        //console.log('--- end draw ' + onlyThisLayer);
     },
+    
+    redrawTimer: undefined,
     
     requestTile: function(tileCoord) {
         var tileKey = tileCoord.toString();
         if (!this.requestedTiles[tileKey]) {
             var tile = new Image()
             tile.id = tileKey
+            tile.coord = tileCoord.copy();
             tile.src = this.provider.getTileUrl(tileCoord)
             tile.width = this.provider.tileWidth
             tile.height = this.provider.tileHeight
             tile.style.position = 'absolute'
             this.requestedTiles[tileKey] = tile
-            this.tiles[tileKey] = tile            
             var theMap = this
+            var theTiles = this.tiles
             var theRequestedTiles = this.requestedTiles
-            tile.onload = function() {
+            function loadComplete() {
                 delete theRequestedTiles[tileKey]
+                theTiles[tileKey] = tile
                 // TODO: can we position the tile here instead of redrawing all tiles?
-                theMap.draw()
+                theMap.draw(true)
+                if (theMap.redrawTimer) clearTimeout(redrawTimer);
+                function redraw() {
+                    theMap.draw(true);
+                    theMap = null;
+                }
+                redrawTimer = setTimeout(redraw, 1000);
                 // tidy closure?
-                theMap = null;
+                theTiles = null;
                 theRequestedTiles = null;
                 tile = null;
-                //tile.style.opacity = 0;
-                //tile.interval = setInterval(theMap.fadeTile, 25, tile);
             }
+            tile.onload = loadComplete;
+            tile.onerror = loadComplete;
         }
-    }//,
-    
-/*    fadeTile: function(tile) {
-        if (tile.style.opacity < 1) {
-            tile.style.opacity = parseFloat(tile.style.opacity) + 0.05;
-        }
-        else {
-            tile.style.opacity = 1;
-            clearInterval(tile.interval);
-        }
-    } */
-    
+    }
+        
 }
