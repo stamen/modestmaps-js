@@ -1,0 +1,16 @@
+Modest Maps JS is experimental, and under active development.
+
+Plans involve experimentation with the following:
+
+* SVG and Canvas drawing
+* Webkit/Gecko CSS transforms/animations
+* IE CSS filters.
+
+This is not intended to be a replacement for Mapstraction or OpenLayers. 
+If you need that kind of functionality today, I can recommend the Cloudmade
+webmaps-lite API: www.cloudmade.com
+
+Please speak up on getsatisfaction.com if you would like to get involved.
+
+-- Tom Carden, Feb 8 2009.
+
