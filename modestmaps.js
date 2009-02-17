@@ -343,11 +343,13 @@ function Map(parent, provider, dimensions) {
         this.layers.push(layer)
     }
     
-    this.provider = provider
-    this.dimensions = dimensions
-    this.coordinate = new Coordinate(0.5,0.5,0)
-    this.tiles = new Object()
-    this.requestedTiles = new Object()
+    this.provider = provider;
+    this.dimensions = dimensions;
+    this.coordinate = new Coordinate(0.5,0.5,0);
+    this.tiles = new Object();
+    this.requestedTiles = new Object();
+    
+    this.callbacks = {zoomed: [], panned: [], centered: [], extentset: []};
 }
 
 Map.prototype = {
@@ -360,9 +362,27 @@ Map.prototype = {
     tiles: null,
     requestedTiles: null,
     layers: null,
+    
+    callbacks: null,
 
     toString: function() {
         return 'Map(' + this.provider.toString() + this.dimensions.toString() + this.coordinate.toString() + ')';
+    },
+    
+    addCallback: function(event, callback)
+    {
+        if(typeof(callback) == 'function' && this.callbacks[event]) {
+            this.callbacks[event].push(callback);
+        }
+    },
+    
+    dispatchCallback: function(event, message)
+    {
+        if(this.callbacks[event]) {
+            for(var i = 0; i < this.callbacks[event].length; i += 1) {
+                this.callbacks[event][i](this, message);
+            }
+        }
     },
 
     // events
@@ -472,11 +492,14 @@ Map.prototype = {
     zoomBy: function(zoomOffset) {
         this.coordinate = this.coordinate.zoomBy(zoomOffset);
         this.draw();
+
+        this.dispatchCallback('zoomed', zoomOffset);
     },
     
     zoomByAbout: function(zoomOffset, point) {
         var location = this.pointLocation(point)
         this.coordinate = this.coordinate.zoomBy(zoomOffset)
+        this.dispatchCallback('zoomed', zoomOffset);
         var newPoint = this.locationPoint(location)
         this.panBy(point.x - newPoint.x, point.y - newPoint.y)
     },
@@ -487,6 +510,8 @@ Map.prototype = {
         this.coordinate.column -= dx / this.provider.tileWidth;
         this.coordinate.row -= dy / this.provider.tileHeight;
         this.draw();
+
+        this.dispatchCallback('panned', [dx, dy]);
     },
 
     panLeft: function() {
@@ -514,6 +539,8 @@ Map.prototype = {
     setCenterZoom: function(location, zoom) {
         this.coordinate = this.provider.locationCoordinate(location).zoomTo(zoom);
         this.draw();
+
+        this.dispatchCallback('centered', [location, zoom]);
     },
 
     setExtent: function(locations) {
@@ -570,6 +597,8 @@ Map.prototype = {
         
         this.coordinate = new Coordinate(centerRow, centerColumn, centerZoom).zoomTo(initZoom);
         this.draw();
+
+        this.dispatchCallback('extentset', locations);
     },
     
     // projecting points on and off screen
