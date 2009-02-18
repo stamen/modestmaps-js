@@ -608,10 +608,13 @@ Map.prototype = {
     
     // projecting points on and off screen
     
-    coordinatePoint: function(coord) {
+    coordinatePoint: function(coord)
+    {
         /* Return an x, y point on the map image for a given coordinate. */
         
-        coord = coord.zoomTo(this.coordinate.zoom);
+        if(coord.zoom != this.coordinate.zoom) {
+            coord = coord.zoomTo(this.coordinate.zoom);
+        }
         
         // distance from the center of the map
         var point = new Point(this.dimensions.x/2, this.dimensions.y/2)
@@ -621,7 +624,8 @@ Map.prototype = {
         return point;
     },
 
-    pointCoordinate: function(point) {
+    pointCoordinate: function(point)
+    {
         /* Return a coordinate on the map image for a given x, y point. */
         
         // new point coordinate reflecting distance from map center, in tile widths
@@ -632,18 +636,16 @@ Map.prototype = {
         return coord;
     },
 
-    locationPoint: function(location) {
+    locationPoint: function(location)
+    {
         /* Return an x, y point on the map image for a given geographical location. */
-        
-        var coord = this.provider.locationCoordinate(location);
-        return this.coordinatePoint(coord);
+        return this.coordinatePoint(this.provider.locationCoordinate(location));
     },
     
-    pointLocation: function(point) {
+    pointLocation: function(point)
+    {
         /* Return a geographical location on the map image for a given x, y point. */
-        
-        var coord = this.pointCoordinate(point);
-        return this.provider.coordinateLocation(coord);
+        return this.provider.coordinateLocation(this.pointCoordinate(point));
     },
     
     // inspecting
