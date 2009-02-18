@@ -663,8 +663,12 @@ Map.prototype = {
         return this.coordinate.zoom;
     },
     
-    getTileCornerCoordinates: function()
-    {
+    // rendering    
+    
+    draw: function(onlyThisLayer) {
+
+        //console.log('--- begin draw ' + onlyThisLayer);
+        
         // so this is the corner, taking the container offset into account
         var baseCoord = this.coordinate.container()
         var baseCorner = new Point(this.dimensions.x/2, this.dimensions.y/2);
@@ -680,84 +684,57 @@ Map.prototype = {
             baseCorner.y -= this.provider.tileHeight
             baseCoord.row -= 1;
         }
-        
-        var rows = 1 + (this.dimensions.y / this.provider.tileHeight);
-        var cols = 1 + (this.dimensions.x / this.provider.tileWidth);
-        
-        var cornerCoords = [];
-        
-        for(var row = 0; row < rows; row += 1)
-        {
-            for(var col = 0; col < cols; col += 1)
-            {
-                var tileCoord = baseCoord.right(col).down(row);
-                var tileCorner = new Point(baseCorner.x + (col * this.provider.tileWidth),
-                                           baseCorner.y + (row * this.provider.tileHeight));
-                
-                cornerCoords.push([tileCorner, tileCoord]);
-            }
-        }
-        
-        return cornerCoords;
-    },
-    
-    // rendering    
-    
-    draw: function(onlyThisLayer) {
 
-        //console.log('--- begin draw ' + onlyThisLayer);
+        var wantedTiles = new Object()
         
-        var coord = this.coordinate;
-
-        var wantedTiles = new Object();
-        
-        var thisLayer = document.getElementById('zoom-'+parseInt(coord.zoom));
+        var thisLayer = document.getElementById('zoom-'+parseInt(baseCoord.zoom));
         thisLayer.coordinate = this.coordinate.copy();
         
-        var showParentLayer = false;
+        var showParentLayer = false
         
-        var cornerCoordinates = this.getTileCornerCoordinates();
-        
-        for(var i = 0; i < cornerCoordinates.length; i += 1)
-        {
-            var tilePoint = cornerCoordinates[i][0];
-            var tileCoord = cornerCoordinates[i][1];
+        var tileCoord = baseCoord.copy()
 
-            var tileKey = tileCoord.toString();
-            wantedTiles[tileKey] = true;
-            if (!this.tiles[tileKey]) {
-                if (!this.requestedTiles[tileKey]) {
-                    this.requestTile(tileCoord);
-                }
-                showParentLayer = true
-                if (!onlyThisLayer) {
-                    for (var pz = 1; pz <= 5; pz++) {
-                        var parentKey = tileCoord.zoomBy(-pz).container().toString();
-                        wantedTiles[parentKey] = true;
+        for (var y = baseCorner.y; y < this.dimensions.y; y += this.provider.tileHeight) {
+            for (var x = baseCorner.x; x < this.dimensions.x; x += this.provider.tileWidth) {
+                var tileKey = tileCoord.toString();
+                wantedTiles[tileKey] = true;
+                if (!this.tiles[tileKey]) {
+                    if (!this.requestedTiles[tileKey]) {
+                        this.requestTile(tileCoord);
                     }
-                    var childCoord = tileCoord.zoomBy(1);
-                    wantedTiles[childCoord.toString()] = true;
-                    wantedTiles[childCoord.right().toString()] = true;
-                    childCoord = childCoord.down();
-                    wantedTiles[childCoord.toString()] = true;
-                    wantedTiles[childCoord.right().toString()] = true;
+                    showParentLayer = true
+                    if (!onlyThisLayer) {
+                        for (var pz = 1; pz <= 5; pz++) {
+                            var parentKey = tileCoord.zoomBy(-pz).container().toString();
+                            wantedTiles[parentKey] = true;
+                        }
+                        var childCoord = tileCoord.zoomBy(1);
+                        wantedTiles[childCoord.toString()] = true;
+                        wantedTiles[childCoord.right().toString()] = true;
+                        childCoord = childCoord.down();
+                        wantedTiles[childCoord.toString()] = true;
+                        wantedTiles[childCoord.right().toString()] = true;
+                    }
                 }
-            }
-            else {
-                var tile = this.tiles[tileKey];
-                if (!document.getElementById(tile.id)) {
-                    thisLayer.appendChild(tile)
+                else {
+                    var tile = this.tiles[tileKey];
+                    if (!document.getElementById(tile.id)) {
+                        thisLayer.appendChild(tile)
+                    }
+                    tile.style.left = x + 'px'
+                    tile.style.top = y + 'px'
                 }
-                tile.style.left = tilePoint.x + 'px'
-                tile.style.top = tilePoint.y + 'px'
+                tileCoord.column += 1
             }
+            tileCoord.row += 1
+            tileCoord.column = baseCoord.column
         }
         
         //console.log(showParentLayer);
         
         if (!onlyThisLayer || !showParentLayer) {
 
-            for (var i = 0; i < coord.zoom-5; i++) {
+            for (var i = 0; i < baseCoord.zoom-5; i++) {
                 var layer = this.layers[i];
                 layer.style.display = 'none'
 
@@ -767,7 +744,7 @@ Map.prototype = {
                 }                    
             }
 
-            for (var i = coord.zoom+2; i < this.layers.length; i++) {
+            for (var i = baseCoord.zoom+2; i < this.layers.length; i++) {
                 var layer = this.layers[i];
                 layer.style.display = 'none'
 
@@ -777,7 +754,7 @@ Map.prototype = {
                 }                    
             }
         
-            for (var i = coord.zoom-5; i < Math.min(coord.zoom+2, this.layers.length); i++) {
+            for (var i = baseCoord.zoom-5; i < Math.min(baseCoord.zoom+2, this.layers.length); i++) {
 
                 var layer = this.layers[i];
 

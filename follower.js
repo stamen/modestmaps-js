@@ -15,7 +15,7 @@ function Follower(map)
     this.div.style.left = '10px';
     this.div.style.top = '10px';
     
-    this.div.innerHTML = '...';
+    this.div.innerHTML = '&#xB0; Broadway and Grand';
     
     map.parent.appendChild(this.div);
 }
@@ -34,10 +34,6 @@ Follower.prototype = {
 
         } else {
             this.div.style.display = 'block';
-
-            var ccs = map.getTileCornerCoordinates();
-            this.div.innerHTML = ccs.length + ' / ' + ccs[0][0].toString() + ' / ' + ccs[0][1].toString() + ' / ' + map.getCenter().toString();
-            
             this.div.style.left = point.x + 'px';
             this.div.style.top = point.y + 'px';
         }
