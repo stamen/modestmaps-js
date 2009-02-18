@@ -607,28 +607,42 @@ Map.prototype = {
     },
     
     // projecting points on and off screen
-
-    locationPoint: function(location) {
-        /* Return an x, y point on the map image for a given geographical location. */
+    
+    coordinatePoint: function(coord) {
+        /* Return an x, y point on the map image for a given coordinate. */
         
-        var coord = this.provider.locationCoordinate(location).zoomTo(this.coordinate.zoom)
+        coord = coord.zoomTo(this.coordinate.zoom);
         
         // distance from the center of the map
         var point = new Point(this.dimensions.x/2, this.dimensions.y/2)
         point.x += this.provider.tileWidth * (coord.column - this.coordinate.column)
         point.y += this.provider.tileHeight * (coord.row - this.coordinate.row)
         
-        return point
+        return point;
     },
-    
-    pointLocation: function(point) {
-        /* Return a geographical location on the map image for a given x, y point. */
+
+    pointCoordinate: function(point) {
+        /* Return a coordinate on the map image for a given x, y point. */
         
         // new point coordinate reflecting distance from map center, in tile widths
         var coord = this.coordinate.copy();
         coord.column += (point.x - this.dimensions.x/2) / this.provider.tileWidth;
         coord.row += (point.y - this.dimensions.y/2) / this.provider.tileHeight;
         
+        return coord;
+    },
+
+    locationPoint: function(location) {
+        /* Return an x, y point on the map image for a given geographical location. */
+        
+        var coord = this.provider.locationCoordinate(location);
+        return this.coordinatePoint(coord);
+    },
+    
+    pointLocation: function(point) {
+        /* Return a geographical location on the map image for a given x, y point. */
+        
+        var coord = this.pointCoordinate(point);
         return this.provider.coordinateLocation(coord);
     },
     
