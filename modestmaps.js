@@ -61,22 +61,22 @@ Coordinate.prototype = {
     },
 
     up: function(distance) {
-        if (!distance) distance = 1;
+        if (distance == undefined) distance = 1;
         return new Coordinate(this.row - distance, this.column, this.zoom)
     },
 
     right: function(distance) {
-        if (!distance) distance = 1;
+        if (distance == undefined) distance = 1;
         return new Coordinate(this.row, this.column + distance, this.zoom)
     },
 
     down: function(distance) {
-        if (!distance) distance = 1;
+        if (distance == undefined) distance = 1;
         return new Coordinate(this.row + distance, this.column, this.zoom)
     },
 
     left: function(distance) {
-        if (!distance) distance = 1;
+        if (distance == undefined) distance = 1;
         return new Coordinate(this.row, this.column - distance, this.zoom)
     }
 }
@@ -380,7 +380,11 @@ Map.prototype = {
     {
         if(this.callbacks[event]) {
             for(var i = 0; i < this.callbacks[event].length; i += 1) {
-                this.callbacks[event][i](this, message);
+                try {
+                    this.callbacks[event][i](this, message);
+                } catch(e) {
+                    // meh
+                }
             }
         }
     },
@@ -499,9 +503,10 @@ Map.prototype = {
     zoomByAbout: function(zoomOffset, point) {
         var location = this.pointLocation(point)
         this.coordinate = this.coordinate.zoomBy(zoomOffset)
-        this.dispatchCallback('zoomed', zoomOffset);
         var newPoint = this.locationPoint(location)
         this.panBy(point.x - newPoint.x, point.y - newPoint.y)
+
+        this.dispatchCallback('zoomed', zoomOffset);
     },
 
     // panning
@@ -644,70 +649,94 @@ Map.prototype = {
         return this.coordinate.zoom;
     },
     
+    getTileCornerCoordinates: function()
+    {
+        // so this is the corner, taking the container offset into account
+        var baseCoord = this.coordinate.container()
+        var baseCorner = new Point(this.dimensions.x/2, this.dimensions.y/2);
+        baseCorner.x += (baseCoord.column - this.coordinate.column) * this.provider.tileWidth
+        baseCorner.y += (baseCoord.row - this.coordinate.row) * this.provider.tileHeight
+
+        // get back to the top left
+        while (baseCorner.x > 0) {
+            baseCorner.x -= this.provider.tileWidth
+            baseCoord.column -= 1;
+        }
+        while (baseCorner.y > 0) {
+            baseCorner.y -= this.provider.tileHeight
+            baseCoord.row -= 1;
+        }
+        
+        var rows = 1 + (this.dimensions.y / this.provider.tileHeight);
+        var cols = 1 + (this.dimensions.x / this.provider.tileWidth);
+        
+        var cornerCoords = [];
+        
+        for(var row = 0; row < rows; row += 1)
+        {
+            for(var col = 0; col < cols; col += 1)
+            {
+                var tileCoord = baseCoord.right(col).down(row);
+                var tileCorner = new Point(baseCorner.x + (col * this.provider.tileWidth),
+                                           baseCorner.y + (row * this.provider.tileHeight));
+                
+                cornerCoords.push([tileCorner, tileCoord]);
+            }
+        }
+        
+        return cornerCoords;
+    },
+    
     // rendering    
     
     draw: function(onlyThisLayer) {
 
         //console.log('--- begin draw ' + onlyThisLayer);
         
-        // so this is the corner, taking the container offset into account
-        var coord = this.coordinate.container()
-        var corner = new Point(this.dimensions.x/2, this.dimensions.y/2);
-        corner.x += (coord.column - this.coordinate.column) * this.provider.tileWidth
-        corner.y += (coord.row - this.coordinate.row) * this.provider.tileHeight
+        var coord = this.coordinate;
 
-        // get back to the top left
-        while (corner.x > 0) {
-            corner.x -= this.provider.tileWidth
-            coord.column -= 1;
-        }
-        while (corner.y > 0) {
-            corner.y -= this.provider.tileHeight
-            coord.row -= 1;
-        }
-
-        var wantedTiles = new Object()
+        var wantedTiles = new Object();
         
         var thisLayer = document.getElementById('zoom-'+parseInt(coord.zoom));
         thisLayer.coordinate = this.coordinate.copy();
         
-        var showParentLayer = false
+        var showParentLayer = false;
         
-        var tileCoord = coord.copy()
-        for (var y = corner.y; y < this.dimensions.y; y += this.provider.tileHeight) {
-            for (var x = corner.x; x < this.dimensions.x; x += this.provider.tileWidth) {
-                var tileKey = tileCoord.toString();
-                wantedTiles[tileKey] = true;
-                if (!this.tiles[tileKey]) {
-                    if (!this.requestedTiles[tileKey]) {
-                        this.requestTile(tileCoord);
-                    }
-                    showParentLayer = true
-                    if (!onlyThisLayer) {
-                        for (var pz = 1; pz <= 5; pz++) {
-                            var parentKey = tileCoord.zoomBy(-pz).container().toString();
-                            wantedTiles[parentKey] = true;
-                        }
-                        var childCoord = tileCoord.zoomBy(1);
-                        wantedTiles[childCoord.toString()] = true;
-                        wantedTiles[childCoord.right().toString()] = true;
-                        childCoord = childCoord.down();
-                        wantedTiles[childCoord.toString()] = true;
-                        wantedTiles[childCoord.right().toString()] = true;
-                    }
+        var cornerCoordinates = this.getTileCornerCoordinates();
+        
+        for(var i = 0; i < cornerCoordinates.length; i += 1)
+        {
+            var tilePoint = cornerCoordinates[i][0];
+            var tileCoord = cornerCoordinates[i][1];
+
+            var tileKey = tileCoord.toString();
+            wantedTiles[tileKey] = true;
+            if (!this.tiles[tileKey]) {
+                if (!this.requestedTiles[tileKey]) {
+                    this.requestTile(tileCoord);
                 }
-                else {
-                    var tile = this.tiles[tileKey];
-                    if (!document.getElementById(tile.id)) {
-                        thisLayer.appendChild(tile)
+                showParentLayer = true
+                if (!onlyThisLayer) {
+                    for (var pz = 1; pz <= 5; pz++) {
+                        var parentKey = tileCoord.zoomBy(-pz).container().toString();
+                        wantedTiles[parentKey] = true;
                     }
-                    tile.style.left = x + 'px'
-                    tile.style.top = y + 'px'
+                    var childCoord = tileCoord.zoomBy(1);
+                    wantedTiles[childCoord.toString()] = true;
+                    wantedTiles[childCoord.right().toString()] = true;
+                    childCoord = childCoord.down();
+                    wantedTiles[childCoord.toString()] = true;
+                    wantedTiles[childCoord.right().toString()] = true;
                 }
-                tileCoord.column += 1
             }
-            tileCoord.row += 1
-            tileCoord.column = coord.column
+            else {
+                var tile = this.tiles[tileKey];
+                if (!document.getElementById(tile.id)) {
+                    thisLayer.appendChild(tile)
+                }
+                tile.style.left = tilePoint.x + 'px'
+                tile.style.top = tilePoint.y + 'px'
+            }
         }
         
         //console.log(showParentLayer);
