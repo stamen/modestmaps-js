@@ -1,5 +1,7 @@
 function Follower(map)
 {
+    this.coord = map.provider.locationCoordinate(new Location(37.811530, -122.2666097));
+
     var follower = this;
     
     var callback = function(m, a) { return follower.onMapMoved(m, a); };
@@ -21,15 +23,24 @@ function Follower(map)
 Follower.prototype = {
 
     div: null,
+    coord: null,
 
     onMapMoved: function(map, message)
     {
-        var ccs = map.getTileCornerCoordinates();
-        this.div.innerHTML = ccs.length + ' / ' + ccs[0][0].toString() + ' / ' + ccs[0][1].toString() + ' / ' + map.getCenter().toString();
+        var point = map.coordinatePoint(this.coord);
         
-        var point = map.locationPoint(new Location(37.81153005440273, -122.26660966873169));
-        this.div.style.left = point.x + 'px';
-        this.div.style.top = point.y + 'px';
+        if(point.x < 0 || point.y < 0 || point.x > map.dimensions.x || point.y > map.dimensions.y) {
+            this.div.style.display = 'none';
+
+        } else {
+            this.div.style.display = 'block';
+
+            var ccs = map.getTileCornerCoordinates();
+            this.div.innerHTML = ccs.length + ' / ' + ccs[0][0].toString() + ' / ' + ccs[0][1].toString() + ' / ' + map.getCenter().toString();
+            
+            this.div.style.left = point.x + 'px';
+            this.div.style.top = point.y + 'px';
+        }
     }
 
 };
