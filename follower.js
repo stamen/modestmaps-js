@@ -1,10 +1,15 @@
-function Follower(map)
+function Follower(map, location, content)
 {
-    this.coord = map.provider.locationCoordinate(new Location(37.811530, -122.2666097));
+    this.coord = map.provider.locationCoordinate(location);
+    
+    this.offset = new Point(0, 0);
+    this.dimensions = new Point(100, 50);
+    this.padding = new Point(10, 10);
+    this.offset = new Point(0, -50);
 
     var follower = this;
     
-    var callback = function(m, a) { return follower.onMapMoved(m, a); };
+    var callback = function(m, a) { return follower.draw(m); };
     map.addCallback('panned', callback);
     map.addCallback('zoomed', callback);
     map.addCallback('centered', callback);
@@ -12,30 +17,63 @@ function Follower(map)
     
     this.div = document.createElement('div');
     this.div.style.position = 'absolute';
-    this.div.style.left = '10px';
-    this.div.style.top = '10px';
+    this.div.style.width = this.dimensions.x + 'px';
+    this.div.style.height = this.dimensions.y + 'px';
+    this.div.style.backgroundColor = 'white';
+    this.div.style.border = 'solid black 1px';
     
-    this.div.innerHTML = '&#xB0; Broadway and Grand';
+    this.div.innerHTML = content;
+    
+    this.div.onmousedown = function(e) {
+        e.cancelBubble = true;
+        if (e.stopPropagation) e.stopPropagation();
+        return false;
+    };
     
     map.parent.appendChild(this.div);
+    
+    this.draw(map);
 }
 
 Follower.prototype = {
 
     div: null,
     coord: null,
+    
+    offset: null,
+    dimensions: null,
+    padding: null,
 
-    onMapMoved: function(map, message)
+    draw: function(map)
     {
-        var point = map.coordinatePoint(this.coord);
+        try {
+            var point = map.coordinatePoint(this.coord);
+
+        } catch(e) {
+            // too soon?
+            return;
+        }
         
-        if(point.x < 0 || point.y < 0 || point.x > map.dimensions.x || point.y > map.dimensions.y) {
+        if(point.x + this.dimensions.x + this.offset.x < 0) {
+            // too far left
+            this.div.style.display = 'none';
+        
+        } else if(point.y + this.dimensions.y + this.offset.y < 0) {
+            // too far up
+            this.div.style.display = 'none';
+        
+        } else if(point.x + this.offset.x > map.dimensions.x) {
+            // too far right
+            this.div.style.display = 'none';
+        
+        } else if(point.y + this.offset.y > map.dimensions.y) {
+            // too far down
             this.div.style.display = 'none';
 
         } else {
             this.div.style.display = 'block';
-            this.div.style.left = point.x + 'px';
-            this.div.style.top = point.y + 'px';
+            this.div.style.left = point.x + this.offset.x + 'px';
+            this.div.style.top = point.y + this.offset.y + 'px';
         }
     }
 

@@ -12,7 +12,7 @@
         });
         map = new Map('map', provider, new Point(640,480))
         
-        f = new Follower(map);
+        f = new Follower(map, new Location(37.811530, -122.2666097), '&#xB0; Broadway and Grand');
         
         map.setCenterZoom(new Location(37.804656, -122.263606), 14);
         map.draw();
