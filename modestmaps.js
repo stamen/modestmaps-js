@@ -486,7 +486,10 @@ com.modestmaps.Map.prototype = {
             }
  
             e.cancelBubble = true;
+            e.cancel = true;
+            e.returnValue = false;
             if (e.stopPropagation) e.stopPropagation();
+            if (e.preventDefault) e.preventDefault();
             
             return false;
         };
