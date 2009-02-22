@@ -1,22 +1,31 @@
+// namespacing!
+if (!com) {
+    var com = { };
+    if (!com.modestmaps) {
+        com.modestmaps = {};
+    }
+}
+
 //////////////////////////// Make inheritance bearable
 
-function extend(child, parent)
-{
-  for (var property in parent.prototype) {
-    if (typeof child.prototype[property] == "undefined")
-      child.prototype[property] = parent.prototype[property];
-  }
-  return child;
+com.modestmaps.extend = function(child, parent) {
+    for (var property in parent.prototype) {
+        if (typeof child.prototype[property] == "undefined") {
+            child.prototype[property] = parent.prototype[property];
+        }
+    }
+    return child;
 }
+
 
 //////////////////////////// Core
 
-function Point(x,y) {
-    this.x = parseFloat(x)
-    this.y = parseFloat(y)
+com.modestmaps.Point = function(x, y) {
+    this.x = parseFloat(x);
+    this.y = parseFloat(y);
 }
 
-Point.prototype = {
+com.modestmaps.Point.prototype = {
     x: 0,
     y: 0,
     toString: function() {
@@ -24,71 +33,71 @@ Point.prototype = {
     }
 }
 
-function Coordinate(row, column, zoom) {
-    this.row = row
-    this.column = column
-    this.zoom = zoom
+com.modestmaps.Coordinate = function(row, column, zoom) {
+    this.row = row;
+    this.column = column;
+    this.zoom = zoom;
 }
 
-Coordinate.prototype = {
+com.modestmaps.Coordinate.prototype = {
 
     row: 0,
     column: 0,
     zoom: 0,
 
     toString: function() {
-        return "(" + this.row.toFixed(3) + ", " + this.column.toFixed(3) + " @" + this.zoom.toFixed(3) + ")"
+        return "(" + this.row.toFixed(3) + ", " + this.column.toFixed(3) + " @" + this.zoom.toFixed(3) + ")";
     },
 
     copy: function() {
-        return new Coordinate(this.row, this.column, this.zoom)
+        return new com.modestmaps.Coordinate(this.row, this.column, this.zoom);
     },
 
     container: function() {
-        return new Coordinate(Math.floor(this.row), Math.floor(this.column), Math.floor(this.zoom))
+        return new com.modestmaps.Coordinate(Math.floor(this.row), Math.floor(this.column), Math.floor(this.zoom));
     },
 
     zoomTo: function(destination) {
-        return new Coordinate(this.row * Math.pow(2, destination - this.zoom),
+        return new com.modestmaps.Coordinate(this.row * Math.pow(2, destination - this.zoom),
                           this.column * Math.pow(2, destination - this.zoom),
-                          destination)
+                          destination);
     },
     
     zoomBy: function(distance) {
-        return new Coordinate(this.row * Math.pow(2, distance),
+        return new com.modestmaps.Coordinate(this.row * Math.pow(2, distance),
                           this.column * Math.pow(2, distance),
-                          this.zoom + distance)
+                          this.zoom + distance);
     },
 
     up: function(distance) {
-        if (distance == undefined) distance = 1;
-        return new Coordinate(this.row - distance, this.column, this.zoom)
+        if (distance == undefined)	distance = 1;
+        return new com.modestmaps.Coordinate(this.row - distance, this.column, this.zoom);
     },
 
     right: function(distance) {
         if (distance == undefined) distance = 1;
-        return new Coordinate(this.row, this.column + distance, this.zoom)
+        return new com.modestmaps.Coordinate(this.row, this.column + distance, this.zoom);
     },
 
     down: function(distance) {
         if (distance == undefined) distance = 1;
-        return new Coordinate(this.row + distance, this.column, this.zoom)
+        return new com.modestmaps.Coordinate(this.row + distance, this.column, this.zoom);
     },
 
     left: function(distance) {
         if (distance == undefined) distance = 1;
-        return new Coordinate(this.row, this.column - distance, this.zoom)
+        return new com.modestmaps.Coordinate(this.row, this.column - distance, this.zoom);
     }
 }
 
 //////////////////////////// Geo
 
-function Location(lat, lon) {
-    this.lat = parseFloat(lat)
-    this.lon = parseFloat(lon)
+com.modestmaps.Location = function(lat, lon) {
+    this.lat = parseFloat(lat);
+    this.lon = parseFloat(lon);
 }
 
-Location.prototype = {
+com.modestmaps.Location.prototype = {
     lat: 0,
     lon: 0,
     toString: function() {
@@ -96,16 +105,16 @@ Location.prototype = {
     }
 }
 
-function Transformation(ax, bx, cx, ay, by, cy) {
-    this.ax = ax
-    this.bx = bx
-    this.cx = cx
-    this.ay = ay
-    this.by = by
-    this.cy = cy
+com.modestmaps.Transformation = function(ax, bx, cx, ay, by, cy) {
+    this.ax = ax;
+    this.bx = bx;
+    this.cx = cx;
+    this.ay = ay;
+    this.by = by;
+    this.cy = cy;
 }
 
-Transformation.prototype = {
+com.modestmaps.Transformation.prototype = {
     ax: 0, 
     bx: 0, 
     cx: 0, 
@@ -114,20 +123,20 @@ Transformation.prototype = {
     cy: 0,
     
     transform: function(point) {
-        return new Point(this.ax*point.x + this.bx*point.y + this.cx,
-                         this.ay*point.x + this.by*point.y + this.cy)
+        return new com.modestmaps.Point(this.ax*point.x + this.bx*point.y + this.cx,
+                         this.ay*point.x + this.by*point.y + this.cy);
     },
                          
     untransform: function(point) {
-        return new Point((point.x*this.by - point.y*this.bx - this.cx*this.by + this.cy*this.bx) / (this.ax*this.by - this.ay*this.bx),
-                         (point.x*this.ay - point.y*this.ax - this.cx*this.ay + this.cy*this.ax) / (this.bx*this.ay - this.by*this.ax))
+        return new com.modestmaps.Point((point.x*this.by - point.y*this.bx - this.cx*this.by + this.cy*this.bx) / (this.ax*this.by - this.ay*this.bx),
+                         (point.x*this.ay - point.y*this.ax - this.cx*this.ay + this.cy*this.ax) / (this.bx*this.ay - this.by*this.ax));
     },
 
     deriveTransformation: function(a1x, a1y, a2x, a2y, b1x, b1y, b2x, b2y, c1x, c1y, c2x, c2y) {
         // Generates a transform based on three pairs of points, a1 -> a2, b1 -> b2, c1 -> c2.
-        var x = linearSolution(a1x, a1y, a2x, b1x, b1y, b2x, c1x, c1y, c2x)
-        var y = linearSolution(a1x, a1y, a2y, b1x, b1y, b2y, c1x, c1y, c2y)
-        return new Transformation(x[0], x[1], x[2], y[0], y[1], y[2])
+        var x = this.linearSolution(a1x, a1y, a2x, b1x, b1y, b2x, c1x, c1y, c2x);
+        var y = this.linearSolution(a1x, a1y, a2y, b1x, b1y, b2y, c1x, c1y, c2y);
+        return new com.modestmaps.Transformation(x[0], x[1], x[2], y[0], y[1], y[2]);
     },
 
     linearSolution: function(r1, s1, t1, r2, s2, t2, r3, s3, t3) {
@@ -143,157 +152,160 @@ Transformation.prototype = {
         */
 
         // make them all floats
-        r1 = parseFloat(r1)
-        s1 = parseFloat(s1)
-        t1 = parseFloat(t1)
-        r2 = parseFloat(r2)
-        s2 = parseFloat(s2)
-        t2 = parseFloat(t2)
-        r3 = parseFloat(r3)
-        s3 = parseFloat(s3)
-        t3 = parseFloat(t3)
+        r1 = parseFloat(r1);
+        s1 = parseFloat(s1);
+        t1 = parseFloat(t1);
+        r2 = parseFloat(r2);
+        s2 = parseFloat(s2);
+        t2 = parseFloat(t2);
+        r3 = parseFloat(r3);
+        s3 = parseFloat(s3);
+        t3 = parseFloat(t3);
 
-        var a = (((t2 - t3) * (s1 - s2)) - ((t1 - t2) * (s2 - s3))) / (((r2 - r3) * (s1 - s2)) - ((r1 - r2) * (s2 - s3)))
+        var a = (((t2 - t3) * (s1 - s2)) - ((t1 - t2) * (s2 - s3))) / (((r2 - r3) * (s1 - s2)) - ((r1 - r2) * (s2 - s3)));
 
-        var b = (((t2 - t3) * (r1 - r2)) - ((t1 - t2) * (r2 - r3))) / (((s2 - s3) * (r1 - r2)) - ((s1 - s2) * (r2 - r3)))
+        var b = (((t2 - t3) * (r1 - r2)) - ((t1 - t2) * (r2 - r3))) / (((s2 - s3) * (r1 - r2)) - ((s1 - s2) * (r2 - r3)));
 
-        var c = t1 - (r1 * a) - (s1 * b)
+        var c = t1 - (r1 * a) - (s1 * b);
     
-        return new Array(a, b, c)
+        return new Array(a, b, c);
     }
 }
 
-function Projection(zoom, transformation) {
-    if (!transformation) transformation = Transformation(1, 0, 0, 0, 1, 0)
-    this.zoom = zoom
-    this.transformation = transformation
+com.modestmaps.Projection = function(zoom, transformation) {
+    if (!transformation) transformation = com.modestmaps.Transformation(1, 0, 0, 0, 1, 0);
+    this.zoom = zoom;
+    this.transformation = transformation;
 }
 
-Projection.prototype = {
+com.modestmaps.Projection.prototype = {
 
     zoom: 0,
     transformation: null,
     
     rawProject: function(point) {
-        alert("Abstract method not implemented by subclass.")
+        alert("Abstract method not implemented by subclass.");
     },
         
     rawUnproject: function(point) {
-        alert("Abstract method not implemented by subclass.")
+        alert("Abstract method not implemented by subclass.");
     },
 
     project: function(point) {
-        point = this.rawProject(point)
-        if(this.transformation)
-            point = this.transformation.transform(point)
-        return point
+        point = this.rawProject(point);
+        if(this.transformation) {
+            point = this.transformation.transform(point);
+        }
+        return point;
     },
     
     unproject: function(point) {
-        if(this.transformation)
-            point = this.transformation.untransform(point)
-        point = this.rawUnproject(point)
-        return point
+        if(this.transformation) {
+            point = this.transformation.untransform(point);
+        }
+        point = this.rawUnproject(point);
+        return point;
     },
         
     locationCoordinate: function(location) {
-        var point = new Point(Math.PI * location.lon / 180.0, Math.PI * location.lat / 180.0)
-        point = this.project(point)
-        return new Coordinate(point.y, point.x, this.zoom)
+        var point = new com.modestmaps.Point(Math.PI * location.lon / 180.0, Math.PI * location.lat / 180.0);
+        point = this.project(point);
+        return new com.modestmaps.Coordinate(point.y, point.x, this.zoom);
     },
 
     coordinateLocation: function(coordinate) {
-        coordinate = coordinate.zoomTo(this.zoom)
-        var point = new Point(coordinate.column, coordinate.row)
-        point = this.unproject(point)
-        return new Location(180.0 * point.y / Math.PI, 180.0 * point.x / Math.PI)
+        coordinate = coordinate.zoomTo(this.zoom);
+        var point = new com.modestmaps.Point(coordinate.column, coordinate.row);
+        point = this.unproject(point);
+        return new com.modestmaps.Location(180.0 * point.y / Math.PI, 180.0 * point.x / Math.PI);
     }
 }
 
-function LinearProjection(zoom, transformation) {
+com.modestmaps.LinearProjection = function(zoom, transformation) {
     Projection.call(this, zoom, transformation);
 }
 
-LinearProjection.prototype = {
+com.modestmaps.LinearProjection.prototype = {
     rawProject: function(point) {
-        return new Point(point.x, point.y)
+        return new com.modestmaps.Point(point.x, point.y);
     },
     rawUnproject: function(point) {
-        return new Point(point.x, point.y)
+        return new com.modestmaps.Point(point.x, point.y);
     }
 }
 
-extend(LinearProjection, Projection);
+com.modestmaps.extend(com.modestmaps.LinearProjection, com.modestmaps.Projection);
 
-function MercatorProjection(zoom, transformation) {
+com.modestmaps.MercatorProjection = function(zoom, transformation) {
     // super!
-    Projection.call(this, zoom, transformation);
+    com.modestmaps.Projection.call(this, zoom, transformation);
 }
 
-MercatorProjection.prototype = {
+com.modestmaps.MercatorProjection.prototype = {
     rawProject: function(point) {
-        return new Point(point.x,
-                     Math.log(Math.tan(0.25 * Math.PI + 0.5 * point.y)))
+        return new com.modestmaps.Point(point.x,
+                     Math.log(Math.tan(0.25 * Math.PI + 0.5 * point.y)));
     },
 
     rawUnproject: function(point) {
-        return new Point(point.x,
-                     2 * Math.atan(Math.pow(Math.E, point.y)) - 0.5 * Math.PI)
+        return new com.modestmaps.Point(point.x,
+                     2 * Math.atan(Math.pow(Math.E, point.y)) - 0.5 * Math.PI);
     }
 }
 
-extend(MercatorProjection, Projection);
+com.modestmaps.extend(com.modestmaps.MercatorProjection, com.modestmaps.Projection);
 
 //////////////////////////// Providers
 
-function MapProvider(getTileUrl) {
+com.modestmaps.MapProvider = function(getTileUrl) {
     if (getTileUrl) {
-        this.getTileUrl = getTileUrl
+        this.getTileUrl = getTileUrl;
     }
 }
 
-MapProvider.prototype = {
+com.modestmaps.MapProvider.prototype = {
 
     // defaults to Google-y Mercator style maps
     // see http://modestmaps.com/calculator.html for how to generate these magic numbers
-    projection: new MercatorProjection(26, new Transformation(1.068070779e7, 0, 3.355443185e7, 0, -1.068070890e7, 3.355443057e7)),
+    projection: new com.modestmaps.MercatorProjection(26, new com.modestmaps.Transformation(1.068070779e7, 0, 3.355443185e7, 0, -1.068070890e7, 3.355443057e7)),
     tileWidth: 256,
     tileHeight: 256,
 
     getTileUrl: function(coordinate) {
-        alert("Abstract method not implemented by subclass.")
+        alert("Abstract method not implemented by subclass.");
     },
     
     locationCoordinate: function(location) {
-        return this.projection.locationCoordinate(location)
+        return this.projection.locationCoordinate(location);
     },
 
     coordinateLocation: function(location) {
-        return this.projection.coordinateLocation(location)
+        return this.projection.coordinateLocation(location);
     },
 
     sourceCoordinate: function(coordinate) {
-        var wrappedColumn = coordinate.column % Math.pow(2, coordinate.zoom)
+        var wrappedColumn = coordinate.column % Math.pow(2, coordinate.zoom);
 
-        while (wrappedColumn < 0)
-            wrappedColumn += Math.pow(2, coordinate.zoom)
+        while (wrappedColumn < 0) {
+            wrappedColumn += Math.pow(2, coordinate.zoom);
+        }
             
-        return new Coordinate(coordinate.row, wrappedColumn, coordinate.zoom)
+        return new com.modestmaps.Coordinate(coordinate.row, wrappedColumn, coordinate.zoom);
     }
 }
 
-function BlueMarbleProvider() {
+com.modestmaps.BlueMarbleProvider = function() {
     MapProvider.call(this, function(coordinate) {
         var img = coordinate.zoom.toFixed(0) +'-r'+ coordinate.row.toFixed(0) +'-c'+ coordinate.column.toFixed(0) + '.jpg';
         return 'http://s3.amazonaws.com/com.modestmaps.bluemarble/' + img;
     });
 }
 
-extend(BlueMarbleProvider, MapProvider);
+com.modestmaps.extend(com.modestmaps.BlueMarbleProvider, com.modestmaps.MapProvider);
 
 //////////////////////////// Map
 
-function Map(parent, provider, dimensions) {
+com.modestmaps.Map = function(parent, provider, dimensions) {
     /* Instance of a map intended for drawing to a div.
     
         parent
@@ -307,52 +319,53 @@ function Map(parent, provider, dimensions) {
 
     */
     if (typeof parent == 'string') {
-        parent = document.getElementById(parent)
+        parent = document.getElementById(parent);
     }
-    this.parent = parent
+    this.parent = parent;
     
-    this.parent.style.position = 'relative'
-    this.parent.style.width = dimensions.x + 'px'
-    this.parent.style.height = dimensions.y + 'px'
-    this.parent.style.padding = '0'
-    this.parent.style.overflow = 'hidden'
-    this.parent.style.backgroundColor = '#eee'
+    this.parent.style.position = 'relative';
+    this.parent.style.width = parseInt(dimensions.x) + 'px';
+    this.parent.style.height = parseInt(dimensions.y) + 'px';
+    this.parent.style.padding = '0';
+    this.parent.style.overflow = 'hidden';
+    this.parent.style.backgroundColor = '#eee';
     
     // TODO addEvent        
-    this.parent.onmousedown = this.getMouseDown()
+    this.parent.onmousedown = this.getMouseDown();
     
     if (this.parent.addEventListener) {
         this.parent.addEventListener('DOMMouseScroll', this.getMouseWheel(), false);
     }
-    this.parent.onmousewheel = this.getMouseWheel()
+    this.parent.onmousewheel = this.getMouseWheel();
+    this.parent.onscroll = function() { return false; };
 
     this.layers = new Array();
 
     // add a div for each zoom level
     for (var z = 0; z <= 20; z++) {
-        var layer = document.createElement('div')
+        var layer = document.createElement('div');
         layer.id = 'zoom-'+z;
-        layer.style.margin = '0'
-        layer.style.padding = '0'
-        layer.style.width = '100%'
-        layer.style.height = '100%'
-        layer.style.position = 'absolute'
-        layer.style.top = '0px'
-        layer.style.left = '0px'
+        layer.style.margin = '0';
+        layer.style.padding = '0';
+        layer.style.width = '100%';
+        layer.style.height = '100%';
+        layer.style.position = 'absolute';
+        layer.style.top = '0px';
+        layer.style.left = '0px';
         this.parent.appendChild(layer);
-        this.layers.push(layer)
+        this.layers.push(layer);
     }
     
     this.provider = provider;
     this.dimensions = dimensions;
-    this.coordinate = new Coordinate(0.5,0.5,0);
+    this.coordinate = new com.modestmaps.Coordinate(0.5,0.5,0);
     this.tiles = new Object();
     this.requestedTiles = new Object();
     
-    this.callbacks = {zoomed: [], panned: [], centered: [], extentset: []};
+    this.callbacks = { zoomed: [], panned: [], centered: [], extentset: [] };
 }
 
-Map.prototype = {
+com.modestmaps.Map.prototype = {
 
     parent: null,
     provider: null,
@@ -371,7 +384,7 @@ Map.prototype = {
     
     addCallback: function(event, callback)
     {
-        if(typeof(callback) == 'function' && this.callbacks[event]) {
+        if (typeof(callback) == 'function' && this.callbacks[event]) {
             this.callbacks[event].push(callback);
         }
     },
@@ -379,7 +392,7 @@ Map.prototype = {
     dispatchCallback: function(event, message)
     {
         if(this.callbacks[event]) {
-            for(var i = 0; i < this.callbacks[event].length; i += 1) {
+            for (var i = 0; i < this.callbacks[event].length; i += 1) {
                 try {
                     this.callbacks[event][i](this, message);
                 } catch(e) {
@@ -394,35 +407,35 @@ Map.prototype = {
     getMouseDown: function() {
         var theMap = this;
         return function(e) {
-    	    if (!e) var e = window.event;
+            if (!e) var e = window.event;
 
             // TODO addEvent
             document.onmouseup = theMap.getMouseUp();
             document.onmousemove = theMap.getMouseMove();
-    	
-        	theMap.prevMouse = new Point(e.clientX, e.clientY);
-    	
-    	    e.cancelBubble = true;
-    	    if (e.stopPropagation) e.stopPropagation();
-        	return false;
+        
+            theMap.prevMouse = new com.modestmaps.Point(e.clientX, e.clientY);
+        
+            e.cancelBubble = true;
+            if (e.stopPropagation) e.stopPropagation();
+            return false;
         };
     },
     
     getMouseMove: function() {
         var theMap = this;
         return function(e) {
-        	if (!e) var e = window.event;
+            if (!e) var e = window.event;
 
             if (theMap.prevMouse) {
                 theMap.panBy(e.clientX - theMap.prevMouse.x, e.clientY - theMap.prevMouse.y);
-        	    theMap.prevMouse.x = e.clientX
-            	theMap.prevMouse.y = e.clientY
+                theMap.prevMouse.x = e.clientX
+                theMap.prevMouse.y = e.clientY
             }
-    	
-    	    e.cancelBubble = true;
-        	if (e.stopPropagation) e.stopPropagation();
-    	    return false;
-    	};
+        
+            e.cancelBubble = true;
+            if (e.stopPropagation) e.stopPropagation();
+            return false;
+        };
     },
 
     getMouseUp: function() {
@@ -437,7 +450,7 @@ Map.prototype = {
     
             e.cancelBubble = true;
             if (e.stopPropagation) e.stopPropagation();
-            return false;    	
+            return false;        
         }
     },
 
@@ -445,7 +458,7 @@ Map.prototype = {
         var theMap = this;
         var prevTime = new Date().getTime();
         return function(e) {
-    	    if (!e) var e = window.event;
+            if (!e) var e = window.event;
 
             var delta = 0;
             
@@ -460,16 +473,16 @@ Map.prototype = {
             var timeSince = new Date().getTime() - prevTime;
 
             if (delta != 0 && (timeSince > 200)) {
-            	
-            	var point = new Point(e.clientX, e.clientY);
-            	point.x += document.body.scrollLeft + document.documentElement.scrollLeft;
-            	point.x -= map.parent.offsetLeft;
-            	point.y += document.body.scrollTop + document.documentElement.scrollTop;
-            	point.y -= map.parent.offsetTop;
-            	
-            	theMap.zoomByAbout(delta > 0 ? 1 : -1, point);
-            	
-            	prevTime = new Date().getTime();
+                
+                var point = new com.modestmaps.Point(e.clientX, e.clientY);
+                point.x += document.body.scrollLeft + document.documentElement.scrollLeft;
+                point.x -= map.parent.offsetLeft;
+                point.y += document.body.scrollTop + document.documentElement.scrollTop;
+                point.y -= map.parent.offsetTop;
+                
+                theMap.zoomByAbout(delta > 0 ? 1 : -1, point);
+                
+                prevTime = new Date().getTime();
             }
  
             e.cancelBubble = true;
@@ -600,7 +613,7 @@ Map.prototype = {
         centerColumn = (TL.column + BR.column) / 2
         centerZoom = (TL.zoom + BR.zoom) / 2
         
-        this.coordinate = new Coordinate(centerRow, centerColumn, centerZoom).zoomTo(initZoom);
+        this.coordinate = new com.modestmaps.Coordinate(centerRow, centerColumn, centerZoom).zoomTo(initZoom);
         this.draw();
 
         this.dispatchCallback('extentset', locations);
@@ -617,7 +630,7 @@ Map.prototype = {
         }
         
         // distance from the center of the map
-        var point = new Point(this.dimensions.x/2, this.dimensions.y/2)
+        var point = new com.modestmaps.Point(this.dimensions.x/2, this.dimensions.y/2)
         point.x += this.provider.tileWidth * (coord.column - this.coordinate.column)
         point.y += this.provider.tileHeight * (coord.row - this.coordinate.row)
         
@@ -652,7 +665,7 @@ Map.prototype = {
 
     getExtent: function() {
         var extent = new Array();
-        extent.push(this.pointLocation(new Point(0,0)));
+        extent.push(this.pointLocation(new com.modestmaps.Point(0,0)));
         extent.push(this.pointLocation(this.dimensions));
         return extent;
     },
@@ -673,7 +686,7 @@ Map.prototype = {
         
         // so this is the corner, taking the container offset into account
         var baseCoord = this.coordinate.container()
-        var baseCorner = new Point(this.dimensions.x/2, this.dimensions.y/2);
+        var baseCorner = new com.modestmaps.Point(this.dimensions.x/2, this.dimensions.y/2);
         baseCorner.x += (baseCoord.column - this.coordinate.column) * this.provider.tileWidth
         baseCorner.y += (baseCoord.row - this.coordinate.row) * this.provider.tileHeight
 

@@ -1,11 +1,19 @@
-function Follower(map, location, content)
+// namespacing!
+if (!com) {
+    var com = { };
+    if (!com.modestmaps) {
+        com.modestmaps = { };
+    }
+}
+
+com.modestmaps.Follower = function(map, location, content)
 {
     this.coord = map.provider.locationCoordinate(location);
     
-    this.offset = new Point(0, 0);
-    this.dimensions = new Point(100, 50);
-    this.padding = new Point(10, 10);
-    this.offset = new Point(0, -50);
+    this.offset = new com.modestmaps.Point(0, 0);
+    this.dimensions = new com.modestmaps.Point(100, 50);
+    this.padding = new com.modestmaps.Point(10, 10);
+    this.offset = new com.modestmaps.Point(0, -50);
 
     var follower = this;
     
@@ -35,7 +43,7 @@ function Follower(map, location, content)
     this.draw(map);
 }
 
-Follower.prototype = {
+com.modestmaps.Follower.prototype = {
 
     div: null,
     coord: null,

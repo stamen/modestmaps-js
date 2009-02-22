@@ -6,15 +6,18 @@
 <script type="text/javascript">
     var map;
     function initMap() {
-        var provider = new MapProvider(function(coord) {
-            var img = parseInt(coord.zoom) +'-r'+ parseInt(coord.row) +'-c'+ parseInt(coord.column) + '.png';
+        // "import" the namespace
+        var mm = com.modestmaps;
+    
+        var provider = new mm.MapProvider(function(coord) {
+            var img = parseInt(coord.zoom) +'-r'+ parseInt(coord.row) +'-c'+ parseInt(coord.column) + '.jpg';
             return 'http://osm-bayarea.s3.amazonaws.com/' + img;
         });
-        map = new Map('map', provider, new Point(640,480))
+        map = new mm.Map('map', provider, new mm.Point(640,480))
         
-        f = new Follower(map, new Location(37.811530, -122.2666097), '&#xB0; Broadway and Grand');
+        f = new mm.Follower(map, new mm.Location(37.811530, -122.2666097), '&#xB0; Broadway and Grand');
         
-        map.setCenterZoom(new Location(37.804656, -122.263606), 14);
+        map.setCenterZoom(new mm.Location(37.804656, -122.263606), 14);
         map.draw();
     }
 </script>
@@ -23,12 +26,19 @@
 <h1>Modest Maps JS</h1>
 <p>The following div is a map initialized like so:</p>
 <pre>
-    var provider = new MapProvider(function(coord) {
+
+    // "import" the namespace
+    var mm = com.modestmaps;
+
+    var provider = new mm.MapProvider(function(coord) {
         var img = parseInt(coord.zoom) +'-r'+ parseInt(coord.row) +'-c'+ parseInt(coord.column) + '.jpg';
         return 'http://osm-bayarea.s3.amazonaws.com/' + img;
     });
-    var map = new Map('map', provider, new Point(640,480))
-    map.setCenterZoom(new Location(37.804656, -122.263606), 14);
+    var map = new mm.Map('map', provider, new mm.Point(640,480))
+    
+    f = new mm.Follower(map, new mm.Location(37.811530, -122.2666097), '&#xB0; Broadway and Grand');
+    
+    map.setCenterZoom(new mm.Location(37.804656, -122.263606), 14);
     map.draw();
 </pre>
 <p><a href="javascript:map.zoomIn()">zoom in</a> | <a href="javascript:map.zoomOut()">zoom out</a>
