@@ -17,6 +17,18 @@ com.modestmaps.extend = function(child, parent) {
     return child;
 }
 
+/////////////////////////// Eeeeeeeeeeeeeeeeeeeeeevents
+
+com.modestmaps.cancelEvent = function(e) {
+    // there's more than one way to skin this cat
+    e.cancelBubble = true;
+    e.cancel = true;
+    e.returnValue = false;
+    if (e.stopPropagation) e.stopPropagation();
+    if (e.preventDefault) e.preventDefault();    
+    return false;
+}
+
 
 //////////////////////////// Core
 
@@ -415,9 +427,7 @@ com.modestmaps.Map.prototype = {
         
             theMap.prevMouse = new com.modestmaps.Point(e.clientX, e.clientY);
         
-            e.cancelBubble = true;
-            if (e.stopPropagation) e.stopPropagation();
-            return false;
+            return com.modestmaps.cancelEvent(e);
         };
     },
     
@@ -432,9 +442,7 @@ com.modestmaps.Map.prototype = {
                 theMap.prevMouse.y = e.clientY
             }
         
-            e.cancelBubble = true;
-            if (e.stopPropagation) e.stopPropagation();
-            return false;
+            return com.modestmaps.cancelEvent(e);
         };
     },
 
@@ -448,9 +456,7 @@ com.modestmaps.Map.prototype = {
             document.onmousemove = null;
             theMap.prevMouse = null;
     
-            e.cancelBubble = true;
-            if (e.stopPropagation) e.stopPropagation();
-            return false;        
+            return com.modestmaps.cancelEvent(e);
         }
     },
 
@@ -484,14 +490,8 @@ com.modestmaps.Map.prototype = {
                 
                 prevTime = new Date().getTime();
             }
- 
-            e.cancelBubble = true;
-            e.cancel = true;
-            e.returnValue = false;
-            if (e.stopPropagation) e.stopPropagation();
-            if (e.preventDefault) e.preventDefault();
             
-            return false;
+            return com.modestmaps.cancelEvent(e);
         };
     },
         
