@@ -877,8 +877,8 @@ com.modestmaps.Map.prototype = {
     redrawTimer: undefined,
     
     requestRedraw: function() {
-        if (this.redrawTimer) clearTimeout(this.redrawTimer);
-        this.redrawTimer = setTimeout(this.reallyRedraw, 1000, this);    
+//        if (this.redrawTimer) clearTimeout(this.redrawTimer);
+//        this.redrawTimer = setTimeout(this.reallyRedraw, 1000, this);
     },
     
     reallyRedraw: function(theMap) {
@@ -892,7 +892,6 @@ com.modestmaps.Map.prototype = {
             var tile = new Image();
             tile.id = tileKey;
             tile.coord = tileCoord.copy();
-            tile.src = this.provider.getTileUrl(tileCoord);
             tile.width = this.provider.tileWidth;
             tile.height = this.provider.tileHeight;
             tile.style.position = 'absolute';
@@ -900,11 +899,12 @@ com.modestmaps.Map.prototype = {
             var theMap = this;
             var theTiles = this.tiles;
             var theRequestedTiles = this.requestedTiles;
-            function loadComplete() {
+            function loadComplete(e) {
+                // unset these straight away so we don't call this twice
+                delete theRequestedTiles[tileKey];
                 tile.onload = null;
                 tile.onerror = null;
-                delete theRequestedTiles[tileKey];
-                if (tile.complete) {
+                if (tile.complete || (tile.readyState && tile.readyState == 'complete')) {
                     theTiles[tileKey] = tile;
                     // TODO: can we position the tile here instead of redrawing all tiles?
                     theMap.draw(true);
@@ -923,6 +923,8 @@ com.modestmaps.Map.prototype = {
             }
             tile.onload = loadComplete;
             tile.onerror = loadComplete;
+            // set this after tile.onload to avoid missing a tile that's already cached
+            tile.src = this.provider.getTileUrl(tileCoord);
         }
     }
         
