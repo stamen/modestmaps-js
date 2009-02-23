@@ -437,6 +437,20 @@ com.modestmaps.Map.prototype = {
         }
     },
 
+    createOverlay: function(id) 
+    {
+        var canvas = document.createElement('canvas');
+        canvas.id = id;
+        canvas.width = this.dimensions.x;
+        canvas.height = this.dimensions.y;
+        canvas.style.margin = '0';
+        canvas.style.padding = '0';
+        canvas.style.position = 'absolute';
+        canvas.style.top = '0px';
+        canvas.style.left = '0px';        
+        this.parent.appendChild(canvas);
+    },
+
     // events
 
     mouseDownHandler: null,
@@ -615,6 +629,8 @@ com.modestmaps.Map.prototype = {
         var TL, BR;
         for (var i = 0; i < locations.length; i++) {
             var coordinate = this.provider.locationCoordinate(locations[i])
+            console.log(locations[i]);
+            console.log(coordinate);
             if (TL) {
                 TL.row = Math.min(TL.row, coordinate.row);
                 TL.column = Math.min(TL.column, coordinate.column);
@@ -628,6 +644,9 @@ com.modestmaps.Map.prototype = {
                 BR = coordinate.copy();
             }
         }
+        
+        console.log(TL);
+        console.log(BR);
         
         var width = this.dimensions.x + 1;
         var height = this.dimensions.y + 1;
@@ -734,29 +753,29 @@ com.modestmaps.Map.prototype = {
         //console.log('--- begin draw ' + onlyThisLayer);
         
         // so this is the corner, taking the container offset into account
-        var baseCoord = this.coordinate.container()
+        var baseCoord = this.coordinate.container();
         var baseCorner = new com.modestmaps.Point(this.dimensions.x/2, this.dimensions.y/2);
-        baseCorner.x += (baseCoord.column - this.coordinate.column) * this.provider.tileWidth
-        baseCorner.y += (baseCoord.row - this.coordinate.row) * this.provider.tileHeight
+        baseCorner.x += (baseCoord.column - this.coordinate.column) * this.provider.tileWidth;
+        baseCorner.y += (baseCoord.row - this.coordinate.row) * this.provider.tileHeight;
 
         // get back to the top left
         while (baseCorner.x > 0) {
-            baseCorner.x -= this.provider.tileWidth
+            baseCorner.x -= this.provider.tileWidth;
             baseCoord.column -= 1;
         }
         while (baseCorner.y > 0) {
-            baseCorner.y -= this.provider.tileHeight
+            baseCorner.y -= this.provider.tileHeight;
             baseCoord.row -= 1;
         }
 
-        var wantedTiles = new Object()
+        var wantedTiles = { };
         
         var thisLayer = document.getElementById('zoom-'+parseInt(baseCoord.zoom));
         thisLayer.coordinate = this.coordinate.copy();
         
-        var showParentLayer = false
+        var showParentLayer = false;
         
-        var tileCoord = baseCoord.copy()
+        var tileCoord = baseCoord.copy();
 
         for (var y = baseCorner.y; y < this.dimensions.y; y += this.provider.tileHeight) {
             for (var x = baseCorner.x; x < this.dimensions.x; x += this.provider.tileWidth) {
@@ -821,7 +840,7 @@ com.modestmaps.Map.prototype = {
             }
         
             // layers we want to see, if they have tiles that are in wantedTiles
-            for (var i = baseCoord.zoom-5; i < Math.min(baseCoord.zoom+2, this.layers.length); i++) {
+            for (var i = Math.max(0, baseCoord.zoom-5); i < Math.min(baseCoord.zoom+2, this.layers.length); i++) {
 
                 var layer = this.layers[i];
 

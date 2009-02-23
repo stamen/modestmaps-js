@@ -2,7 +2,7 @@
 <head>
 <title>Modest Maps JS</title>
 <script type="text/javascript" src="../src/modestmaps.js"></script>
-<script type="text/javascript" src="../src/cloudmade.js"></script>
+<script type="text/javascript" src="../src/canvas-follower.js"></script>
 <script type="text/javascript">
     function initMap() {
         eval(document.getElementById('src').innerHTML);
@@ -20,10 +20,14 @@
 // "import" the namespace
 var mm = com.modestmaps;
 
-// please use your own API key, see http://developers.cloudmade.com/ for more details
-var provider = new mm.CloudMadeProvider('1a914755a77758e49e19a26e799268b7','998');
+var provider = new mm.MapProvider(function(coord) {
+    var img = parseInt(coord.zoom) +'-r'+ parseInt(coord.row) +'-c'+ parseInt(coord.column) + '.jpg';
+    return 'http://osm-bayarea.s3.amazonaws.com/' + img;
+});
 
 map = new mm.Map('map', provider, new mm.Point(640,480))
+
+var f = new mm.Follower(map, new mm.Location(37.811530, -122.2666097), '&#xB0; Broadway and Grand');
 
 map.setCenterZoom(new mm.Location(37.804656, -122.263606), 14);
 </pre>

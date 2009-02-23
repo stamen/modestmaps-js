@@ -4,47 +4,33 @@
 <script type="text/javascript" src="../src/modestmaps.js"></script>
 <script type="text/javascript" src="../src/follower.js"></script>
 <script type="text/javascript">
-    var map;
     function initMap() {
-        // "import" the namespace
-        var mm = com.modestmaps;
-    
-        var provider = new mm.MapProvider(function(coord) {
-            var img = parseInt(coord.zoom) +'-r'+ parseInt(coord.row) +'-c'+ parseInt(coord.column) + '.jpg';
-            return 'http://osm-bayarea.s3.amazonaws.com/' + img;
-        });
-        map = new mm.Map('map', provider, new mm.Point(640,480))
-        
-        f = new mm.Follower(map, new mm.Location(37.811530, -122.2666097), '&#xB0; Broadway and Grand');
-        
-        map.setCenterZoom(new mm.Location(37.804656, -122.263606), 14);
-        map.draw();
+        eval(document.getElementById('src').innerHTML);
     }
 </script>
 </head>
 <body onload="initMap()">
 <h1>Modest Maps JS</h1>
-<p>The following div is a map initialized like so:</p>
-<pre>
-
-    // "import" the namespace
-    var mm = com.modestmaps;
-
-    var provider = new mm.MapProvider(function(coord) {
-        var img = parseInt(coord.zoom) +'-r'+ parseInt(coord.row) +'-c'+ parseInt(coord.column) + '.jpg';
-        return 'http://osm-bayarea.s3.amazonaws.com/' + img;
-    });
-    var map = new mm.Map('map', provider, new mm.Point(640,480))
-    
-    f = new mm.Follower(map, new mm.Location(37.811530, -122.2666097), '&#xB0; Broadway and Grand');
-    
-    map.setCenterZoom(new mm.Location(37.804656, -122.263606), 14);
-    map.draw();
-</pre>
 <p><a href="javascript:map.zoomIn()">zoom in</a> | <a href="javascript:map.zoomOut()">zoom out</a>
 <br><a href="javascript:map.panLeft()">pan left</a> | <a href="javascript:map.panRight()">pan right</a> | <a href="javascript:map.panDown()">pan down</a> | <a href="javascript:map.panUp()">pan up</a></p>
 <div id="map">
 </div>
+<p>The above div is a map initialized like so:</p>
+<pre id="src">
+// "import" the namespace
+var mm = com.modestmaps;
+
+var provider = new mm.MapProvider(function(coord) {
+    var img = parseInt(coord.zoom) +'-r'+ parseInt(coord.row) +'-c'+ parseInt(coord.column) + '.jpg';
+    return 'http://osm-bayarea.s3.amazonaws.com/' + img;
+});
+
+map = new mm.Map('map', provider, new mm.Point(640,480))
+
+var f = new mm.Follower(map, new mm.Location(37.811530, -122.2666097), '&#xB0; Broadway and Grand');
+
+map.setCenterZoom(new mm.Location(37.804656, -122.263606), 14);
+</pre>
 <p>Hands up who wants overlays?</p>
 <div id="log"></div>
 </body>
