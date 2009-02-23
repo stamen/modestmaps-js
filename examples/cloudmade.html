@@ -1,0 +1,37 @@
+<html>
+<head>
+<title>Modest Maps JS</title>
+<script type="text/javascript" src="../src/modestmaps.js"></script>
+<script type="text/javascript" src="../src/cloudmade.js"></script>
+<script type="text/javascript">
+    var map;
+    function initMap() {
+        // "import" the namespace
+        var mm = com.modestmaps;
+        // please use your own API key, see http://developers.cloudmade.com/ for more details
+        var provider = new mm.CloudMadeProvider('1a914755a77758e49e19a26e799268b7','998');
+        map = new mm.Map('map', provider, new mm.Point(640,480))
+        map.setCenterZoom(new mm.Location(37.804656, -122.263606), 14);
+        map.draw();
+    }
+</script>
+</head>
+<body onload="initMap()">
+<h1>Modest Maps JS</h1>
+<p>The following div is a map initialized like so:</p>
+<pre>
+        // "import" the namespace
+        var mm = com.modestmaps;
+        // please use your own API key, see http://developers.cloudmade.com/ for more details
+        var provider = new mm.CloudMadeProvider('1a914755a77758e49e19a26e799268b7','999');
+        map = new mm.Map('map', provider, new mm.Point(640,480))
+        map.setCenterZoom(new mm.Location(37.804656, -122.263606), 14);
+        map.draw();
+</pre>
+<p><a href="javascript:map.zoomIn()">zoom in</a> | <a href="javascript:map.zoomOut()">zoom out</a>
+<br><a href="javascript:map.panLeft()">pan left</a> | <a href="javascript:map.panRight()">pan right</a> | <a href="javascript:map.panDown()">pan down</a> | <a href="javascript:map.panUp()">pan up</a></p>
+<div id="map">
+</div>
+<div id="log"></div>
+</body>
+</html>
