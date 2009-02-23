@@ -32,6 +32,8 @@ com.modestmaps.Follower = function(map, location, content)
     //this.div.style.border = 'solid black 1px';
 
     var shadow = document.createElement('canvas');
+    this.div.appendChild(shadow);
+    if (G_vmlCanvasManager) shadow = G_vmlCanvasManager.initElement(shadow);
     shadow.style.position = 'absolute';
     shadow.style.left = '0px';
     shadow.style.top = '0px';
@@ -42,9 +44,10 @@ com.modestmaps.Follower = function(map, location, content)
     ctx.fillStyle = "rgba(0,0,0,0.5)";
     this.drawBubblePath(ctx);
     ctx.fill();
-    this.div.appendChild(shadow);
 
     var bubble = document.createElement('canvas');
+    this.div.appendChild(bubble);
+    if (G_vmlCanvasManager) bubble = G_vmlCanvasManager.initElement(bubble);
     bubble.style.position = 'absolute';
     bubble.style.left = '0px';
     bubble.style.top = '0px';
@@ -56,7 +59,6 @@ com.modestmaps.Follower = function(map, location, content)
     this.drawBubblePath(bubCtx);
     bubCtx.fill();    
     bubCtx.stroke();    
-    this.div.appendChild(bubble);
     
     var contentDiv = document.createElement('div');
     contentDiv.style.position = 'absolute';
