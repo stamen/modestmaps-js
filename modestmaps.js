@@ -20,6 +20,7 @@ com.modestmaps.extend = function(child, parent) {
 /////////////////////////// Eeeeeeeeeeeeeeeeeeeeeevents
 
 com.modestmaps.cancelEvent = function(e) {
+    //console.log('cancel: ' + e);
     // there's more than one way to skin this cat
     e.cancelBubble = true;
     e.cancel = true;
@@ -29,6 +30,34 @@ com.modestmaps.cancelEvent = function(e) {
     return false;
 }
 
+// see http://ejohn.org/apps/jselect/event.html for the originals
+
+com.modestmaps.addEvent = function( obj, type, fn ) {
+    if ( obj.attachEvent ) {
+        obj['e'+type+fn] = fn;
+        obj[type+fn] = function(){obj['e'+type+fn]( window.event );}
+        obj.attachEvent( 'on'+type, obj[type+fn] );
+    }
+    else {
+        obj.addEventListener( type, fn, false );
+        if (type == 'mousewheel') {
+            obj.addEventListener( 'DOMMouseScroll', fn, false );
+        }
+    }
+}
+
+com.modestmaps.removeEvent = function( obj, type, fn ) {
+    if ( obj.detachEvent ) {
+        obj.detachEvent( 'on'+type, obj[type+fn] );
+        obj[type+fn] = null;
+    }
+    else {
+        obj.removeEventListener( type, fn, false );
+        if (type == 'mousewheel') {
+            obj.removeEventListener( 'DOMMouseScroll', fn, false );
+        }
+    }
+}
 
 //////////////////////////// Core
 
@@ -342,14 +371,8 @@ com.modestmaps.Map = function(parent, provider, dimensions) {
     this.parent.style.overflow = 'hidden';
     this.parent.style.backgroundColor = '#eee';
     
-    // TODO addEvent        
-    this.parent.onmousedown = this.getMouseDown();
-    
-    if (this.parent.addEventListener) {
-        this.parent.addEventListener('DOMMouseScroll', this.getMouseWheel(), false);
-    }
-    this.parent.onmousewheel = this.getMouseWheel();
-    this.parent.onscroll = function() { return false; };
+    com.modestmaps.addEvent(this.parent, 'mousedown', this.getMouseDown());
+    com.modestmaps.addEvent(this.parent, 'mousewheel', this.getMouseWheel());
 
     this.layers = new Array();
 
@@ -416,83 +439,106 @@ com.modestmaps.Map.prototype = {
 
     // events
 
-    getMouseDown: function() {
-        var theMap = this;
-        return function(e) {
-            if (!e) var e = window.event;
+    mouseDownHandler: null,
 
-            // TODO addEvent
-            document.onmouseup = theMap.getMouseUp();
-            document.onmousemove = theMap.getMouseMove();
-        
-            theMap.prevMouse = new com.modestmaps.Point(e.clientX, e.clientY);
-        
-            return com.modestmaps.cancelEvent(e);
-        };
+    getMouseDown: function() {
+        if (!this.mouseDownHandler) {
+            var theMap = this;
+            this.mouseDownHandler = function(e) {
+                if (!e) var e = window.event;
+    
+                com.modestmaps.addEvent(document, 'mouseup', theMap.getMouseUp());
+                com.modestmaps.addEvent(document, 'mousemove', theMap.getMouseMove());
+                        
+                theMap.prevMouse = new com.modestmaps.Point(e.clientX, e.clientY);
+                
+                theMap.parent.style.cursor = 'move';
+            
+                return com.modestmaps.cancelEvent(e);
+            };
+        }
+        return this.mouseDownHandler;
     },
+    
+    mouseMoveHandler: null,
     
     getMouseMove: function() {
-        var theMap = this;
-        return function(e) {
-            if (!e) var e = window.event;
-
-            if (theMap.prevMouse) {
-                theMap.panBy(e.clientX - theMap.prevMouse.x, e.clientY - theMap.prevMouse.y);
-                theMap.prevMouse.x = e.clientX
-                theMap.prevMouse.y = e.clientY
-            }
-        
-            return com.modestmaps.cancelEvent(e);
-        };
+        if (!this.mouseMoveHandler) {
+            var theMap = this;
+            this.mouseMoveHandler = function(e) {
+                if (!e) var e = window.event;
+    
+                if (theMap.prevMouse) {
+                    theMap.panBy(e.clientX - theMap.prevMouse.x, e.clientY - theMap.prevMouse.y);
+                    theMap.prevMouse.x = e.clientX
+                    theMap.prevMouse.y = e.clientY
+                }
+            
+                return com.modestmaps.cancelEvent(e);
+            };
+        }
+        return this.mouseMoveHandler;
     },
+
+    mouseUpHandler: null,
 
     getMouseUp: function() {
-        var theMap = this;
-        return function(e) {
-            if (!e) var e = window.event;
+        if (!this.mouseUpHandler) {
+            var theMap = this;
+            this.mouseUpHandler = function(e) {
+                if (!e) var e = window.event;
     
-            // TODO removeEvent
-            document.onmouseup = null;
-            document.onmousemove = null;
-            theMap.prevMouse = null;
-    
-            return com.modestmaps.cancelEvent(e);
+                com.modestmaps.removeEvent(document, 'mouseup', theMap.getMouseUp());
+                com.modestmaps.removeEvent(document, 'mousemove', theMap.getMouseMove());
+        
+                theMap.prevMouse = null;
+
+                theMap.parent.style.cursor = '';                
+        
+                return com.modestmaps.cancelEvent(e);
+            };
         }
+        return this.mouseUpHandler;
     },
+    
+    mouseWheelHandler: null,
 
     getMouseWheel: function() {
-        var theMap = this;
-        var prevTime = new Date().getTime();
-        return function(e) {
-            if (!e) var e = window.event;
-
-            var delta = 0;
-            
-            if (e.wheelDelta) {
-                delta = e.wheelDelta;
-            }
-            else if (e.detail) {
-                delta = -e.detail;
-            }
-
-            // limit mousewheeling to once every 200ms
-            var timeSince = new Date().getTime() - prevTime;
-
-            if (delta != 0 && (timeSince > 200)) {
+        if (!this.mouseWheelHandler) {
+            var theMap = this;
+            var prevTime = new Date().getTime();
+            this.mouseWheelHandler = function(e) {
+                if (!e) var e = window.event;
+    
+                var delta = 0;
                 
-                var point = new com.modestmaps.Point(e.clientX, e.clientY);
-                point.x += document.body.scrollLeft + document.documentElement.scrollLeft;
-                point.x -= map.parent.offsetLeft;
-                point.y += document.body.scrollTop + document.documentElement.scrollTop;
-                point.y -= map.parent.offsetTop;
+                if (e.wheelDelta) {
+                    delta = e.wheelDelta;
+                }
+                else if (e.detail) {
+                    delta = -e.detail;
+                }
+    
+                // limit mousewheeling to once every 200ms
+                var timeSince = new Date().getTime() - prevTime;
+    
+                if (delta != 0 && (timeSince > 200)) {
+                    
+                    var point = new com.modestmaps.Point(e.clientX, e.clientY);
+                    point.x += document.body.scrollLeft + document.documentElement.scrollLeft;
+                    point.x -= map.parent.offsetLeft;
+                    point.y += document.body.scrollTop + document.documentElement.scrollTop;
+                    point.y -= map.parent.offsetTop;
+                    
+                    theMap.zoomByAbout(delta > 0 ? 1 : -1, point);
+                    
+                    prevTime = new Date().getTime();
+                }
                 
-                theMap.zoomByAbout(delta > 0 ? 1 : -1, point);
-                
-                prevTime = new Date().getTime();
-            }
-            
-            return com.modestmaps.cancelEvent(e);
-        };
+                return com.modestmaps.cancelEvent(e);
+            };
+        }
+        return this.mouseWheelHandler;
     },
         
     // zooming
@@ -752,6 +798,7 @@ com.modestmaps.Map.prototype = {
         
         if (!onlyThisLayer || !showParentLayer) {
 
+            // layers that would be scaled too big:
             for (var i = 0; i < baseCoord.zoom-5; i++) {
                 var layer = this.layers[i];
                 layer.style.display = 'none'
@@ -762,6 +809,7 @@ com.modestmaps.Map.prototype = {
                 }                    
             }
 
+            // layers that would be scaled too small, and tiles would be too numerous:
             for (var i = baseCoord.zoom+2; i < this.layers.length; i++) {
                 var layer = this.layers[i];
                 layer.style.display = 'none'
@@ -772,6 +820,7 @@ com.modestmaps.Map.prototype = {
                 }                    
             }
         
+            // layers we want to see, if they have tiles that are in wantedTiles
             for (var i = baseCoord.zoom-5; i < Math.min(baseCoord.zoom+2, this.layers.length); i++) {
 
                 var layer = this.layers[i];
@@ -813,40 +862,63 @@ com.modestmaps.Map.prototype = {
             }
             
         }
+
+        for (var tileKey in this.requestedTiles) {
+            if (!wantedTiles[tileKey]) {
+                var tile = this.requestedTiles[tileKey];
+                tile.onload.call();
+                tile = null;
+            }
+        }
         
         //console.log('--- end draw ' + onlyThisLayer);
     },
     
     redrawTimer: undefined,
     
+    requestRedraw: function() {
+        if (this.redrawTimer) clearTimeout(this.redrawTimer);
+        this.redrawTimer = setTimeout(this.reallyRedraw, 1000, this);    
+    },
+    
+    reallyRedraw: function(theMap) {
+        //console.log('really redrawing');
+        theMap.draw();
+    },
+    
     requestTile: function(tileCoord) {
         var tileKey = tileCoord.toString();
         if (!this.requestedTiles[tileKey]) {
-            var tile = new Image()
-            tile.id = tileKey
+            var tile = new Image();
+            tile.id = tileKey;
             tile.coord = tileCoord.copy();
-            tile.src = this.provider.getTileUrl(tileCoord)
-            tile.width = this.provider.tileWidth
-            tile.height = this.provider.tileHeight
-            tile.style.position = 'absolute'
-            this.requestedTiles[tileKey] = tile
-            var theMap = this
-            var theTiles = this.tiles
-            var theRequestedTiles = this.requestedTiles
+            tile.src = this.provider.getTileUrl(tileCoord);
+            tile.width = this.provider.tileWidth;
+            tile.height = this.provider.tileHeight;
+            tile.style.position = 'absolute';
+            this.requestedTiles[tileKey] = tile;
+            var theMap = this;
+            var theTiles = this.tiles;
+            var theRequestedTiles = this.requestedTiles;
             function loadComplete() {
-                delete theRequestedTiles[tileKey]
-                theTiles[tileKey] = tile
-                // TODO: can we position the tile here instead of redrawing all tiles?
-                theMap.draw(true)
-                if (theMap.redrawTimer) clearTimeout(redrawTimer);
-                function redraw() {
+                tile.onload = null;
+                tile.onerror = null;
+                delete theRequestedTiles[tileKey];
+                if (tile.complete) {
+                    theTiles[tileKey] = tile;
+                    // TODO: can we position the tile here instead of redrawing all tiles?
                     theMap.draw(true);
-                    theMap = null;
+                    theMap.requestRedraw(); // all layers, will remove as well as reposition things
                 }
-                redrawTimer = setTimeout(redraw, 1000);
+                else {
+                    // not sure if this is necessary, but hopefully it guarantees the tile stops loading?
+                    tile.src = null;
+                }                
                 // tidy closure?
                 theTiles = null;
+                theMap = null;
                 theRequestedTiles = null;
+                tileKey = null;
                 tile = null;
             }
             tile.onload = loadComplete;
