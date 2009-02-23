@@ -71,11 +71,10 @@ com.modestmaps.Follower = function(map, location, content)
     contentDiv.innerHTML = content;    
     this.div.appendChild(contentDiv);
     
-    contentDiv.onmousedown = function(e) {
-        e.cancelBubble = true;
-        if (e.stopPropagation) e.stopPropagation();
-        return false;
-    };
+    com.modestmaps.addEvent(contentDiv, 'mousedown', function(e) {
+        if(!e) e = window.event;
+        return com.modestmaps.cancelEvent(e);
+    });
     
     map.parent.appendChild(this.div);
     

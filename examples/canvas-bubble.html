@@ -7,20 +7,7 @@
 <script type="text/javascript">
     var map;
     function initMap() {
-// "import" the namespace
-var mm = com.modestmaps;
-
-var provider = new mm.MapProvider(function(coord) {
-    var img = parseInt(coord.zoom) +'-r'+ parseInt(coord.row) +'-c'+ parseInt(coord.column) + '.jpg';
-    return 'http://osm-bayarea.s3.amazonaws.com/' + img;
-});
-
-map = new mm.Map('map', provider, new mm.Point(640,480))
-
-var f = new mm.Follower(map, new mm.Location(37.811530, -122.2666097), 'Broadway and Grand');
-
-map.setCenterZoom(new mm.Location(37.804656, -122.263606), 14);
-
+	eval(document.getElementById('src').innerHTML);
     }
 </script>
 </head>
@@ -44,7 +31,7 @@ map = new mm.Map('map', provider, new mm.Point(640,480))
 
 var f = new mm.Follower(map, new mm.Location(37.811530, -122.2666097), 'Broadway and Grand');
 
-map.setCenterZoom(new mm.Location(37.804656, -122.263606), 14);
+map.setCenterZoom(new mm.Location(37.811530, -122.2666097), 14);
 </pre>
 <p>Hands up who wants overlays?</p>
 <div id="log"></div>

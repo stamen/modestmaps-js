@@ -32,11 +32,10 @@ com.modestmaps.Follower = function(map, location, content)
     
     this.div.innerHTML = content;
     
-    this.div.onmousedown = function(e) {
-        e.cancelBubble = true;
-        if (e.stopPropagation) e.stopPropagation();
-        return false;
-    };
+    com.modestmaps.addEvent(this.div, 'mousedown', function(e) {
+        if(!e) e = window.event;
+        return com.modestmaps.cancelEvent(e);
+    });
     
     map.parent.appendChild(this.div);
     
