@@ -15,7 +15,7 @@ com.modestmaps.extend = function(child, parent) {
         }
     }
     return child;
-}
+};
 
 /////////////////////////// Eeeeeeeeeeeeeeeeeeeeeevents
 
@@ -28,7 +28,7 @@ com.modestmaps.cancelEvent = function(e) {
     if (e.stopPropagation) e.stopPropagation();
     if (e.preventDefault) e.preventDefault();    
     return false;
-}
+};
 
 // see http://ejohn.org/apps/jselect/event.html for the originals
 
@@ -44,7 +44,7 @@ com.modestmaps.addEvent = function( obj, type, fn ) {
             obj.addEventListener( 'DOMMouseScroll', fn, false );
         }
     }
-}
+};
 
 com.modestmaps.removeEvent = function( obj, type, fn ) {
     if ( obj.detachEvent ) {
@@ -57,14 +57,14 @@ com.modestmaps.removeEvent = function( obj, type, fn ) {
             obj.removeEventListener( 'DOMMouseScroll', fn, false );
         }
     }
-}
+};
 
 //////////////////////////// Core
 
 com.modestmaps.Point = function(x, y) {
     this.x = parseFloat(x);
     this.y = parseFloat(y);
-}
+};
 
 com.modestmaps.Point.prototype = {
     x: 0,
@@ -72,13 +72,13 @@ com.modestmaps.Point.prototype = {
     toString: function() {
         return "(" + this.x.toFixed(3) + ", " + this.y.toFixed(3) + ")";
     }
-}
+};
 
 com.modestmaps.Coordinate = function(row, column, zoom) {
     this.row = row;
     this.column = column;
     this.zoom = zoom;
-}
+};
 
 com.modestmaps.Coordinate.prototype = {
 
@@ -90,6 +90,22 @@ com.modestmaps.Coordinate.prototype = {
         return "(" + this.row.toFixed(3) + ", " + this.column.toFixed(3) + " @" + this.zoom.toFixed(3) + ")";
     },
 
+    toKey: function() {
+        var a = parseInt(this.row);
+        var b = parseInt(this.column);
+        var c = parseInt(this.zoom);
+        a=a-b;	a=a-c;	a=a^(c >>> 13);
+        b=b-c;	b=b-a;	b=b^(a << 8); 
+        c=c-a;	c=c-b;	c=c^(b >>> 13);
+        a=a-b;	a=a-c;	a=a^(c >>> 12);
+        b=b-c;	b=b-a;	b=b^(a << 16);
+        c=c-a;	c=c-b;	c=c^(b >>> 5);
+        a=a-b;	a=a-c;	a=a^(c >>> 3);
+        b=b-c;	b=b-a;	b=b^(a << 10);
+        c=c-a;	c=c-b;	c=c^(b >>> 15);
+        return c;
+    },
+
     copy: function() {
         return new com.modestmaps.Coordinate(this.row, this.column, this.zoom);
     },
@@ -99,14 +115,16 @@ com.modestmaps.Coordinate.prototype = {
     },
 
     zoomTo: function(destination) {
-        return new com.modestmaps.Coordinate(this.row * Math.pow(2, destination - this.zoom),
-                          this.column * Math.pow(2, destination - this.zoom),
+        var power = Math.pow(2, destination - this.zoom);
+        return new com.modestmaps.Coordinate(this.row * power,
+                          this.column * power,
                           destination);
     },
     
     zoomBy: function(distance) {
-        return new com.modestmaps.Coordinate(this.row * Math.pow(2, distance),
-                          this.column * Math.pow(2, distance),
+        var power = Math.pow(2, distance);
+        return new com.modestmaps.Coordinate(this.row * power,
+                          this.column * power,
                           this.zoom + distance);
     },
 
@@ -129,14 +147,14 @@ com.modestmaps.Coordinate.prototype = {
         if (distance == undefined) distance = 1;
         return new com.modestmaps.Coordinate(this.row, this.column - distance, this.zoom);
     }
-}
+};
 
 //////////////////////////// Geo
 
 com.modestmaps.Location = function(lat, lon) {
     this.lat = parseFloat(lat);
     this.lon = parseFloat(lon);
-}
+};
 
 com.modestmaps.Location.prototype = {
     lat: 0,
@@ -144,7 +162,7 @@ com.modestmaps.Location.prototype = {
     toString: function() {
         return "(" + this.lat.toFixed(3) + ", " + this.lon.toFixed(3) + ")";
     }
-}
+};
 
 com.modestmaps.Transformation = function(ax, bx, cx, ay, by, cy) {
     this.ax = ax;
@@ -153,7 +171,7 @@ com.modestmaps.Transformation = function(ax, bx, cx, ay, by, cy) {
     this.ay = ay;
     this.by = by;
     this.cy = cy;
-}
+};
 
 com.modestmaps.Transformation.prototype = {
     ax: 0, 
@@ -209,15 +227,15 @@ com.modestmaps.Transformation.prototype = {
 
         var c = t1 - (r1 * a) - (s1 * b);
     
-        return new Array(a, b, c);
+        return [ a, b, c ];
     }
-}
+};
 
 com.modestmaps.Projection = function(zoom, transformation) {
     if (!transformation) transformation = com.modestmaps.Transformation(1, 0, 0, 0, 1, 0);
     this.zoom = zoom;
     this.transformation = transformation;
-}
+};
 
 com.modestmaps.Projection.prototype = {
 
@@ -260,11 +278,11 @@ com.modestmaps.Projection.prototype = {
         point = this.unproject(point);
         return new com.modestmaps.Location(180.0 * point.y / Math.PI, 180.0 * point.x / Math.PI);
     }
-}
+};
 
 com.modestmaps.LinearProjection = function(zoom, transformation) {
-    Projection.call(this, zoom, transformation);
-}
+    com.modestmaps.Projection.call(this, zoom, transformation);
+};
 
 com.modestmaps.LinearProjection.prototype = {
     rawProject: function(point) {
@@ -273,14 +291,14 @@ com.modestmaps.LinearProjection.prototype = {
     rawUnproject: function(point) {
         return new com.modestmaps.Point(point.x, point.y);
     }
-}
+};
 
 com.modestmaps.extend(com.modestmaps.LinearProjection, com.modestmaps.Projection);
 
 com.modestmaps.MercatorProjection = function(zoom, transformation) {
     // super!
     com.modestmaps.Projection.call(this, zoom, transformation);
-}
+};
 
 com.modestmaps.MercatorProjection.prototype = {
     rawProject: function(point) {
@@ -292,7 +310,7 @@ com.modestmaps.MercatorProjection.prototype = {
         return new com.modestmaps.Point(point.x,
                      2 * Math.atan(Math.pow(Math.E, point.y)) - 0.5 * Math.PI);
     }
-}
+};
 
 com.modestmaps.extend(com.modestmaps.MercatorProjection, com.modestmaps.Projection);
 
@@ -302,7 +320,7 @@ com.modestmaps.MapProvider = function(getTileUrl) {
     if (getTileUrl) {
         this.getTileUrl = getTileUrl;
     }
-}
+};
 
 com.modestmaps.MapProvider.prototype = {
 
@@ -333,14 +351,14 @@ com.modestmaps.MapProvider.prototype = {
             
         return new com.modestmaps.Coordinate(coordinate.row, wrappedColumn, coordinate.zoom);
     }
-}
+};
 
 com.modestmaps.BlueMarbleProvider = function() {
-    MapProvider.call(this, function(coordinate) {
+    com.modestmaps.MapProvider.call(this, function(coordinate) {
         var img = coordinate.zoom.toFixed(0) +'-r'+ coordinate.row.toFixed(0) +'-c'+ coordinate.column.toFixed(0) + '.jpg';
         return 'http://s3.amazonaws.com/com.modestmaps.bluemarble/' + img;
     });
-}
+};
 
 com.modestmaps.extend(com.modestmaps.BlueMarbleProvider, com.modestmaps.MapProvider);
 
@@ -371,10 +389,17 @@ com.modestmaps.Map = function(parent, provider, dimensions) {
     this.parent.style.overflow = 'hidden';
     this.parent.style.backgroundColor = '#eee';
     
+    com.modestmaps.addEvent(this.parent, 'dblclick', this.getDoubleClick());
     com.modestmaps.addEvent(this.parent, 'mousedown', this.getMouseDown());
     com.modestmaps.addEvent(this.parent, 'mousewheel', this.getMouseWheel());
 
-    this.layers = new Array();
+    // add an invisible layer so that image.onload will have a srcElement in IE6
+    this.loadingLayer = document.createElement('div');
+    this.loadingLayer.id = 'loading layer';
+    this.loadingLayer.style.display = 'none';
+    this.parent.appendChild(this.loadingLayer);
+
+    this.layers = [];
 
     // add a div for each zoom level
     for (var z = 0; z <= 20; z++) {
@@ -394,11 +419,17 @@ com.modestmaps.Map = function(parent, provider, dimensions) {
     this.provider = provider;
     this.dimensions = dimensions;
     this.coordinate = new com.modestmaps.Coordinate(0.5,0.5,0);
-    this.tiles = new Object();
-    this.requestedTiles = new Object();
+    this.tiles = {};
+    this.requestedTiles = {};
+
+    this.requestCount = 0;
+    this.maxSimultaneousRequests = 4;
+    this.requestQueue = [];
+    
+    this.tileCacheSize = 0;
     
     this.callbacks = { zoomed: [], panned: [], centered: [], extentset: [] };
-}
+};
 
 com.modestmaps.Map.prototype = {
 
@@ -410,6 +441,12 @@ com.modestmaps.Map.prototype = {
     tiles: null,
     requestedTiles: null,
     layers: null,
+
+    requestCount: null,
+    maxSimultaneousRequests: null,
+    requestQueue: null,
+    
+    tileCacheSize: null,
     
     callbacks: null,
 
@@ -480,12 +517,12 @@ com.modestmaps.Map.prototype = {
         if (!this.mouseMoveHandler) {
             var theMap = this;
             this.mouseMoveHandler = function(e) {
-                if (!e) var e = window.event;
+                if (!e) e = window.event;
     
                 if (theMap.prevMouse) {
                     theMap.panBy(e.clientX - theMap.prevMouse.x, e.clientY - theMap.prevMouse.y);
-                    theMap.prevMouse.x = e.clientX
-                    theMap.prevMouse.y = e.clientY
+                    theMap.prevMouse.x = e.clientX;
+                    theMap.prevMouse.y = e.clientY;
                 }
             
                 return com.modestmaps.cancelEvent(e);
@@ -500,7 +537,7 @@ com.modestmaps.Map.prototype = {
         if (!this.mouseUpHandler) {
             var theMap = this;
             this.mouseUpHandler = function(e) {
-                if (!e) var e = window.event;
+                if (!e) e = window.event;
     
                 com.modestmaps.removeEvent(document, 'mouseup', theMap.getMouseUp());
                 com.modestmaps.removeEvent(document, 'mousemove', theMap.getMouseMove());
@@ -522,7 +559,7 @@ com.modestmaps.Map.prototype = {
             var theMap = this;
             var prevTime = new Date().getTime();
             this.mouseWheelHandler = function(e) {
-                if (!e) var e = window.event;
+                if (!e) e = window.event;
     
                 var delta = 0;
                 
@@ -538,11 +575,7 @@ com.modestmaps.Map.prototype = {
     
                 if (delta != 0 && (timeSince > 200)) {
                     
-                    var point = new com.modestmaps.Point(e.clientX, e.clientY);
-                    point.x += document.body.scrollLeft + document.documentElement.scrollLeft;
-                    point.x -= map.parent.offsetLeft;
-                    point.y += document.body.scrollTop + document.documentElement.scrollTop;
-                    point.y -= map.parent.offsetTop;
+                    var point = theMap.getMousePoint(e);
                     
                     theMap.zoomByAbout(delta > 0 ? 1 : -1, point);
                     
@@ -554,7 +587,33 @@ com.modestmaps.Map.prototype = {
         }
         return this.mouseWheelHandler;
     },
-        
+
+    doubleClickHandler: null,
+
+    getDoubleClick: function() {
+        if (!this.doubleClickHandler) {
+            var theMap = this;
+            this.doubleClickHandler = function(e) {
+                if (!e) e = window.event;
+    
+                var point = theMap.getMousePoint(e);
+                
+                // use shift-double-click to zoom out
+                theMap.zoomByAbout(e.shiftKey ? -1 : 1, point);    
+                
+                return com.modestmaps.cancelEvent(e);
+            };
+        }
+        return this.doubleClickHandler;
+    },
+
+    // interaction helper
+
+    getMousePoint: function(e) {    
+        return new com.modestmaps.Point(e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft - this.parent.offsetLeft, 
+                                        e.clientY + document.body.scrollTop + document.documentElement.scrollTop - this.parent.offsetTop);
+    },
+    
     // zooming
     
     zoomIn: function() {
@@ -577,10 +636,10 @@ com.modestmaps.Map.prototype = {
     },
     
     zoomByAbout: function(zoomOffset, point) {
-        var location = this.pointLocation(point)
-        this.coordinate = this.coordinate.zoomBy(zoomOffset)
-        var newPoint = this.locationPoint(location)
-        this.panBy(point.x - newPoint.x, point.y - newPoint.y)
+        var location = this.pointLocation(point);
+        this.coordinate = this.coordinate.zoomBy(zoomOffset);
+        var newPoint = this.locationPoint(location);
+        this.panBy(point.x - newPoint.x, point.y - newPoint.y);
 
         this.dispatchCallback('zoomed', zoomOffset);
     },
@@ -628,9 +687,7 @@ com.modestmaps.Map.prototype = {
 
         var TL, BR;
         for (var i = 0; i < locations.length; i++) {
-            var coordinate = this.provider.locationCoordinate(locations[i])
-            console.log(locations[i]);
-            console.log(coordinate);
+            var coordinate = this.provider.locationCoordinate(locations[i]);
             if (TL) {
                 TL.row = Math.min(TL.row, coordinate.row);
                 TL.column = Math.min(TL.column, coordinate.column);
@@ -645,41 +702,38 @@ com.modestmaps.Map.prototype = {
             }
         }
         
-        console.log(TL);
-        console.log(BR);
-        
         var width = this.dimensions.x + 1;
-        var height = this.dimensions.y + 1;
+        var height = this.dimensions.y + 1; 
         
         // multiplication factor between horizontal span and map width
-        var hFactor = (BR.column - TL.column) / (width / this.provider.tileWidth)
+        var hFactor = (BR.column - TL.column) / (width / this.provider.tileWidth);
     
         // multiplication factor expressed as base-2 logarithm, for zoom difference
-        var hZoomDiff = Math.log(hFactor) / Math.log(2)
+        var hZoomDiff = Math.log(hFactor) / Math.log(2);
             
         // possible horizontal zoom to fit geographical extent in map width
-        var hPossibleZoom = TL.zoom - Math.ceil(hZoomDiff)
+        var hPossibleZoom = TL.zoom - Math.ceil(hZoomDiff);
             
         // multiplication factor between vertical span and map height
-        var vFactor = (BR.row - TL.row) / (height / this.provider.tileHeight)
+        var vFactor = (BR.row - TL.row) / (height / this.provider.tileHeight);
             
         // multiplication factor expressed as base-2 logarithm, for zoom difference
-        var vZoomDiff = Math.log(vFactor) / Math.log(2)
+        var vZoomDiff = Math.log(vFactor) / Math.log(2);
             
         // possible vertical zoom to fit geographical extent in map height
-        var vPossibleZoom = TL.zoom - Math.ceil(vZoomDiff)
+        var vPossibleZoom = TL.zoom - Math.ceil(vZoomDiff);
             
         // initial zoom to fit extent vertically and horizontally
-        var initZoom = Math.min(hPossibleZoom, vPossibleZoom)
+        var initZoom = Math.min(hPossibleZoom, vPossibleZoom);
     
         // additionally, make sure it's not outside the boundaries set by provider limits
         // initZoom = min(initZoom, provider.outerLimits()[1].zoom)
         // initZoom = max(initZoom, provider.outerLimits()[0].zoom)
     
         // coordinate of extent center
-        centerRow = (TL.row + BR.row) / 2
-        centerColumn = (TL.column + BR.column) / 2
-        centerZoom = (TL.zoom + BR.zoom) / 2
+        var centerRow = (TL.row + BR.row) / 2;
+        var centerColumn = (TL.column + BR.column) / 2;
+        var centerZoom = TL.zoom;
         
         this.coordinate = new com.modestmaps.Coordinate(centerRow, centerColumn, centerZoom).zoomTo(initZoom);
         this.draw();
@@ -698,9 +752,9 @@ com.modestmaps.Map.prototype = {
         }
         
         // distance from the center of the map
-        var point = new com.modestmaps.Point(this.dimensions.x/2, this.dimensions.y/2)
-        point.x += this.provider.tileWidth * (coord.column - this.coordinate.column)
-        point.y += this.provider.tileHeight * (coord.row - this.coordinate.row)
+        var point = new com.modestmaps.Point(this.dimensions.x/2, this.dimensions.y/2);
+        point.x += this.provider.tileWidth * (coord.column - this.coordinate.column);
+        point.y += this.provider.tileHeight * (coord.row - this.coordinate.row);
         
         return point;
     },
@@ -732,7 +786,7 @@ com.modestmaps.Map.prototype = {
     // inspecting
 
     getExtent: function() {
-        var extent = new Array();
+        var extent = [];
         extent.push(this.pointLocation(new com.modestmaps.Point(0,0)));
         extent.push(this.pointLocation(this.dimensions));
         return extent;
@@ -749,6 +803,10 @@ com.modestmaps.Map.prototype = {
     // rendering    
     
     draw: function(onlyThisLayer) {
+
+//        console.log('requestQueue: ' + this.requestQueue.length);
+//        console.log('requestCount: ' + this.requestCount);
+//        console.log('tileCacheSize: ' + this.tileCacheSize);
 
         //console.log('--- begin draw ' + onlyThisLayer);
         
@@ -779,38 +837,40 @@ com.modestmaps.Map.prototype = {
 
         for (var y = baseCorner.y; y < this.dimensions.y; y += this.provider.tileHeight) {
             for (var x = baseCorner.x; x < this.dimensions.x; x += this.provider.tileWidth) {
-                var tileKey = tileCoord.toString();
+                var tileKey = tileCoord.toKey();
                 wantedTiles[tileKey] = true;
                 if (!this.tiles[tileKey]) {
                     if (!this.requestedTiles[tileKey]) {
                         this.requestTile(tileCoord);
                     }
-                    showParentLayer = true
+                    showParentLayer = true;
                     if (!onlyThisLayer) {
                         for (var pz = 1; pz <= 5; pz++) {
-                            var parentKey = tileCoord.zoomBy(-pz).container().toString();
+                            var parentKey = tileCoord.zoomBy(-pz).container().toKey();
                             wantedTiles[parentKey] = true;
                         }
                         var childCoord = tileCoord.zoomBy(1);
-                        wantedTiles[childCoord.toString()] = true;
-                        wantedTiles[childCoord.right().toString()] = true;
-                        childCoord = childCoord.down();
-                        wantedTiles[childCoord.toString()] = true;
-                        wantedTiles[childCoord.right().toString()] = true;
+                        wantedTiles[childCoord.toKey()] = true;
+                        childCoord.column += 1;
+                        wantedTiles[childCoord.toKey()] = true;
+                        childCoord.row += 1;
+                        wantedTiles[childCoord.toKey()] = true;
+                        childCoord.column -= 1;
+                        wantedTiles[childCoord.toKey()] = true;
                     }
                 }
                 else {
                     var tile = this.tiles[tileKey];
                     if (!document.getElementById(tile.id)) {
-                        thisLayer.appendChild(tile)
+                        thisLayer.appendChild(tile);
                     }
-                    tile.style.left = x + 'px'
-                    tile.style.top = y + 'px'
+                    tile.style.left = x + 'px';
+                    tile.style.top = y + 'px';
                 }
-                tileCoord.column += 1
+                tileCoord.column += 1;
             }
-            tileCoord.row += 1
-            tileCoord.column = baseCoord.column
+            tileCoord.row += 1;
+            tileCoord.column = baseCoord.column;
         }
         
         //console.log(showParentLayer);
@@ -820,22 +880,22 @@ com.modestmaps.Map.prototype = {
             // layers that would be scaled too big:
             for (var i = 0; i < baseCoord.zoom-5; i++) {
                 var layer = this.layers[i];
-                layer.style.display = 'none'
+                layer.style.display = 'none';
 
                 var visibleTiles = layer.getElementsByTagName('img');
                 for (var j = visibleTiles.length-1; j >= 0; j--) {
-                    layer.removeChild(visibleTiles[j])
+                    layer.removeChild(visibleTiles[j]);
                 }                    
             }
 
             // layers that would be scaled too small, and tiles would be too numerous:
             for (var i = baseCoord.zoom+2; i < this.layers.length; i++) {
                 var layer = this.layers[i];
-                layer.style.display = 'none'
+                layer.style.display = 'none';
 
                 var visibleTiles = layer.getElementsByTagName('img');
                 for (var j = visibleTiles.length-1; j >= 0; j--) {
-                    layer.removeChild(visibleTiles[j])
+                    layer.removeChild(visibleTiles[j]);
                 }                    
             }
         
@@ -863,7 +923,7 @@ com.modestmaps.Map.prototype = {
                 for (var j = visibleTiles.length-1; j >= 0; j--) {
                     var tile = visibleTiles[j];
                     if (!wantedTiles[tile.id]) {
-                        layer.removeChild(tile)
+                        layer.removeChild(tile);
                     }
                     else if (theCoord) {
                         var tx = ((this.dimensions.x/2) + (tile.coord.column - theCoord.column) * this.provider.tileWidth * scale);
@@ -885,10 +945,12 @@ com.modestmaps.Map.prototype = {
         for (var tileKey in this.requestedTiles) {
             if (!wantedTiles[tileKey]) {
                 var tile = this.requestedTiles[tileKey];
-                tile.onload.call();
+                this.cancelTileRequest(tile);
                 tile = null;
             }
         }
+        
+        this.processQueue();
         
         //console.log('--- end draw ' + onlyThisLayer);
     },
@@ -896,55 +958,136 @@ com.modestmaps.Map.prototype = {
     redrawTimer: undefined,
     
     requestRedraw: function() {
-//        if (this.redrawTimer) clearTimeout(this.redrawTimer);
-//        this.redrawTimer = setTimeout(this.reallyRedraw, 1000, this);
+        if (this.redrawTimer) clearTimeout(this.redrawTimer);
+        this.redrawTimer = setTimeout(this.getRedraw(), 1000);
     },
+
+    _redraw: null,
     
-    reallyRedraw: function(theMap) {
-        //console.log('really redrawing');
-        theMap.draw();
+    getRedraw: function() {
+        // let's only create this closure once...
+        if (!this._redraw) {
+            var theMap = this;
+            this._redraw = function() {
+                theMap.draw();
+            }
+        }
+        return this._redraw;
     },
     
     requestTile: function(tileCoord) {
-        var tileKey = tileCoord.toString();
+        var tileKey = tileCoord.toKey();
         if (!this.requestedTiles[tileKey]) {
-            var tile = new Image();
+            var tile = document.createElement('img'); // TODO: benchmark vs new Image() (in all browsers)
             tile.id = tileKey;
-            tile.coord = tileCoord.copy();
             tile.width = this.provider.tileWidth;
             tile.height = this.provider.tileHeight;
             tile.style.position = 'absolute';
             this.requestedTiles[tileKey] = tile;
+            this.requestQueue.push( { tile: tile, coord: tileCoord.copy() });
+        }
+    },
+    
+    processQueue: function() {
+        if (this.requestQueue.length > 8) {
+            this.requestQueue.sort(this.getCenterDistanceCompare());
+        }
+        while (this.requestCount < this.maxSimultaneousRequests && this.requestQueue.length > 0) {
+            var request = this.requestQueue.pop();
+            if (request) {
+                this.requestCount++;
+                // add it to the DOM in a hidden layer, this is a bit of a hack, but it's
+                // so that the event we get in image.onload has srcElement assigned in IE6
+                this.loadingLayer.appendChild(request.tile);                
+                // set these before tile.src to avoid missing a tile that's already cached            
+                request.tile.onload = request.tile.onerror = this.getLoadComplete();
+                request.tile.src = this.provider.getTileUrl(request.coord);
+                request.tile.coord = request.coord; // FIXME: store this elsewhere to avoid scary memory leaks
+                // keep things tidy
+                request.tile = request.coord = null;
+            }
+        }
+    },
+
+    cancelTileRequest: function(tile) {
+        // whether we've done the request or not...
+        delete this.requestedTiles[tile.id];    
+        if (tile.src) { // FIXME: what if the tile *should* have a null URL?
+            tile.onload = tile.onerror = null;
+            //delete tile['coord']; // causes an error in IE6
+            tile.coord = null;
+            // not sure if this is necessary, but hopefully it guarantees the tile stops loading?
+            tile.src = null;
+            // pull it back out of the DOM
+            this.loadingLayer.removeChild(tile);
+            // correct this...
+            this.requestCount--;
+        }
+        else {
+            for (var i = 0; i < this.requestQueue.length; i++) {
+                var request = this.requestQueue[i];
+                if (request && request.tile === tile) {
+                    this.requestQueue[i] = null;
+                    request.tile = request.coord = null;
+                }
+            }
+        }
+    },
+    
+    _loadComplete: null,
+    
+    getLoadComplete: function() {
+        // let's only create this closure once...
+        if (!this._loadComplete) {
             var theMap = this;
-            var theTiles = this.tiles;
-            var theRequestedTiles = this.requestedTiles;
-            function loadComplete(e) {
+            this._loadComplete = function(e) {
+                if (!e) var e = event || window.event;
+
+                // srcElement for IE, target for FF, Safari etc.
+                var tile = e.srcElement || e.target;
+
                 // unset these straight away so we don't call this twice
-                delete theRequestedTiles[tileKey];
-                tile.onload = null;
-                tile.onerror = null;
+                tile.onload = tile.onerror = null;
+
+                // pull it back out of the DOM so that draw will add it correctly later
+                theMap.loadingLayer.removeChild(tile);
+                
+                theMap.requestCount--;
+
+                delete theMap.requestedTiles[tile.id];
+
+                // NB:- complete is also true onerror if we got a 404
                 if (tile.complete || (tile.readyState && tile.readyState == 'complete')) {
-                    theTiles[tileKey] = tile;
-                    // TODO: can we position the tile here instead of redrawing all tiles?
-                    theMap.draw(true);
-                    theMap.requestRedraw(); // all layers, will remove as well as reposition things
+                    theMap.tiles[tile.id] = tile;
+                    theMap.tileCacheSize++;
                 }
                 else {
-                    // not sure if this is necessary, but hopefully it guarantees the tile stops loading?
+                    // if it didn't finish clear its src to make sure it really stops loading
+                    // FIXME: if we don't add it to theMap.tiles then we'll request it 
+                    // again if and when the map moves - that's probably broken behaviour
                     tile.src = null;
-                }                
-                // tidy closure?
-                theTiles = null;
-                theMap = null;
-                theRequestedTiles = null;
-                tileKey = null;
-                tile = null;
+                }
+                
+                // TODO: can we position the tile here instead of redrawing all tiles?
+                theMap.draw(true);
+                theMap.requestRedraw(); // all layers, will remove as well as reposition things
             }
-            tile.onload = loadComplete;
-            tile.onerror = loadComplete;
-            // set this after tile.onload to avoid missing a tile that's already cached
-            tile.src = this.provider.getTileUrl(tileCoord);
+        }
+        return this._loadComplete;
+    },
+    
+    getCenterDistanceCompare: function() {
+        var theCoordinate = this.coordinate;
+        return function(r1, r2) {
+            if (r1 && r2) {
+                var c1 = r1.coord;
+                var c2 = r2.coord;
+                var ds1 = Math.abs(theCoordinate.row - c1.row) + Math.abs(theCoordinate.column - c1.column);
+                var ds2 = Math.abs(theCoordinate.row - c2.row) + Math.abs(theCoordinate.column - c2.column);
+                return ds1 < ds2 ? 1 : ds1 > ds2 ? -1 : 0;
+            }
+            return r1 ? 1 : r2 ? -1 : 0;
         }
     }
-        
-}
+    
+};

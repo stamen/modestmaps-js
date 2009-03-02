@@ -6,14 +6,14 @@ if (!com) {
     }
 }
 
-com.modestmaps.Follower = function(map, location, content)
+com.modestmaps.Follower = function(map, location, content, dimensions)
 {
     this.coord = map.provider.locationCoordinate(location);
     
     this.offset = new com.modestmaps.Point(0, 0);
-    this.dimensions = new com.modestmaps.Point(100, 50);
+    this.dimensions = dimensions || new com.modestmaps.Point(100, 50);
     this.padding = new com.modestmaps.Point(10, 10);
-    this.offset = new com.modestmaps.Point(0, -50);
+    this.offset = new com.modestmaps.Point(0, -this.dimensions.y);
 
     var follower = this;
     
@@ -27,8 +27,8 @@ com.modestmaps.Follower = function(map, location, content)
     this.div.style.position = 'absolute';
     this.div.style.width = this.dimensions.x + 'px';
     this.div.style.height = this.dimensions.y + 'px';
-    this.div.style.backgroundColor = 'white';
-    this.div.style.border = 'solid black 1px';
+    //this.div.style.backgroundColor = 'white';
+    //this.div.style.border = 'solid black 1px';
     
     this.div.innerHTML = content;
     
