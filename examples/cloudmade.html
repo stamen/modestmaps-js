@@ -6,7 +6,8 @@
 <script type="text/javascript">
     var map;
     function initMap() {
-	eval(document.getElementById('src').innerHTML);
+        var src = document.getElementById('src');
+        eval(src.textContent || src.innerText);
     }
 </script>
 </head>

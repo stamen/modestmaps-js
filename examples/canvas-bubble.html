@@ -7,7 +7,8 @@
 <script type="text/javascript">
     var map;
     function initMap() {
-	eval(document.getElementById('src').innerHTML);
+        var src = document.getElementById('src');
+        eval(src.textContent || src.innerText);
     }
 </script>
 </head>
@@ -27,7 +28,7 @@ var provider = new mm.MapProvider(function(coord) {
     return 'http://osm-bayarea.s3.amazonaws.com/' + img;
 });
 
-map = new mm.Map('map', provider, new mm.Point(640,480))
+map = new mm.Map('map', provider, new mm.Point(1024,768))
 
 var f = new mm.Follower(map, new mm.Location(37.811530, -122.2666097), 'Broadway and Grand');
 
