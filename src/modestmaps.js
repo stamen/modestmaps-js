@@ -609,9 +609,22 @@ com.modestmaps.Map.prototype = {
 
     // interaction helper
 
-    getMousePoint: function(e) {    
-        return new com.modestmaps.Point(e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft - this.parent.offsetLeft, 
-                                        e.clientY + document.body.scrollTop + document.documentElement.scrollTop - this.parent.offsetTop);
+    getMousePoint: function(e)
+    {
+        // start with just the mouse (x, y)
+        var point = new com.modestmaps.Point(e.clientX, e.clientY);
+        
+        // correct for scrolled document
+        point.x += document.body.scrollLeft + document.documentElement.scrollLeft;
+        point.y += document.body.scrollTop + document.documentElement.scrollTop;
+
+        // correct for nested offsets in DOM
+        for(var node = this.parent; node; node = node.offsetParent) {
+            point.x -= node.offsetLeft;
+            point.y -= node.offsetTop;
+        }
+        
+        return point;
     },
     
     // zooming
