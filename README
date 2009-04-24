@@ -14,3 +14,8 @@ Please speak up on getsatisfaction.com if you would like to get involved.
 
 -- Tom Carden, Feb 8 2009.
 
+Modest Maps JS and other files under /src/ are released under the BSD license.
+Libraries found in /lib/ are not part of modest maps js and are licensed separately.
+
+-- Tom Carden, April 23 2009.
+

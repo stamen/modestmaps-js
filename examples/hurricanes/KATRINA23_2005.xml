@@ -1,0 +1,584 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  XML Format Advisory Info Exported from Hurrevac (c) 2006 Sea Island Software, Inc.  -->
+<HurricaneAdvisory>
+    <StormDescription> 
+	<StormType>Hurricane</StormType>
+    	<StormName>KATRINA</StormName>
+    </StormDescription>        
+    <AdvisoryInfo>
+        <Number>#23</Number>
+        <MonthZulu> 8</MonthZulu>
+        <DateZulu> 28</DateZulu>
+        <YearZulu> 2005</YearZulu> 
+        <TimeZulu> 15</TimeZulu>	
+    </AdvisoryInfo>
+    <CurrentStats>
+	<Location>-88.1,26.0</Location>
+        <MaxWindMph>175</MaxWindMph>
+        <MovementMph>12</MovementMph>
+    </CurrentStats>
+    <CurrentWindRing>
+        <RingType>74 mph</RingType>
+	<Coordinates>-87.85,27.40  -87.59,27.36  -87.35,27.27  -87.11,27.14  -86.90,26.96  -86.73,26.75  -86.60,26.51  -86.51,26.26  -86.47,26.00  -86.51,25.74  -86.60,25.49  -86.73,25.25  -86.92,25.06  -87.14,24.90  -87.41,24.83  -87.65,24.79  -87.89,24.82  -88.10,24.87  -88.28,24.97  -88.44,25.08  -88.56,25.22  -88.70,25.31  -88.81,25.43  -88.96,25.53  -89.07,25.67  -89.18,25.82  -89.26,26.00  -89.28,26.19  -89.25,26.39  -89.20,26.60  -89.09,26.79  -88.96,26.98  -88.77,27.13  -88.56,27.25  -88.34,27.35  -88.10,27.40  -87.85,27.40</Coordinates>
+    </CurrentWindRing>
+    <CurrentWindRing>
+        <RingType>58 mph</RingType>
+	<Coordinates>-87.77,27.85  -87.43,27.82  -87.09,27.70  -86.78,27.52  -86.49,27.29  -86.27,27.00  -86.09,26.68  -85.98,26.35  -85.93,26.00  -85.98,25.65  -86.09,25.32  -86.27,25.00  -86.52,24.74  -86.82,24.53  -87.16,24.41  -87.49,24.36  -87.81,24.36  -88.10,24.42  -88.36,24.52  -88.59,24.67  -88.79,24.85  -88.98,24.99  -89.14,25.16  -89.34,25.33  -89.49,25.53  -89.62,25.75  -89.71,26.00  -89.73,26.27  -89.67,26.54  -89.58,26.81  -89.44,27.07  -89.23,27.30  -88.99,27.50  -88.72,27.68  -88.42,27.79  -88.10,27.85  -87.77,27.85</Coordinates>
+    </CurrentWindRing>
+    <CurrentWindRing>
+        <RingType>39 mph</RingType>
+	<Coordinates>-87.61,28.74  -87.11,28.68  -86.59,28.54  -86.12,28.27  -85.69,27.93  -85.35,27.50  -85.09,27.03  -84.92,26.52  -84.84,26.00  -84.92,25.48  -85.09,24.97  -85.35,24.50  -85.73,24.10  -86.16,23.78  -86.66,23.58  -87.16,23.46  -87.64,23.44  -88.10,23.52  -88.52,23.65  -88.90,23.85  -89.22,24.11  -89.54,24.35  -89.80,24.64  -90.05,24.93  -90.27,25.26  -90.43,25.62  -90.51,26.00  -90.49,26.39  -90.39,26.78  -90.21,27.15  -89.99,27.51  -89.70,27.84  -89.38,28.15  -88.99,28.40  -88.56,28.59  -88.10,28.70  -87.61,28.74</Coordinates>
+    </CurrentWindRing>
+    <ForecastPosition>
+    	<Type>Hour12</Type>
+        <MonthZulu> 8</MonthZulu>
+        <DateZulu> 29</DateZulu>
+        <YearZulu> 2005</YearZulu> 
+        <TimeZulu> 0</TimeZulu>
+        <Coordinates>-88.9,27.2</Coordinates>
+        <MaxWindMph>165</MaxWindMph>
+	<MovementMph>12</MovementMph>
+    </ForecastPosition>    
+    <ForecastPosition>
+    	<Type>Hour24</Type>
+        <MonthZulu> 8</MonthZulu>
+        <DateZulu> 29</DateZulu>
+        <YearZulu> 2005</YearZulu> 
+        <TimeZulu> 12</TimeZulu>
+        <Coordinates>-89.6,29.1</Coordinates>
+        <MaxWindMph>160</MaxWindMph>
+	<MovementMph>13</MovementMph>
+    </ForecastPosition>    
+    <ForecastPosition>
+    	<Type>Hour36</Type>
+        <MonthZulu> 8</MonthZulu>
+        <DateZulu> 30</DateZulu>
+        <YearZulu> 2005</YearZulu> 
+        <TimeZulu> 0</TimeZulu>
+        <Coordinates>-89.5,31.4</Coordinates>
+        <MaxWindMph>100</MaxWindMph>
+	<MovementMph>19</MovementMph>
+    </ForecastPosition>    
+    <ForecastPosition>
+    	<Type>Hour48</Type>
+        <MonthZulu> 8</MonthZulu>
+        <DateZulu> 30</DateZulu>
+        <YearZulu> 2005</YearZulu> 
+        <TimeZulu> 12</TimeZulu>
+        <Coordinates>-88.5,34.5</Coordinates>
+        <MaxWindMph>50</MaxWindMph>
+	<MovementMph>19</MovementMph>
+    </ForecastPosition>    
+    <ForecastPosition>
+    	<Type>Hour72</Type>
+        <MonthZulu> 8</MonthZulu>
+        <DateZulu> 31</DateZulu>
+        <YearZulu> 2005</YearZulu> 
+        <TimeZulu> 12</TimeZulu>
+        <Coordinates>-84.0,40.0</Coordinates>
+        <MaxWindMph>35</MaxWindMph>
+	<MovementMph>21</MovementMph>
+    </ForecastPosition>    
+    <ForecastPosition>
+    	<Type>Hour96</Type>
+        <MonthZulu> 9</MonthZulu>
+        <DateZulu> 1</DateZulu>
+        <YearZulu> 2005</YearZulu> 
+        <TimeZulu> 12</TimeZulu>
+        <Coordinates>-77.0,45.0</Coordinates>
+        <MaxWindMph>30</MaxWindMph>
+	<MovementMph>26</MovementMph>
+    </ForecastPosition>    
+    <ForecastPosition>
+    	<Type>Hour120</Type>
+        <MonthZulu> 9</MonthZulu>
+        <DateZulu> 2</DateZulu>
+        <YearZulu> 2005</YearZulu> 
+        <TimeZulu> 12</TimeZulu>
+        <Coordinates>-69.0,52.0</Coordinates>
+        <MaxWindMph>30</MaxWindMph>
+	<MovementMph>26</MovementMph>
+    </ForecastPosition>    
+    <ForecastErrorSwath>
+	<Type>NHC 72 Hour</Type>        
+	<Coordinates>-87.97,25.98  -88.10,25.87  -88.26,25.95  -88.41,26.04  -88.55,26.14  -88.69,26.24  -88.83,26.34  -88.97,26.43  -89.11,26.53  -89.26,26.63  -89.40,26.73  -89.52,26.85  -89.61,27.00  -89.71,27.14  -89.81,27.28  -89.89,27.44  -89.99,27.58  -90.09,27.72  -90.18,27.87  -90.28,28.01  -90.38,28.15  -90.47,28.30  -90.57,28.44  -90.65,28.60  -90.72,28.77  -90.79,28.94  -90.85,29.12  -90.89,29.32  -90.92,29.53  -90.95,29.74  -91.00,29.93  -91.06,30.11  -91.09,30.31  -91.12,30.48  -91.15,30.62  -91.17,30.80  -91.20,31.01  -91.22,31.22  -91.24,31.41  -91.23,31.58  -91.20,31.79  -91.17,32.00  -91.13,32.20  -91.09,32.40  -91.05,32.60  -91.02,32.81  -90.99,33.00  -90.96,33.17  -90.93,33.32  -90.91,33.50  -90.88,33.71  -90.85,33.92  -90.81,34.11  -90.78,34.30  -90.76,34.48  -90.73,34.65  -90.68,34.83  -90.61,35.00  -90.54,35.17  -90.46,35.33  -90.37,35.48  -90.29,35.64  -90.22,35.81  -90.15,35.98  -90.07,36.14  -89.98,36.29  -89.88,36.43  -89.80,36.59  -89.71,36.74  -89.61,36.88  -89.52,37.03  -89.44,37.19  -89.34,37.33  -89.24,37.47  -89.14,37.61  -89.04,37.75  -88.96,37.91  -88.89,38.08  -88.80,38.23  -88.70,38.37  -88.60,38.51  -88.50,38.65  -88.42,38.81  -88.34,38.97  -88.25,39.12  -88.17,39.28  -88.07,39.42  -87.97,39.56  -87.89,39.72  -87.80,39.87  -87.69,40.00  -87.59,40.14  -87.49,40.28  -87.41,40.44  -87.32,40.59  -87.24,40.75  -87.15,40.90  -87.05,41.04  -86.97,41.20  -86.86,41.33  -86.75,41.46  -86.64,41.59  -86.51,41.70  -86.41,41.84  -86.28,41.95  -86.14,42.05  -86.00,42.15  -85.85,42.24  -85.70,42.33  -85.55,42.42  -85.38,42.49  -85.19,42.54  -85.01,42.60  -84.84,42.67  -84.65,42.72  -84.46,42.77  -84.24,42.79  -84.00,42.79  -83.77,42.78  -83.55,42.77  -83.34,42.73  -83.16,42.67  -82.99,42.61  -82.81,42.54  -82.64,42.47  -82.47,42.40  -82.30,42.33  -82.14,42.25  -82.00,42.15  -81.86,42.05  -81.73,41.94  -81.61,41.82  -81.50,41.69  -81.39,41.56  -81.28,41.43  -81.18,41.30  -81.07,41.16  -80.97,41.03  -80.87,40.88  -80.79,40.72  -80.72,40.55  -80.67,40.36  -80.65,40.14  -80.66,39.91  -80.67,39.68  -80.72,39.49  -80.79,39.32  -80.86,39.15  -80.94,38.99  -81.05,38.86  -81.15,38.72  -81.26,38.59  -81.37,38.46  -81.48,38.33  -81.61,38.22  -81.71,38.08  -81.83,37.96  -81.96,37.85  -82.07,37.72  -82.19,37.60  -82.33,37.50  -82.46,37.39  -82.58,37.27  -82.70,37.15  -82.83,37.04  -82.96,36.93  -83.08,36.81  -83.20,36.68  -83.32,36.57  -83.46,36.47  -83.58,36.35  -83.70,36.23  -83.82,36.11  -83.95,36.00  -84.08,35.89  -84.20,35.77  -84.31,35.64  -84.42,35.51  -84.54,35.38  -84.66,35.27  -84.80,35.17  -84.92,35.05  -85.03,34.92  -85.15,34.80  -85.29,34.70  -85.42,34.59  -85.54,34.47  -85.66,34.35  -85.79,34.24  -85.92,34.13  -86.04,34.01  -86.16,33.89  -86.29,33.78  -86.42,33.67  -86.53,33.54  -86.63,33.40  -86.71,33.24  -86.80,33.09  -86.90,32.95  -86.99,32.80  -87.06,32.63  -87.13,32.46  -87.20,32.29  -87.28,32.13  -87.38,31.99  -87.47,31.84  -87.55,31.68  -87.62,31.51  -87.69,31.34  -87.76,31.17  -87.83,31.00  -87.89,30.82  -87.94,30.63  -87.98,30.43  -88.04,30.25  -88.10,30.07  -88.14,29.87  -88.19,29.68  -88.25,29.50  -88.31,29.32  -88.36,29.13  -88.38,28.91  -88.38,28.69  -88.35,28.48  -88.33,28.26  -88.32,28.03  -88.31,27.80  -88.27,27.60  -88.23,27.40  -88.20,27.19  -88.17,26.98  -88.13,26.78  -88.08,26.59  -88.04,26.39  -88.00,26.19  -87.97,25.98</Coordinates>    
+    </ForecastErrorSwath>
+    <ForecastErrorSwath>
+	<Type>NHC 120 Hour</Type>        
+        <Coordinates>-76.76,40.60  -76.98,40.46  -77.22,40.33  -77.48,40.20  -77.74,40.09  -77.98,39.95  -78.21,39.80  -78.46,39.67  -78.71,39.54  -78.96,39.41  -79.21,39.28  -79.46,39.15  -79.71,39.02  -79.96,38.89  -80.21,38.76  -80.46,38.63  -80.71,38.49  -80.94,38.35  -81.19,38.22  -81.46,38.11  -81.72,37.99  -81.99,37.87  -82.28,37.79  -82.61,37.74  -82.97,37.72  -83.34,37.72  -83.70,37.74  -84.04,37.79  -84.33,37.87  -84.60,37.98  -84.85,38.11  -85.10,38.25  -85.33,38.39  -85.55,38.56  -85.76,38.72  -85.96,38.90  -86.14,39.11  -86.29,39.33  -86.45,39.55  -86.62,39.76  -86.75,40.01  -86.83,40.29  -86.89,40.58  -86.89,40.86  -86.82,41.14  -86.69,41.40  -86.54,41.63  -86.37,41.84  -86.21,42.05  -86.04,42.27  -85.85,42.46  -85.66,42.64  -85.47,42.84  -85.29,43.04  -85.09,43.21  -84.88,43.39  -84.69,43.58  -84.50,43.77  -84.30,43.95  -84.10,44.12  -83.90,44.30  -83.70,44.49  -83.51,44.68  -83.31,44.86  -83.12,45.04  -82.91,45.22  -82.71,45.40  -82.53,45.60  -82.34,45.79  -82.14,45.97  -81.97,46.18  -81.83,46.42  -81.68,46.65  -81.50,46.85  -81.31,47.04  -81.13,47.24  -80.95,47.43  -80.78,47.64  -80.62,47.86  -80.44,48.07  -80.25,48.26  -80.07,48.46  -79.89,48.66  -79.71,48.86  -79.53,49.05  -79.34,49.24  -79.17,49.45  -79.01,49.67  -78.85,49.89  -78.67,50.09  -78.48,50.29  -78.30,50.49  -78.12,50.69  -77.93,50.88  -77.76,51.09  -77.60,51.30  -77.42,51.50  -77.24,51.70  -77.07,51.91  -76.88,52.11  -76.70,52.31  -76.54,52.52  -76.35,52.72  -76.16,52.90  -75.99,53.11  -75.83,53.33  -75.65,53.54  -75.48,53.75  -75.30,53.94  -75.10,54.12  -74.91,54.31  -74.72,54.50  -74.52,54.68  -74.31,54.85  -74.11,55.03  -73.91,55.21  -73.69,55.37  -73.46,55.52  -73.24,55.68  -73.02,55.85  -72.80,56.00  -72.55,56.13  -72.30,56.26  -72.04,56.38  -71.76,56.48  -71.48,56.58  -71.19,56.67  -70.90,56.76  -70.61,56.85  -70.29,56.91  -69.97,56.97  -69.64,57.03  -69.29,57.05  -68.91,57.05  -68.54,57.05  -68.18,57.03  -67.86,56.97  -67.57,56.87  -67.28,56.79  -66.98,56.71  -66.68,56.62  -66.40,56.53  -66.12,56.42  -65.86,56.31  -65.61,56.18  -65.36,56.04  -65.13,55.90  -64.90,55.75  -64.66,55.61  -64.43,55.46  -64.21,55.30  -63.99,55.14  -63.77,54.97  -63.58,54.79  -63.38,54.61  -63.17,54.43  -62.98,54.25  -62.80,54.05  -62.63,53.84  -62.47,53.62  -62.32,53.38  -62.18,53.14  -62.05,52.90  -61.92,52.65  -61.83,52.38  -61.76,52.11  -61.76,51.83  -61.85,51.53  -61.95,51.26  -62.09,51.01  -62.23,50.78  -62.38,50.54  -62.53,50.31  -62.70,50.10  -62.88,49.90  -63.06,49.70  -63.25,49.51  -63.45,49.33  -63.65,49.16  -63.86,48.98  -64.05,48.80  -64.27,48.64  -64.51,48.49  -64.73,48.33  -64.96,48.18  -65.17,48.02  -65.40,47.86  -65.63,47.71  -65.85,47.56  -66.09,47.41  -66.33,47.27  -66.55,47.11  -66.77,46.95  -66.98,46.79  -67.21,46.63  -67.45,46.49  -67.68,46.34  -67.89,46.18  -68.11,46.01  -68.33,45.86  -68.57,45.71  -68.80,45.56  -69.03,45.41  -69.25,45.26  -69.47,45.09  -69.69,44.93  -69.92,44.78  -70.15,44.63  -70.38,44.49  -70.62,44.34  -70.83,44.17  -71.05,44.01  -71.28,43.86  -71.50,43.71  -71.74,43.56  -71.95,43.40  -72.17,43.24  -72.40,43.09  -72.63,42.94  -72.87,42.79  -73.10,42.64  -73.33,42.49  -73.56,42.34  -73.81,42.21  -74.06,42.08  -74.31,41.95  -74.55,41.82  -74.80,41.69  -75.05,41.55  -75.28,41.41  -75.52,41.26  -75.77,41.13  -76.02,41.00  -76.27,40.88  -76.53,40.76  -76.76,40.60</Coordinates>    
+    </ForecastErrorSwath>
+    <ForecastErrorSwath>
+	<Type>ErrorPlus39Mph Winds</Type>        
+        <Coordinates>-84.67,25.98  -84.67,25.94  -84.73,25.72  -84.78,25.49  -84.82,25.25  -84.88,25.03  -84.97,24.84  -85.08,24.67  -85.18,24.49  -85.29,24.32  -85.44,24.19  -85.59,24.06  -85.74,23.93  -85.89,23.80  -86.04,23.67  -86.22,23.57  -86.43,23.50  -86.64,23.43  -86.86,23.37  -87.11,23.34  -87.38,23.33  -87.65,23.34  -87.92,23.35  -88.16,23.39  -88.37,23.46  -88.59,23.52  -88.79,23.60  -88.97,23.70  -89.14,23.80  -89.30,23.92  -89.46,24.05  -89.61,24.18  -89.76,24.30  -89.94,24.41  -90.10,24.53  -90.26,24.64  -90.43,24.76  -90.58,24.89  -90.72,25.02  -90.86,25.16  -91.01,25.30  -91.14,25.45  -91.27,25.60  -91.39,25.76  -91.51,25.92  -91.63,26.08  -91.76,26.23  -91.87,26.40  -91.98,26.57  -92.11,26.72  -92.22,26.89  -92.33,27.06  -92.43,27.24  -92.54,27.41  -92.65,27.57  -92.76,27.75  -92.84,27.95  -92.92,28.15  -93.01,28.34  -93.10,28.53  -93.17,28.73  -93.20,28.96  -93.21,29.15  -93.25,29.33  -93.29,29.53  -93.29,29.75  -93.31,29.97  -93.33,30.16  -93.33,30.38  -93.31,30.64  -93.27,30.88  -93.21,31.10  -93.17,31.34  -93.13,31.58  -93.06,31.79  -92.99,32.00  -92.93,32.22  -92.85,32.42  -92.76,32.61  -92.69,32.82  -92.60,33.01  -92.50,33.19  -92.40,33.37  -92.31,33.56  -92.22,33.75  -92.13,33.95  -92.06,34.15  -91.97,34.34  -91.88,34.53  -91.79,34.72  -91.70,34.91  -91.59,35.08  -91.49,35.26  -91.41,35.46  -91.30,35.64  -91.20,35.81  -91.09,35.98  -90.98,36.15  -90.87,36.32  -90.76,36.49  -90.65,36.67  -90.55,36.85  -90.44,37.01  -90.29,37.14  -90.15,37.28  -90.02,37.43  -89.89,37.58  -89.78,37.75  -89.67,37.92  -89.54,38.07  -89.41,38.22  -89.28,38.37  -89.14,38.51  -89.01,38.67  -88.89,38.82  -88.76,38.97  -88.65,39.14  -88.53,39.30  -88.41,39.46  -88.28,39.61  -88.14,39.75  -88.02,39.91  -87.90,40.07  -87.77,40.22  -87.65,40.38  -87.51,40.52  -87.38,40.67  -87.24,40.81  -87.10,40.96  -87.00,41.13  -86.88,41.29  -86.76,41.45  -86.63,41.60  -86.49,41.74  -86.35,41.88  -86.20,42.01  -86.04,42.13  -85.86,42.23  -85.68,42.33  -85.51,42.45  -85.32,42.53  -85.11,42.60  -84.90,42.67  -84.67,42.72  -84.44,42.77  -84.18,42.79  -83.91,42.78  -83.64,42.77  -83.40,42.73  -83.18,42.67  -82.97,42.60  -82.76,42.53  -82.56,42.45  -82.38,42.35  -82.20,42.25  -82.02,42.15  -81.86,42.03  -81.70,41.91  -81.55,41.78  -81.42,41.63  -81.29,41.48  -81.18,41.31  -81.07,41.14  -80.95,40.98  -80.84,40.81  -80.75,40.62  -80.67,40.42  -80.65,40.16  -80.66,39.89  -80.68,39.63  -80.73,39.40  -80.82,39.21  -80.93,39.04  -81.05,38.88  -81.16,38.71  -81.27,38.54  -81.40,38.39  -81.52,38.23  -81.62,38.05  -81.72,37.87  -81.84,37.71  -81.97,37.56  -82.09,37.40  -82.20,37.23  -82.32,37.07  -82.45,36.92  -82.57,36.76  -82.69,36.60  -82.81,36.44  -82.91,36.26  -83.01,36.08  -83.13,35.92  -83.25,35.76  -83.39,35.62  -83.51,35.46  -83.63,35.30  -83.74,35.13  -83.84,34.95  -83.95,34.78  -84.08,34.63  -84.20,34.47  -84.31,34.30  -84.43,34.14  -84.56,33.99  -84.68,33.83  -84.79,33.66  -84.89,33.48  -84.95,33.26  -84.99,33.02  -85.02,32.77  -85.03,32.50  -85.06,32.25  -85.09,32.00  -85.09,31.72  -85.08,31.45  -85.07,31.18  -85.04,30.93  -85.00,30.69  -84.97,30.44  -84.96,30.19  -84.97,29.92  -85.00,29.67  -85.03,29.42  -85.06,29.17  -85.09,28.92  -85.08,28.65  -85.07,28.38  -85.03,28.14  -85.00,27.89  -84.98,27.63  -84.94,27.39  -84.88,27.17  -84.82,26.95  -84.79,26.70  -84.74,26.47  -84.69,26.24  -84.67,25.98</Coordinates>    
+    </ForecastErrorSwath>
+    <PastTrackInfo>
+        <PastAdvisory>
+            <Number>#1</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 23</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 21</TimeZulu>	
+            <Coordinates>-75.5,23.2</Coordinates>
+            <MaxWindMph>35</MaxWindMph>
+            <MovementMph>8</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#1A</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 24</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 0</TimeZulu>	
+            <Coordinates>-75.8,23.3</Coordinates>
+            <MaxWindMph>35</MaxWindMph>
+            <MovementMph>7</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#2</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 24</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 3</TimeZulu>	
+            <Coordinates>-76.0,23.4</Coordinates>
+            <MaxWindMph>35</MaxWindMph>
+            <MovementMph>7</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#2A</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 24</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 6</TimeZulu>	
+            <Coordinates>-76.0,23.6</Coordinates>
+            <MaxWindMph>35</MaxWindMph>
+            <MovementMph>5</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#3</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 24</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 9</TimeZulu>	
+            <Coordinates>-76.4,24.0</Coordinates>
+            <MaxWindMph>35</MaxWindMph>
+            <MovementMph>7</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#3A</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 24</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 12</TimeZulu>	
+            <Coordinates>-76.6,24.4</Coordinates>
+            <MaxWindMph>35</MaxWindMph>
+            <MovementMph>8</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#4</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 24</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 15</TimeZulu>	
+            <Coordinates>-76.7,24.7</Coordinates>
+            <MaxWindMph>40</MaxWindMph>
+            <MovementMph>8</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#4A</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 24</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 18</TimeZulu>	
+            <Coordinates>-77.0,25.2</Coordinates>
+            <MaxWindMph>45</MaxWindMph>
+            <MovementMph>8</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#5</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 24</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 21</TimeZulu>	
+            <Coordinates>-77.2,25.6</Coordinates>
+            <MaxWindMph>45</MaxWindMph>
+            <MovementMph>9</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#5A</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 25</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 0</TimeZulu>	
+            <Coordinates>-77.6,26.0</Coordinates>
+            <MaxWindMph>45</MaxWindMph>
+            <MovementMph>9</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#6</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 25</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 3</TimeZulu>	
+            <Coordinates>-78.0,26.0</Coordinates>
+            <MaxWindMph>50</MaxWindMph>
+            <MovementMph>8</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#6A</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 25</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 6</TimeZulu>	
+            <Coordinates>-78.4,26.1</Coordinates>
+            <MaxWindMph>50</MaxWindMph>
+            <MovementMph>8</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#7</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 25</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 9</TimeZulu>	
+            <Coordinates>-78.7,26.2</Coordinates>
+            <MaxWindMph>50</MaxWindMph>
+            <MovementMph>8</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#7A</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 25</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 12</TimeZulu>	
+            <Coordinates>-79.0,26.2</Coordinates>
+            <MaxWindMph>50</MaxWindMph>
+            <MovementMph>8</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#8</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 25</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 15</TimeZulu>	
+            <Coordinates>-79.3,26.2</Coordinates>
+            <MaxWindMph>60</MaxWindMph>
+            <MovementMph>6</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#8A</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 25</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 17</TimeZulu>	
+            <Coordinates>-79.5,26.2</Coordinates>
+            <MaxWindMph>65</MaxWindMph>
+            <MovementMph>6</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#8B</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 25</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 19</TimeZulu>	
+            <Coordinates>-79.6,26.2</Coordinates>
+            <MaxWindMph>70</MaxWindMph>
+            <MovementMph>6</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#9</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 25</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 21</TimeZulu>	
+            <Coordinates>-79.9,26.1</Coordinates>
+            <MaxWindMph>75</MaxWindMph>
+            <MovementMph>6</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#9A</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 25</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 23</TimeZulu>	
+            <Coordinates>-80.1,25.9</Coordinates>
+            <MaxWindMph>80</MaxWindMph>
+            <MovementMph>6</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#9B</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 26</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 1</TimeZulu>	
+            <Coordinates>-80.4,25.8</Coordinates>
+            <MaxWindMph>80</MaxWindMph>
+            <MovementMph>6</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#10</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 26</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 3</TimeZulu>	
+            <Coordinates>-80.7,25.5</Coordinates>
+            <MaxWindMph>75</MaxWindMph>
+            <MovementMph>8</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#10A</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 26</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 5</TimeZulu>	
+            <Coordinates>-81.1,25.4</Coordinates>
+            <MaxWindMph>70</MaxWindMph>
+            <MovementMph>8</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#10B</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 26</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 7</TimeZulu>	
+            <Coordinates>-81.3,25.3</Coordinates>
+            <MaxWindMph>70</MaxWindMph>
+            <MovementMph>12</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#11</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 26</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 9</TimeZulu>	
+            <Coordinates>-81.5,25.3</Coordinates>
+            <MaxWindMph>75</MaxWindMph>
+            <MovementMph>5</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#11A</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 26</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 11</TimeZulu>	
+            <Coordinates>-81.8,25.3</Coordinates>
+            <MaxWindMph>75</MaxWindMph>
+            <MovementMph>5</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#11B</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 26</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 13</TimeZulu>	
+            <Coordinates>-82.0,25.2</Coordinates>
+            <MaxWindMph>75</MaxWindMph>
+            <MovementMph>6</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#12</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 26</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 15</TimeZulu>	
+            <Coordinates>-82.2,25.1</Coordinates>
+            <MaxWindMph>80</MaxWindMph>
+            <MovementMph>7</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#13</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 26</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 15</TimeZulu>	
+            <Coordinates>-82.2,25.1</Coordinates>
+            <MaxWindMph>100</MaxWindMph>
+            <MovementMph>7</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#13A</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 26</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 18</TimeZulu>	
+            <Coordinates>-82.6,24.9</Coordinates>
+            <MaxWindMph>100</MaxWindMph>
+            <MovementMph>8</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#14</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 26</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 21</TimeZulu>	
+            <Coordinates>-82.9,24.8</Coordinates>
+            <MaxWindMph>100</MaxWindMph>
+            <MovementMph>8</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#14A</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 27</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 0</TimeZulu>	
+            <Coordinates>-83.3,24.7</Coordinates>
+            <MaxWindMph>100</MaxWindMph>
+            <MovementMph>8</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#15</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 27</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 3</TimeZulu>	
+            <Coordinates>-83.6,24.6</Coordinates>
+            <MaxWindMph>105</MaxWindMph>
+            <MovementMph>8</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#15A</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 27</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 6</TimeZulu>	
+            <Coordinates>-84.0,24.4</Coordinates>
+            <MaxWindMph>110</MaxWindMph>
+            <MovementMph>8</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#16</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 27</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 9</TimeZulu>	
+            <Coordinates>-84.4,24.4</Coordinates>
+            <MaxWindMph>115</MaxWindMph>
+            <MovementMph>7</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#16A</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 27</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 12</TimeZulu>	
+            <Coordinates>-84.6,24.4</Coordinates>
+            <MaxWindMph>115</MaxWindMph>
+            <MovementMph>7</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#17</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 27</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 15</TimeZulu>	
+            <Coordinates>-85.0,24.5</Coordinates>
+            <MaxWindMph>115</MaxWindMph>
+            <MovementMph>7</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#17A</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 27</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 18</TimeZulu>	
+            <Coordinates>-85.4,24.5</Coordinates>
+            <MaxWindMph>115</MaxWindMph>
+            <MovementMph>7</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#18</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 27</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 21</TimeZulu>	
+            <Coordinates>-85.6,24.6</Coordinates>
+            <MaxWindMph>115</MaxWindMph>
+            <MovementMph>7</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#18A</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 28</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 0</TimeZulu>	
+            <Coordinates>-85.9,24.8</Coordinates>
+            <MaxWindMph>115</MaxWindMph>
+            <MovementMph>7</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#19</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 28</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 3</TimeZulu>	
+            <Coordinates>-86.2,25.0</Coordinates>
+            <MaxWindMph>115</MaxWindMph>
+            <MovementMph>7</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#20</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 28</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 6</TimeZulu>	
+            <Coordinates>-86.8,25.1</Coordinates>
+            <MaxWindMph>145</MaxWindMph>
+            <MovementMph>8</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#21</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 28</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 9</TimeZulu>	
+            <Coordinates>-87.4,25.4</Coordinates>
+            <MaxWindMph>145</MaxWindMph>
+            <MovementMph>10</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#22</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 28</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 12</TimeZulu>	
+            <Coordinates>-87.7,25.7</Coordinates>
+            <MaxWindMph>160</MaxWindMph>
+            <MovementMph>12</MovementMph>        
+        </PastAdvisory>
+        <PastAdvisory>
+            <Number>#23</Number>
+            <MonthZulu> 8</MonthZulu>
+            <DateZulu> 28</DateZulu>
+            <YearZulu> 2005</YearZulu> 
+            <TimeZulu> 15</TimeZulu>	
+            <Coordinates>-88.1,26.0</Coordinates>
+            <MaxWindMph>175</MaxWindMph>
+            <MovementMph>12</MovementMph>        
+        </PastAdvisory>
+    </PastTrackInfo>        
+    <PastWindSwath>
+         <Type>74 mph</Type>
+         <Coordinates>-79.65,26.08  -79.65,26.04  -79.73,25.98  -79.80,25.91  -79.87,25.84  -79.95,25.78  -80.04,25.73  -80.14,25.69  -80.24,25.65  -80.34,25.61  -80.42,25.55  -80.50,25.49  -80.58,25.44  -80.68,25.41  -80.78,25.39  -80.87,25.40  -80.96,25.43  -81.02,25.48  -80.99,25.54  -80.92,25.61  -80.84,25.67  -80.77,25.74  -80.70,25.81  -80.63,25.88  -80.56,25.95  -80.48,26.01  -80.39,26.06  -80.28,26.09  -80.18,26.13  -80.10,26.19  -80.03,26.25  -79.95,26.30  -79.84,26.31  -79.74,26.27  -79.68,26.19  -79.65,26.08  </Coordinates>
+    </PastWindSwath>
+    <PastWindSwath>
+         <Type>74 mph</Type>
+         <Coordinates>-81.21,25.28  -81.21,25.24  -81.31,25.14  -81.45,25.08  -81.62,25.05  -81.77,25.00  -81.91,24.94  -82.05,24.88  -82.19,24.82  -82.33,24.76  -82.47,24.70  -82.60,24.63  -82.74,24.57  -82.89,24.52  -83.06,24.49  -83.22,24.45  -83.36,24.39  -83.51,24.34  -83.66,24.29  -83.77,24.20  -83.89,24.12  -84.02,24.06  -84.17,24.00  -84.32,23.95  -84.49,23.93  -84.68,23.94  -84.85,23.97  -85.03,24.00  -85.20,24.03  -85.37,24.06  -85.56,24.07  -85.72,24.11  -85.85,24.18  -85.98,24.25  -86.12,24.31  -86.26,24.37  -86.40,24.42  -86.56,24.43  -86.72,24.39  -86.90,24.37  -87.09,24.38  -87.28,24.39  -87.44,24.43  -87.60,24.47  -87.75,24.52  -87.88,24.59  -87.99,24.68  -88.09,24.78  -88.20,24.87  -88.30,24.96  -88.42,25.04  -88.54,25.13  -88.64,25.23  -88.75,25.32  -88.86,25.41  -88.96,25.51  -89.05,25.62  -89.13,25.74  -89.22,25.85  -89.29,25.98  -89.30,26.15  -89.29,26.34  -89.25,26.50  -89.19,26.64  -89.11,26.76  -89.03,26.88  -88.95,27.00  -88.85,27.10  -88.72,27.18  -88.60,27.25  -88.46,27.31  -88.31,27.35  -88.14,27.38  -87.97,27.39  -87.83,27.38  -87.66,27.35  -87.50,27.31  -87.37,27.24  -87.24,27.17  -87.11,27.10  -86.99,27.02  -86.89,26.92  -86.79,26.82  -86.70,26.71  -86.63,26.58  -86.56,26.45  -86.49,26.32  -86.40,26.21  -86.30,26.11  -86.19,26.02  -86.07,25.94  -85.93,25.88  -85.78,25.83  -85.65,25.76  -85.55,25.66  -85.47,25.54  -85.41,25.40  -85.35,25.26  -85.25,25.16  -85.13,25.08  -84.97,25.04  -84.79,25.02  -84.62,24.99  -84.45,24.96  -84.26,24.95  -84.11,24.90  -83.98,24.84  -83.84,24.81  -83.70,24.83  -83.56,24.89  -83.43,24.96  -83.29,25.02  -83.12,25.05  -82.96,25.09  -82.81,25.14  -82.64,25.17  -82.49,25.22  -82.36,25.29  -82.22,25.35  -82.08,25.41  -81.95,25.48  -81.82,25.54  -81.67,25.58  -81.50,25.59  -81.33,25.56  -81.23,25.46  -81.21,25.28  </Coordinates>
+    </PastWindSwath>
+    <PastWindSwath>
+         <Type>58 mph</Type>
+         <Coordinates>-78.95,26.18  -79.02,26.13  -79.13,26.04  -79.27,25.98  -79.42,25.93  -79.55,25.86  -79.66,25.77  -79.77,25.68  -79.90,25.61  -80.04,25.55  -80.17,25.48  -80.29,25.40  -80.40,25.31  -80.46,25.17  -80.51,25.02  -80.58,24.89  -80.67,24.78  -80.79,24.70  -80.93,24.64  -81.07,24.58  -81.24,24.55  -81.40,24.51  -81.54,24.45  -81.67,24.38  -81.80,24.31  -81.94,24.25  -82.08,24.19  -82.21,24.12  -82.35,24.06  -82.52,24.03  -82.68,23.99  -82.82,23.93  -82.95,23.86  -83.10,23.81  -83.25,23.76  -83.39,23.70  -83.54,23.65  -83.70,23.61  -83.88,23.59  -84.08,23.59  -84.28,23.59  -84.48,23.59  -84.67,23.59  -84.87,23.60  -85.04,23.63  -85.22,23.65  -85.42,23.65  -85.62,23.65  -85.81,23.66  -85.99,23.68  -86.14,23.73  -86.28,23.79  -86.42,23.85  -86.56,23.90  -86.74,23.93  -86.93,23.94  -87.12,23.95  -87.29,23.98  -87.47,24.00  -87.65,24.02  -87.78,24.09  -87.90,24.17  -88.03,24.24  -88.15,24.31  -88.28,24.38  -88.39,24.47  -88.50,24.57  -88.61,24.66  -88.71,24.76  -88.83,24.84  -88.95,24.92  -89.04,25.03  -89.12,25.14  -89.23,25.24  -89.33,25.34  -89.43,25.44  -89.51,25.56  -89.57,25.70  -89.61,25.86  -89.64,26.02  -89.66,26.19  -89.64,26.38  -89.60,26.53  -89.53,26.66  -89.46,26.79  -89.39,26.92  -89.31,27.05  -89.24,27.17  -89.15,27.28  -89.05,27.38  -88.94,27.47  -88.82,27.55  -88.68,27.61  -88.53,27.66  -88.38,27.71  -88.23,27.76  -88.06,27.78  -87.90,27.80  -87.74,27.78  -87.57,27.75  -87.41,27.72  -87.25,27.68  -87.10,27.63  -86.97,27.56  -86.85,27.48  -86.75,27.38  -86.63,27.30  -86.51,27.22  -86.41,27.12  -86.31,27.02  -86.22,26.91  -86.16,26.77  -86.12,26.61  -86.06,26.47  -85.98,26.35  -85.88,26.25  -85.78,26.15  -85.66,26.07  -85.53,26.00  -85.42,25.91  -85.32,25.81  -85.22,25.71  -85.12,25.61  -84.98,25.54  -84.83,25.50  -84.66,25.47  -84.50,25.43  -84.33,25.40  -84.16,25.37  -84.00,25.34  -83.83,25.32  -83.66,25.31  -83.51,25.36  -83.37,25.42  -83.22,25.47  -83.06,25.51  -82.90,25.55  -82.75,25.60  -82.58,25.63  -82.42,25.67  -82.28,25.73  -82.15,25.80  -82.02,25.87  -81.88,25.93  -81.75,26.00  -81.60,26.05  -81.42,26.07  -81.23,26.07  -81.04,26.06  -80.88,26.05  -80.73,26.06  -80.59,26.12  -80.47,26.20  -80.34,26.27  -80.21,26.34  -80.10,26.43  -79.97,26.50  -79.80,26.53  -79.60,26.53  -79.41,26.52  -79.23,26.50  -79.10,26.43  -79.02,26.31  -78.95,26.18  </Coordinates>
+    </PastWindSwath>
+    <PastWindSwath>
+         <Type>39 mph</Type>
+         <Coordinates>-75.71,24.68  -75.71,24.52  -75.77,24.38  -75.85,24.26  -75.95,24.16  -76.07,24.08  -76.23,24.06  -76.42,24.07  -76.59,24.10  -76.71,24.18  -76.80,24.29  -76.87,24.42  -76.95,24.54  -77.05,24.64  -77.12,24.77  -77.19,24.90  -77.26,25.02  -77.35,25.14  -77.44,25.25  -77.56,25.33  -77.73,25.36  -77.90,25.39  -78.06,25.43  -78.22,25.47  -78.38,25.50  -78.54,25.51  -78.69,25.50  -78.84,25.45  -78.97,25.38  -79.08,25.29  -79.21,25.22  -79.32,25.13  -79.43,25.04  -79.56,24.97  -79.69,24.90  -79.83,24.84  -79.99,24.80  -80.15,24.76  -80.29,24.70  -80.42,24.63  -80.55,24.56  -80.66,24.47  -80.78,24.39  -80.94,24.35  -81.11,24.32  -81.25,24.26  -81.39,24.20  -81.55,24.16  -81.69,24.10  -81.80,24.01  -81.92,23.93  -82.06,23.87  -82.20,23.81  -82.36,23.78  -82.53,23.74  -82.68,23.69  -82.83,23.64  -82.97,23.58  -83.10,23.51  -83.20,23.42  -83.32,23.33  -83.44,23.25  -83.55,23.16  -83.67,23.08  -83.81,23.02  -83.96,22.97  -84.14,22.95  -84.34,22.95  -84.54,22.95  -84.74,22.95  -84.93,22.95  -85.12,22.96  -85.30,22.99  -85.47,23.02  -85.66,23.03  -85.83,23.06  -85.99,23.09  -86.15,23.12  -86.28,23.16  -86.42,23.15  -86.57,23.10  -86.75,23.08  -86.94,23.07  -87.14,23.07  -87.33,23.08  -87.52,23.09  -87.69,23.12  -87.85,23.16  -87.99,23.22  -88.12,23.29  -88.25,23.36  -88.35,23.45  -88.48,23.53  -88.61,23.60  -88.74,23.67  -88.86,23.75  -88.96,23.85  -89.05,23.96  -89.16,24.05  -89.28,24.12  -89.40,24.21  -89.51,24.30  -89.60,24.41  -89.69,24.52  -89.78,24.63  -89.87,24.74  -89.96,24.84  -90.04,24.96  -90.12,25.09  -90.20,25.20  -90.27,25.34  -90.32,25.49  -90.37,25.63  -90.42,25.77  -90.46,25.92  -90.45,26.07  -90.43,26.23  -90.40,26.40  -90.37,26.56  -90.33,26.73  -90.27,26.86  -90.18,26.97  -90.11,27.10  -90.04,27.23  -89.97,27.36  -89.89,27.49  -89.80,27.60  -89.71,27.70  -89.62,27.81  -89.53,27.92  -89.42,28.02  -89.31,28.10  -89.17,28.17  -89.04,28.24  -88.93,28.33  -88.82,28.41  -88.67,28.47  -88.52,28.52  -88.36,28.56  -88.21,28.60  -88.05,28.64  -87.87,28.66  -87.69,28.66  -87.52,28.63  -87.34,28.60  -87.15,28.59  -86.99,28.56  -86.82,28.53  -86.67,28.48  -86.54,28.41  -86.40,28.35  -86.27,28.28  -86.14,28.21  -86.02,28.13  -85.91,28.04  -85.81,27.94  -85.70,27.85  -85.60,27.75  -85.51,27.64  -85.43,27.52  -85.35,27.40  -85.26,27.29  -85.17,27.18  -85.09,27.06  -84.98,26.97  -84.86,26.89  -84.74,26.81  -84.62,26.73  -84.49,26.65  -84.34,26.60  -84.17,26.57  -84.01,26.54  -83.84,26.51  -83.69,26.46  -83.56,26.39  -83.42,26.33  -83.29,26.26  -83.18,26.17  -83.08,26.07  -82.97,25.98  -82.86,25.90  -82.74,25.85  -82.60,25.87  -82.46,25.93  -82.33,26.00  -82.20,26.07  -82.06,26.13  -81.92,26.19  -81.79,26.26  -81.64,26.31  -81.49,26.36  -81.34,26.41  -81.21,26.48  -81.11,26.58  -80.99,26.66  -80.86,26.74  -80.76,26.83  -80.64,26.91  -80.50,26.97  -80.37,27.04  -80.24,27.11  -80.09,27.16  -79.93,27.19  -79.76,27.21  -79.60,27.19  -79.42,27.16  -79.23,27.15  -79.07,27.12  -78.90,27.09  -78.74,27.05  -78.59,26.99  -78.42,26.96  -78.24,26.95  -78.07,26.92  -77.90,26.89  -77.74,26.85  -77.58,26.81  -77.40,26.79  -77.21,26.78  -77.03,26.76  -76.90,26.69  -76.80,26.59  -76.70,26.49  -76.60,26.39  -76.50,26.29  -76.40,26.19  -76.31,26.08  -76.22,25.97  -76.14,25.85  -76.07,25.72  -76.02,25.57  -75.95,25.44  -75.87,25.32  -75.82,25.17  -75.78,25.01  -75.73,24.86  -75.71,24.68  </Coordinates>
+    </PastWindSwath>
+    <ForecastWindSwath>
+         <Type>74 mph</Type>
+         <Coordinates>-86.49,25.98  -86.49,25.78  -86.57,25.66  -86.64,25.53  -86.71,25.40  -86.78,25.27  -86.87,25.16  -86.98,25.07  -87.09,24.98  -87.21,24.90  -87.36,24.85  -87.54,24.83  -87.73,24.84  -87.92,24.85  -88.09,24.88  -88.22,24.95  -88.34,25.03  -88.47,25.10  -88.59,25.18  -88.69,25.28  -88.77,25.40  -88.88,25.49  -89.00,25.57  -89.10,25.67  -89.18,25.79  -89.27,25.90  -89.34,26.03  -89.40,26.17  -89.49,26.28  -89.58,26.38  -89.67,26.50  -89.74,26.63  -89.81,26.76  -89.90,26.87  -89.98,26.99  -90.03,27.14  -90.08,27.29  -90.15,27.42  -90.22,27.55  -90.29,27.68  -90.33,27.84  -90.37,28.00  -90.44,28.13  -90.49,28.28  -90.55,28.42  -90.60,28.57  -90.64,28.73  -90.69,28.88  -90.73,29.04  -90.77,29.20  -90.79,29.38  -90.78,29.57  -90.77,29.76  -90.74,29.93  -90.70,30.10  -90.66,30.25  -90.62,30.41  -90.58,30.57  -90.52,30.71  -90.46,30.85  -90.43,31.02  -90.39,31.18  -90.34,31.33  -90.30,31.49  -90.23,31.62  -90.15,31.74  -90.08,31.87  -90.01,32.00  -89.93,32.13  -89.86,32.25  -89.79,32.38  -89.72,32.51  -89.65,32.64  -89.57,32.76  -89.47,32.86  -89.39,32.98  -89.34,33.13  -89.26,33.25  -89.14,33.33  -89.02,33.39  -88.87,33.40  -88.73,33.34  -88.62,33.25  -88.54,33.13  -88.49,32.98  -88.47,32.80  -88.47,32.60  -88.47,32.40  -88.46,32.21  -88.43,32.04  -88.40,31.87  -88.38,31.69  -88.37,31.50  -88.34,31.33  -88.31,31.16  -88.27,31.00  -88.23,30.84  -88.20,30.67  -88.16,30.51  -88.12,30.35  -88.07,30.20  -88.04,30.03  -88.03,29.84  -88.00,29.67  -87.97,29.50  -87.96,29.31  -87.93,29.14  -87.89,28.97  -87.84,28.83  -87.77,28.70  -87.70,28.57  -87.64,28.43  -87.61,28.26  -87.56,28.11  -87.49,27.98  -87.43,27.84  -87.37,27.70  -87.28,27.59  -87.19,27.48  -87.12,27.35  -87.05,27.22  -86.98,27.09  -86.91,26.96  -86.83,26.84  -86.76,26.71  -86.69,26.58  -86.62,26.45  -86.57,26.30  -86.52,26.15  -86.49,25.98  </Coordinates>
+    </ForecastWindSwath>
+    <ForecastWindSwath>
+         <Type>58 mph</Type>
+         <Coordinates>-85.93,25.98  -85.93,25.90  -85.95,25.72  -86.00,25.57  -86.07,25.44  -86.14,25.31  -86.20,25.17  -86.27,25.04  -86.36,24.93  -86.46,24.83  -86.57,24.74  -86.68,24.65  -86.80,24.57  -86.94,24.51  -87.08,24.45  -87.23,24.40  -87.40,24.37  -87.60,24.37  -87.79,24.38  -87.98,24.39  -88.13,24.44  -88.26,24.51  -88.40,24.57  -88.53,24.64  -88.65,24.72  -88.76,24.81  -88.87,24.90  -88.99,24.98  -89.08,25.08  -89.18,25.19  -89.28,25.29  -89.38,25.39  -89.48,25.49  -89.56,25.60  -89.65,25.71  -89.74,25.83  -89.81,25.96  -89.88,26.09  -89.97,26.20  -90.07,26.30  -90.13,26.43  -90.20,26.57  -90.29,26.68  -90.37,26.80  -90.44,26.93  -90.51,27.06  -90.57,27.20  -90.61,27.36  -90.65,27.52  -90.71,27.66  -90.76,27.81  -90.81,27.96  -90.87,28.10  -90.93,28.24  -90.99,28.38  -91.03,28.54  -91.07,28.70  -91.14,28.83  -91.19,28.97  -91.21,29.14  -91.23,29.30  -91.23,29.42  -91.24,29.53  -91.23,29.66  -91.20,29.83  -91.18,30.02  -91.15,30.18  -91.09,30.32  -91.05,30.48  -91.01,30.64  -90.94,30.77  -90.88,30.91  -90.83,31.06  -90.78,31.22  -90.73,31.36  -90.66,31.49  -90.59,31.62  -90.54,31.77  -90.48,31.91  -90.39,32.02  -90.30,32.13  -90.23,32.26  -90.15,32.38  -90.07,32.50  -89.97,32.60  -89.87,32.70  -89.79,32.82  -89.69,32.92  -89.60,33.03  -89.53,33.16  -89.45,33.28  -89.37,33.40  -89.28,33.51  -89.18,33.61  -89.11,33.74  -89.03,33.86  -88.95,33.98  -88.86,34.09  -88.76,34.19  -88.67,34.28  -88.57,34.32  -88.49,34.26  -88.45,34.11  -88.42,33.96  -88.41,33.85  -88.39,33.72  -88.33,33.58  -88.28,33.43  -88.24,33.27  -88.20,33.11  -88.15,32.96  -88.11,32.80  -88.09,32.62  -88.06,32.45  -88.01,32.30  -87.97,32.14  -87.95,31.96  -87.91,31.80  -87.85,31.66  -87.81,31.50  -87.78,31.33  -87.75,31.16  -87.70,31.01  -87.64,30.87  -87.61,30.70  -87.57,30.54  -87.53,30.38  -87.50,30.21  -87.48,30.03  -87.47,29.84  -87.43,29.67  -87.41,29.50  -87.40,29.31  -87.37,29.14  -87.32,28.99  -87.26,28.85  -87.20,28.71  -87.13,28.58  -87.07,28.44  -87.03,28.28  -86.98,28.13  -86.91,28.00  -86.84,27.87  -86.77,27.74  -86.70,27.61  -86.62,27.49  -86.54,27.37  -86.46,27.25  -86.37,27.14  -86.29,27.02  -86.22,26.89  -86.15,26.76  -86.08,26.63  -86.02,26.49  -85.98,26.33  -85.95,26.16  -85.93,25.98  </Coordinates>
+    </ForecastWindSwath>
+    <ForecastWindSwath>
+         <Type>39 mph</Type>
+         <Coordinates>-84.87,25.98  -84.87,25.86  -84.89,25.66  -84.93,25.48  -84.98,25.31  -85.04,25.15  -85.12,25.01  -85.18,24.85  -85.23,24.68  -85.31,24.54  -85.42,24.43  -85.53,24.32  -85.64,24.21  -85.76,24.11  -85.87,24.00  -86.00,23.91  -86.12,23.81  -86.26,23.73  -86.41,23.66  -86.56,23.59  -86.73,23.54  -86.91,23.50  -87.11,23.48  -87.32,23.47  -87.54,23.47  -87.75,23.48  -87.96,23.49  -88.15,23.52  -88.32,23.56  -88.51,23.60  -88.67,23.66  -88.81,23.74  -88.95,23.82  -89.07,23.92  -89.18,24.03  -89.30,24.13  -89.41,24.24  -89.53,24.34  -89.64,24.45  -89.73,24.58  -89.83,24.70  -89.94,24.81  -90.06,24.91  -90.16,25.03  -90.25,25.16  -90.34,25.29  -90.43,25.42  -90.52,25.55  -90.61,25.68  -90.70,25.81  -90.78,25.94  -90.86,26.08  -90.93,26.23  -91.01,26.38  -91.08,26.53  -91.15,26.67  -91.25,26.80  -91.33,26.94  -91.37,27.12  -91.42,27.29  -91.49,27.44  -91.56,27.59  -91.61,27.75  -91.68,27.91  -91.73,28.08  -91.78,28.25  -91.85,28.40  -91.91,28.55  -91.97,28.71  -92.00,28.89  -92.02,29.06  -92.02,29.20  -92.02,29.33  -92.02,29.45  -91.99,29.58  -91.97,29.74  -91.94,29.93  -91.91,30.12  -91.87,30.30  -91.83,30.48  -91.78,30.65  -91.72,30.81  -91.65,30.97  -91.61,31.14  -91.56,31.31  -91.49,31.47  -91.42,31.61  -91.35,31.76  -91.28,31.91  -91.21,32.06  -91.13,32.20  -91.03,32.33  -90.94,32.45  -90.86,32.59  -90.78,32.73  -90.68,32.85  -90.58,32.97  -90.50,33.11  -90.41,33.24  -90.31,33.36  -90.23,33.50  -90.15,33.64  -90.07,33.78  -89.98,33.91  -89.90,34.05  -89.82,34.19  -89.73,34.32  -89.64,34.46  -89.55,34.58  -89.45,34.70  -89.37,34.84  -89.27,34.96  -89.18,35.09  -89.10,35.23  -88.98,35.34  -88.88,35.45  -88.77,35.56  -88.64,35.65  -88.52,35.75  -88.41,35.86  -88.31,35.98  -88.21,36.10  -88.10,36.21  -87.98,36.31  -87.86,36.41  -87.76,36.53  -87.64,36.63  -87.52,36.73  -87.40,36.83  -87.27,36.92  -87.15,37.02  -87.05,37.14  -86.96,37.27  -86.85,37.38  -86.72,37.47  -86.61,37.58  -86.51,37.70  -86.39,37.80  -86.27,37.90  -86.16,38.01  -86.04,38.11  -85.93,38.22  -85.81,38.32  -85.70,38.43  -85.58,38.53  -85.47,38.64  -85.37,38.76  -85.27,38.88  -85.16,38.98  -85.04,39.08  -84.93,39.18  -84.80,39.25  -84.65,39.24  -84.56,39.14  -84.59,39.00  -84.67,38.86  -84.74,38.71  -84.81,38.56  -84.88,38.41  -84.95,38.26  -85.02,38.11  -85.10,37.97  -85.17,37.82  -85.26,37.69  -85.36,37.57  -85.43,37.42  -85.50,37.27  -85.57,37.12  -85.62,36.95  -85.69,36.80  -85.78,36.67  -85.86,36.53  -85.93,36.38  -86.01,36.24  -86.09,36.10  -86.17,35.96  -86.26,35.83  -86.34,35.69  -86.42,35.55  -86.47,35.38  -86.54,35.23  -86.63,35.10  -86.71,34.96  -86.78,34.81  -86.86,34.67  -86.96,34.55  -87.03,34.41  -87.07,34.26  -87.08,34.11  -87.05,33.92  -87.04,33.71  -87.03,33.50  -87.01,33.30  -86.99,33.10  -86.98,32.89  -86.97,32.68  -86.94,32.49  -86.91,32.30  -86.91,32.08  -86.90,31.87  -86.87,31.68  -86.83,31.50  -86.77,31.34  -86.70,31.19  -86.64,31.03  -86.58,30.87  -86.53,30.70  -86.49,30.52  -86.45,30.34  -86.42,30.15  -86.39,29.96  -86.35,29.78  -86.33,29.58  -86.30,29.39  -86.26,29.21  -86.21,29.04  -86.15,28.88  -86.08,28.73  -86.01,28.58  -85.94,28.43  -85.86,28.29  -85.77,28.16  -85.69,28.02  -85.60,27.89  -85.51,27.76  -85.43,27.62  -85.36,27.47  -85.29,27.32  -85.22,27.17  -85.15,27.02  -85.09,26.86  -85.02,26.71  -84.95,26.56  -84.90,26.39  -84.87,26.20  -84.87,25.98  </Coordinates>
+    </ForecastWindSwath>
+</HurricaneAdvisory>
