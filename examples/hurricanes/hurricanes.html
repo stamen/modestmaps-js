@@ -5,9 +5,11 @@
 <!--[if IE]>
 <script type="text/javascript" src="../../lib/excanvas.js"></script>
 <![endif]-->
+<script type="text/javascript" src="../../lib/dojo.xd.js"></script>
 <script type="text/javascript" src="../../src/modestmaps.js"></script>
-<script type="text/javascript" src="../../src/cloudmade.js"></script>
-<script type="text/javascript" src="../../src/polygon.js"></script>
+<script type="text/javascript" src="../../src/mapproviders/cloudmade.js"></script>
+<script type="text/javascript" src="../../src/extras/mapcontrols-dojo.js"></script>
+<script type="text/javascript" src="../../src/overlays/polygonmarker-canvas.js"></script>
 <script type="text/javascript">
     
     var map;
@@ -36,6 +38,8 @@
         $(xml).find('PastWindSwath').each(renderSwath);
         $(xml).find('ForecastWindSwath').each(renderSwath);
         $(xml).find('CurrentWindRing').each(renderSwath);
+        
+        new com.modestmaps.MapControls(map);
     }
     
     function renderSwath(i, swath) {
