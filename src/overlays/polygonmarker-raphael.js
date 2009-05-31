@@ -154,6 +154,10 @@ com.modestmaps.PolygonMarker.prototype = {
             this.drawZoom = map.getZoom();
         }        
         
+    },
+
+    clear: function(){
+        this.canvas.clear();
+        this.coords = [];
     }
-    
 };
