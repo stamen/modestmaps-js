@@ -381,6 +381,7 @@ com.modestmaps.Map = function(parent, provider, dimensions) {
         parent = document.getElementById(parent);
     }
     this.parent = parent;
+    this.idBase = parent.id;
     
     this.parent.style.position = 'relative';
     this.parent.style.width = parseInt(dimensions.x) + 'px';
@@ -395,7 +396,7 @@ com.modestmaps.Map = function(parent, provider, dimensions) {
 
     // add an invisible layer so that image.onload will have a srcElement in IE6
     this.loadingLayer = document.createElement('div');
-    this.loadingLayer.id = 'loading layer';
+    this.loadingLayer.id = this.idBase+'loading layer';
     this.loadingLayer.style.display = 'none';
     this.parent.appendChild(this.loadingLayer);
 
@@ -404,7 +405,7 @@ com.modestmaps.Map = function(parent, provider, dimensions) {
     // add a div for each zoom level
     for (var z = 0; z <= 20; z++) {
         var layer = document.createElement('div');
-        layer.id = 'zoom-'+z;
+        layer.id = this.idBase+'zoom-'+z;
         layer.style.margin = '0';
         layer.style.padding = '0';
         layer.style.width = '100%';
@@ -841,7 +842,7 @@ com.modestmaps.Map.prototype = {
 
         var wantedTiles = { };
         
-        var thisLayer = document.getElementById('zoom-'+parseInt(baseCoord.zoom));
+        var thisLayer = document.getElementById(this.idBase+'zoom-'+parseInt(baseCoord.zoom));
         thisLayer.coordinate = this.coordinate.copy();
         
         var showParentLayer = false;
