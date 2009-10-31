@@ -90,7 +90,7 @@ com.modestmaps.Coordinate.prototype = {
         return "(" + this.row.toFixed(3) + ", " + this.column.toFixed(3) + " @" + this.zoom.toFixed(3) + ")";
     },
 
-    toKey: function() {
+    toKey: function(optionalPrefix) {
         var a = parseInt(this.row);
         var b = parseInt(this.column);
         var c = parseInt(this.zoom);
@@ -103,6 +103,12 @@ com.modestmaps.Coordinate.prototype = {
         a=a-b;	a=a-c;	a=a^(c >>> 3);
         b=b-c;	b=b-a;	b=b^(a << 10);
         c=c-a;	c=c-b;	c=c^(b >>> 15);
+        
+        if(optionalPrefix)
+        {
+            c = optionalPrefix + c;
+        }
+        
         return c;
     },
 
@@ -851,7 +857,7 @@ com.modestmaps.Map.prototype = {
 
         for (var y = baseCorner.y; y < this.dimensions.y; y += this.provider.tileHeight) {
             for (var x = baseCorner.x; x < this.dimensions.x; x += this.provider.tileWidth) {
-                var tileKey = tileCoord.toKey();
+                var tileKey = tileCoord.toKey(this.idBase);
                 wantedTiles[tileKey] = true;
                 if (!this.tiles[tileKey]) {
                     if (!this.requestedTiles[tileKey]) {
@@ -860,17 +866,17 @@ com.modestmaps.Map.prototype = {
                     showParentLayer = true;
                     if (!onlyThisLayer) {
                         for (var pz = 1; pz <= 5; pz++) {
-                            var parentKey = tileCoord.zoomBy(-pz).container().toKey();
+                            var parentKey = tileCoord.zoomBy(-pz).container().toKey(this.idBase);
                             wantedTiles[parentKey] = true;
                         }
                         var childCoord = tileCoord.zoomBy(1);
-                        wantedTiles[childCoord.toKey()] = true;
+                        wantedTiles[childCoord.toKey(this.idBase)] = true;
                         childCoord.column += 1;
-                        wantedTiles[childCoord.toKey()] = true;
+                        wantedTiles[childCoord.toKey(this.idBase)] = true;
                         childCoord.row += 1;
-                        wantedTiles[childCoord.toKey()] = true;
+                        wantedTiles[childCoord.toKey(this.idBase)] = true;
                         childCoord.column -= 1;
-                        wantedTiles[childCoord.toKey()] = true;
+                        wantedTiles[childCoord.toKey(this.idBase)] = true;
                     }
                 }
                 else {
@@ -990,7 +996,7 @@ com.modestmaps.Map.prototype = {
     },
     
     requestTile: function(tileCoord) {
-        var tileKey = tileCoord.toKey();
+        var tileKey = tileCoord.toKey(this.idBase);
         if (!this.requestedTiles[tileKey]) {
             var tile = document.createElement('img'); // TODO: benchmark vs new Image() (in all browsers)
             tile.id = tileKey;
