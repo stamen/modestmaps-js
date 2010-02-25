@@ -90,7 +90,9 @@ com.modestmaps.Coordinate.prototype = {
         return "(" + this.row.toFixed(3) + ", " + this.column.toFixed(3) + " @" + this.zoom.toFixed(3) + ")";
     },
 
-    toKey: function(optionalPrefix) {
+    /* hopfully/somewhat optimized because firebug 
+       said we were spending a lot of time in toString() */
+    toKey: function() {
         var a = parseInt(this.row);
         var b = parseInt(this.column);
         var c = parseInt(this.zoom);
@@ -103,12 +105,6 @@ com.modestmaps.Coordinate.prototype = {
         a=a-b;	a=a-c;	a=a^(c >>> 3);
         b=b-c;	b=b-a;	b=b^(a << 10);
         c=c-a;	c=c-b;	c=c^(b >>> 15);
-        
-        if(optionalPrefix)
-        {
-            c = optionalPrefix + c;
-        }
-        
         return c;
     },
 
@@ -848,16 +844,23 @@ com.modestmaps.Map.prototype = {
 
         var wantedTiles = { };
         
-        var thisLayer = document.getElementById(this.idBase+'zoom-'+parseInt(baseCoord.zoom));
+        var thisLayer = this.layers[parseInt(baseCoord.zoom)];
         thisLayer.coordinate = this.coordinate.copy();
         
         var showParentLayer = false;
         
         var tileCoord = baseCoord.copy();
 
-        for (var y = baseCorner.y; y < this.dimensions.y; y += this.provider.tileHeight) {
-            for (var x = baseCorner.x; x < this.dimensions.x; x += this.provider.tileWidth) {
-                var tileKey = tileCoord.toKey(this.idBase);
+        // storing these locally might not be faster but it is clearer
+        // [JSLitmus tests were inconclusive]
+        var maxY = this.dimensions.y;
+        var maxX = this.dimensions.x;
+        var yStep = this.provider.tileHeight;
+        var xStep = this.provider.tileWidth;
+
+        for (var y = baseCorner.y; y < maxY; y += yStep) {
+            for (var x = baseCorner.x; x < maxX; x += xStep) {
+                var tileKey = tileCoord.toKey();
                 wantedTiles[tileKey] = true;
                 if (!this.tiles[tileKey]) {
                     if (!this.requestedTiles[tileKey]) {
@@ -866,22 +869,22 @@ com.modestmaps.Map.prototype = {
                     showParentLayer = true;
                     if (!onlyThisLayer) {
                         for (var pz = 1; pz <= 5; pz++) {
-                            var parentKey = tileCoord.zoomBy(-pz).container().toKey(this.idBase);
+                            var parentKey = tileCoord.zoomBy(-pz).container().toKey();
                             wantedTiles[parentKey] = true;
                         }
                         var childCoord = tileCoord.zoomBy(1);
-                        wantedTiles[childCoord.toKey(this.idBase)] = true;
+                        wantedTiles[childCoord.toKey()] = true;
                         childCoord.column += 1;
-                        wantedTiles[childCoord.toKey(this.idBase)] = true;
+                        wantedTiles[childCoord.toKey()] = true;
                         childCoord.row += 1;
-                        wantedTiles[childCoord.toKey(this.idBase)] = true;
+                        wantedTiles[childCoord.toKey()] = true;
                         childCoord.column -= 1;
-                        wantedTiles[childCoord.toKey(this.idBase)] = true;
+                        wantedTiles[childCoord.toKey()] = true;
                     }
                 }
                 else {
                     var tile = this.tiles[tileKey];
-                    if (!document.getElementById(tile.id)) {
+                    if (tile.parentNode != thisLayer) {
                         thisLayer.appendChild(tile);
                     }
                     tile.style.left = x + 'px';
@@ -950,6 +953,7 @@ com.modestmaps.Map.prototype = {
                         var ty = ((this.dimensions.y/2) + (tile.coord.row - theCoord.row) * this.provider.tileHeight * scale);
                         tile.style.left = parseInt(tx) + 'px'; 
                         tile.style.top = parseInt(ty) + 'px'; 
+                        // FIXME: if a tile isn't 256px to begin with then this is broken:
                         tile.width = this.provider.tileWidth * scale;
                         tile.height = this.provider.tileHeight * scale;
                     }
@@ -996,9 +1000,16 @@ com.modestmaps.Map.prototype = {
     },
     
     requestTile: function(tileCoord) {
-        var tileKey = tileCoord.toKey(this.idBase);
+        var tileKey = tileCoord.toKey();
         if (!this.requestedTiles[tileKey]) {
-            var tile = document.createElement('img'); // TODO: benchmark vs new Image() (in all browsers)
+            // JSLitmus benchmark shows createElement is a little faster than
+            // new Image() in Firefox and roughly the same in Safari:
+            // http://tinyurl.com/y9wz2jj http://tinyurl.com/yes6rrt 
+            var tile = document.createElement('img');
+            // FIXME: tileKey is technically not unique in document if there 
+            // are two Maps but toKey is supposed to be fast so we're trying 
+            // to avoid a prefix ... hence we can't use any calls to
+            // document.getElementById() to retrieve tiles
             tile.id = tileKey;
             tile.width = this.provider.tileWidth;
             tile.height = this.provider.tileHeight;
@@ -1078,6 +1089,8 @@ com.modestmaps.Map.prototype = {
 
                 // NB:- complete is also true onerror if we got a 404
                 if (tile.complete || (tile.readyState && tile.readyState == 'complete')) {
+                    // FIXME: tiles never get removed so effectively we're 
+                    // caching *everything* we've ever seen... that's bad!
                     theMap.tiles[tile.id] = tile;
                     theMap.tileCacheSize++;
                 }
