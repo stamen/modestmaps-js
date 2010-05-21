@@ -692,7 +692,7 @@ com.modestmaps.Map.prototype = {
     setCenter: function(location) {
         this.setCenterZoom(location, this.coordinate.zoom);
     },
-    
+
     setCenterZoom: function(location, zoom) {
         this.coordinate = this.provider.locationCoordinate(location).zoomTo(zoom);
         this.draw();
@@ -756,6 +756,22 @@ com.modestmaps.Map.prototype = {
         this.draw();
 
         this.dispatchCallback('extentset', locations);
+    },
+
+    // map dimensions
+    
+    setSize: function(dimensionsOrX, orY) {
+        if (dimensionsOrX.hasOwnProperty('x') && dimensionsOrX.hasOwnProperty('y')) {
+            this.dimensions = dimensionsOrX;
+        }
+        else if (orY !== undefined && !isNaN(orY)) {
+            this.dimensions = new com.modestmaps.Point(dimensionsOrX, orY);
+        }
+        this.parent.style.width = parseInt(this.dimensions.x) + 'px';
+        this.parent.style.height = parseInt(this.dimensions.y) + 'px';        
+        this.draw();
+        // TODO:
+        //this.dispatchCallback('resized', [ this.dimensions ]);
     },
     
     // projecting points on and off screen
@@ -840,8 +856,6 @@ com.modestmaps.Map.prototype = {
         this.requestQueue = [];
         
         this.tileCacheSize = 0;
-        
-        // empty cache ?
         
         // for later: check geometry and set a new center (not now)
         
