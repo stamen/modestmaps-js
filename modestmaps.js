@@ -355,6 +355,16 @@ com.modestmaps.MapProvider.prototype = {
     }
 };
 
+com.modestmaps.TemplatedMapProvider = function(template) {
+    com.modestmaps.MapProvider.call(this, function(coordinate) {
+        var url = template.replace('{Z}', coordinate.zoom.toFixed(0));
+        url = url.replace('{X}', coordinate.column.toFixed(0));
+        return url.replace('{Y}', coordinate.row.toFixed(0));
+    });
+};
+
+com.modestmaps.extend(com.modestmaps.TemplatedMapProvider, com.modestmaps.MapProvider);
+
 //////////////////////////// Map
 
 com.modestmaps.Map = function(parent, provider, dimensions) {
