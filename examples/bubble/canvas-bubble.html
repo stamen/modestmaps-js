@@ -1,8 +1,9 @@
 <html>
 <head>
 <title>Modest Maps JS</title>
-<script type="text/javascript" src="../src/modestmaps.js"></script>
-<script type="text/javascript" src="../src/overlays/follower.js"></script>
+<!--[if IE]><script type="text/javascript" src="excanvas.js"></script><![endif]-->
+<script type="text/javascript" src="../../src/modestmaps.js"></script>
+<script type="text/javascript" src="follower-canvas.js"></script>
 <script type="text/javascript">
     var map;
     function initMap() {
@@ -27,9 +28,9 @@ var provider = new mm.MapProvider(function(coord) {
     return 'http://osm-bayarea.s3.amazonaws.com/' + img;
 });
 
-map = new mm.Map('map', provider, new mm.Point(640,480))
+map = new mm.Map('map', provider, new mm.Point(1024,768))
 
-var f = new mm.Follower(map, new mm.Location(37.811530, -122.2666097), '&#xB0; Broadway and Grand');
+var f = new mm.Follower(map, new mm.Location(37.811530, -122.2666097), 'Broadway and Grand');
 
 map.setCenterZoom(new mm.Location(37.811530, -122.2666097), 14);
 </pre>
