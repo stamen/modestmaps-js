@@ -22,6 +22,7 @@ com.modestmaps.Follower = function(map, location, content, dimensions)
     map.addCallback('zoomed', callback);
     map.addCallback('centered', callback);
     map.addCallback('extentset', callback);
+    map.addCallback('resized', callback);
     
     this.div = document.createElement('div');
     this.div.style.position = 'absolute';

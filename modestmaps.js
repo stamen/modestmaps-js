@@ -434,7 +434,7 @@ if (!com) {
         
         this.tileCacheSize = 0;
         
-        this.callbacks = { zoomed: [], panned: [], centered: [], extentset: [] };
+        this.callbacks = { zoomed: [], panned: [], centered: [], extentset: [], resized: [] };
     };
     
     MM.Map.prototype = {
@@ -772,8 +772,7 @@ if (!com) {
             this.parent.style.width = parseInt(this.dimensions.x) + 'px';
             this.parent.style.height = parseInt(this.dimensions.y) + 'px';        
             this.draw();
-            // TODO:
-            //this.dispatchCallback('resized', [ this.dimensions ]);
+            this.dispatchCallback('resized', [ this.dimensions ]);
         },
         
         // projecting points on and off screen
