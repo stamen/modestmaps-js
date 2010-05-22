@@ -66,7 +66,7 @@
             if (!this.gestureEnd) {
                 var theHandler = this;
                 this.gestureEnd = function(e) {
-                    window.console.log('gestureEnd');
+                    //window.console.log('gestureEnd');
                     MM.removeEvent(theHandler.map.parent, 'gesturechange', theHandler.getGestureChange());            
                     MM.removeEvent(theHandler.map.parent, 'gestureend', theHandler.getGestureEnd());            
                     theHandler.startScale = undefined;
@@ -89,7 +89,7 @@
                     MM.addEvent(document, 'touchmove', theHandler.getMouseMove());
                             
                     theHandler.prevMouse = new MM.Point(e.changedTouches[0].pageX, e.changedTouches[0].pageY);
-                    window.console.log('touchstart ' + theHandler.prevMouse.toString());
+                    //window.console.log('touchstart ' + theHandler.prevMouse.toString());
                     
                     theHandler.map.parent.style.cursor = 'move';
                 
