@@ -370,15 +370,22 @@ if (!com) {
     
     //////////////////////////// Event Handlers
 
-    MM.MouseHandler = function(map) {
-        this.map = map;
-        MM.addEvent(map.parent, 'dblclick', this.getDoubleClick());
-        MM.addEvent(map.parent, 'mousedown', this.getMouseDown());
-        MM.addEvent(map.parent, 'mousewheel', this.getMouseWheel());    
-    }
+    // map is optional here, use init if you don't have a map yet
+    MM.MouseHandler = function(map) { 
+        if (map !== undefined) {
+            this.init(map);
+        }
+    };
     
     MM.MouseHandler.prototype = {
     
+        init: function(map) {
+            this.map = map;
+            MM.addEvent(map.parent, 'dblclick', this.getDoubleClick());
+            MM.addEvent(map.parent, 'mousedown', this.getMouseDown());
+            MM.addEvent(map.parent, 'mousewheel', this.getMouseWheel());            
+        },
+        
         mouseDownHandler: null,
     
         getMouseDown: function() {
@@ -520,20 +527,21 @@ if (!com) {
     
     //////////////////////////// Map
     
-    MM.Map = function(parent, provider, dimensions, enableMouseInteraction) {
+    MM.Map = function(parent, provider, dimensions, eventHandlers) {
         /* Instance of a map intended for drawing to a div.
         
-            parent
-                DOM element
+            parent (required DOM element)
+                Can also be an ID of a DOM element
         
-            provider
-                Instance of IMapProvider
+            provider (required MapProvider)
+                Provides tile URLs and map projections
                 
-            dimensions
-                Size of output image, instance of Point
+            dimensions (required Point)
+                Size of map to create
                 
-            enableMouseInteraction
-                Add the default MouseHandler?
+            eventHandlers (optional Array)
+                If empty or null MouseHandler will be used
+                Otherwise, each handler will be called with init(map)
     
         */
         if (typeof parent == 'string') {
@@ -549,9 +557,17 @@ if (!com) {
         this.parent.style.overflow = 'hidden';
         this.parent.style.backgroundColor = '#eee';
         
-        this.eventHandlers = [];
-        if (enableMouseInteraction || enableMouseInteraction === undefined) {
+        if (eventHandlers === undefined) {
+            this.eventHandlers = [];
             this.eventHandlers.push(new MM.MouseHandler(this));
+        }
+        else {
+            this.eventHandlers = eventHandlers;
+            if (eventHandlers instanceof Array) {
+                for (var i = 0; i < eventHandlers.length; i++) {
+                    eventHandlers[i].init(this);
+                }
+            }
         }
     
         // add an invisible layer so that image.onload will have a srcElement in IE6
