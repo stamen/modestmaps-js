@@ -1,0 +1,246 @@
+<html>
+<head>
+<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+<title>Modest Maps JS - Touch Tester</title>
+<script type="text/javascript" src="../../modestmaps.js"></script>
+<script type="text/javascript">
+
+(function(MM){
+
+    MM.TouchHandler = function() { }
+
+    MM.TouchHandler.prototype = {
+
+        init: function(map) {
+            this.map = map;
+            //MM.addEvent(map.parent, 'dblclick', this.getDoubleClick());
+            MM.addEvent(map.parent, 'touchstart', this.getMouseDown());
+            MM.addEvent(map.parent, 'gesturestart', this.getGestureStart());            
+        },
+
+        gestureStart: null,
+        gestureChange: null,
+        gestureEnd: null,
+        startScale: undefined,
+        startZoom: undefined,
+
+        getGestureStart: function() {
+            if (!this.gestureStart) {
+                var theHandler = this;
+                this.gestureStart = function(e) {
+                    MM.addEvent(theHandler.map.parent, 'gesturechange', theHandler.getGestureChange());            
+                    MM.addEvent(theHandler.map.parent, 'gestureend', theHandler.getGestureEnd());            
+                    theHandler.startScale = e.scale;
+                    theHandler.startZoom = theHandler.map.getZoom();
+                    //window.console.log('gestureStart ' + theHandler.startScale + ' ' + theHandler.startZoom);
+                    return MM.cancelEvent(e);
+                }
+            }
+            return this.gestureStart;
+        },
+        
+        getGestureChange: function() {
+            if (!this.gestureChange) {
+                var theHandler = this;
+                this.gestureChange = function(e) {
+                    if (theHandler.startScale !== undefined && theHandler.startZoom !== undefined) {
+                        var scaleFactor = e.scale / theHandler.startScale;
+                        var zoomFactor = Math.log(scaleFactor) / Math.log(2);
+                        zoomFactor = Math.round(zoomFactor);
+                        if (zoomFactor != 0) {
+                            var currentZoom = theHandler.map.getZoom();
+                            var targetZoom = theHandler.startZoom + zoomFactor;
+                            //var centerX = (e.changedTouches[0].pageX + e.changedTouches[1].pageX) / 2.0;
+                            //var centerY = (e.changedTouches[0].pageY + e.changedTouches[1].pageY) / 2.0;
+                            //theHandler.map.zoomByAbout(targetZoom - currentZoom, new MM.Point(centerX, centerY));
+                            theHandler.map.zoomBy(targetZoom - currentZoom);
+                        }
+                    }
+                    return MM.cancelEvent(e);
+                }
+            }
+            return this.gestureChange;
+        },
+        
+        getGestureEnd: function() {
+            if (!this.gestureEnd) {
+                var theHandler = this;
+                this.gestureEnd = function(e) {
+                    window.console.log('gestureEnd');
+                    MM.removeEvent(theHandler.map.parent, 'gesturechange', theHandler.getGestureChange());            
+                    MM.removeEvent(theHandler.map.parent, 'gestureend', theHandler.getGestureEnd());            
+                    theHandler.startScale = undefined;
+                    theHandler.startZoom = undefined;
+                    return MM.cancelEvent(e);
+                }
+            }
+            return this.gestureEnd;
+        },
+        
+        mouseDownHandler: null,
+    
+        getMouseDown: function() {
+            if (!this.mouseDownHandler) {
+                var theHandler = this;
+                this.mouseDownHandler = function(e) {
+        
+                    MM.addEvent(document, 'touchcancel', theHandler.getMouseUp());
+                    MM.addEvent(document, 'touchend', theHandler.getMouseUp());
+                    MM.addEvent(document, 'touchmove', theHandler.getMouseMove());
+                            
+                    theHandler.prevMouse = new MM.Point(e.changedTouches[0].pageX, e.changedTouches[0].pageY);
+                    window.console.log('touchstart ' + theHandler.prevMouse.toString());
+                    
+                    theHandler.map.parent.style.cursor = 'move';
+                
+                    return MM.cancelEvent(e);
+                };
+            }
+            return this.mouseDownHandler;
+        },
+        
+        mouseMoveHandler: null,
+        
+        getMouseMove: function() {
+            if (!this.mouseMoveHandler) {
+                var theHandler = this;
+                this.mouseMoveHandler = function(e) {
+        
+                    if (theHandler.prevMouse && e.touches.length == 1) {
+                        theHandler.map.panBy(e.changedTouches[0].pageX - theHandler.prevMouse.x, e.changedTouches[0].pageY - theHandler.prevMouse.y);
+                        theHandler.prevMouse.x = e.changedTouches[0].pageX;
+                        theHandler.prevMouse.y = e.changedTouches[0].pageY;
+                    }
+                
+                    return MM.cancelEvent(e);
+                };
+            }
+            return this.mouseMoveHandler;
+        },
+    
+        mouseUpHandler: null,
+    
+        getMouseUp: function() {
+            if (!this.mouseUpHandler) {
+                var theHandler = this;
+                this.mouseUpHandler = function(e) {
+                    if (!e) e = window.event;
+        
+                    MM.removeEvent(document, 'mouseup', theHandler.getMouseUp());
+                    MM.removeEvent(document, 'mousemove', theHandler.getMouseMove());
+            
+                    theHandler.prevMouse = null;
+    
+                    theHandler.map.parent.style.cursor = '';                
+            
+                    return MM.cancelEvent(e);
+                };
+            }
+            return this.mouseUpHandler;
+        },
+        
+        mouseWheelHandler: null,
+    
+        getMouseWheel: function() {
+            if (!this.mouseWheelHandler) {
+                var theHandler = this;
+                var prevTime = new Date().getTime();
+                this.mouseWheelHandler = function(e) {
+                    if (!e) e = window.event;
+        
+                    var delta = 0;
+                    
+                    if (e.wheelDelta) {
+                        delta = e.wheelDelta;
+                    }
+                    else if (e.detail) {
+                        delta = -e.detail;
+                    }
+        
+                    // limit mousewheeling to once every 200ms
+                    var timeSince = new Date().getTime() - prevTime;
+        
+                    if (delta != 0 && (timeSince > 200)) {
+                        
+                        var point = theHandler.getMousePoint(e);
+                        
+                        theHandler.map.zoomByAbout(delta > 0 ? 1 : -1, point);
+                        
+                        prevTime = new Date().getTime();
+                    }
+                    
+                    return MM.cancelEvent(e);
+                };
+            }
+            return this.mouseWheelHandler;
+        },
+    
+        doubleClickHandler: null,
+    
+        getDoubleClick: function() {
+            if (!this.doubleClickHandler) {
+                var theHandler = this;
+                this.doubleClickHandler = function(e) {
+                    if (!e) e = window.event;
+        
+                    var point = theHandler.getMousePoint(e);
+                    
+                    // use shift-double-click to zoom out
+                    theHandler.map.zoomByAbout(e.shiftKey ? -1 : 1, point);    
+                    
+                    return MM.cancelEvent(e);
+                };
+            }
+            return this.doubleClickHandler;
+        },
+    
+        // interaction helper
+    
+        getMousePoint: function(e)
+        {
+            // start with just the mouse (x, y)
+            var point = new MM.Point(e.clientX, e.clientY);
+            
+            // correct for scrolled document
+            point.x += document.body.scrollLeft + document.documentElement.scrollLeft;
+            point.y += document.body.scrollTop + document.documentElement.scrollTop;
+    
+            // correct for nested offsets in DOM
+            for(var node = this.map.parent; node; node = node.offsetParent) {
+                point.x -= node.offsetLeft;
+                point.y -= node.offsetTop;
+            }
+            
+            return point;
+        }
+    };
+
+})(com.modestmaps);
+
+var map;
+
+function initMap() {
+
+    var container = document.getElementById('container');
+
+    map = new com.modestmaps.Map('map', 
+                                 new com.modestmaps.TemplatedMapProvider('http://tile.openstreetmap.org/{Z}/{X}/{Y}.png'), 
+                                 new com.modestmaps.Point(container.offsetWidth, container.offsetHeight),
+                                 [ new com.modestmaps.TouchHandler() ]);
+
+    map.setCenterZoom(new com.modestmaps.Location(37.811530, -122.2666097), 14);
+
+    window.onresize = function() {
+        map.setSize(container.offsetWidth, container.offsetHeight);
+    };
+}
+
+</script>
+</head>
+<body onload="initMap()" style="margin:0; padding:0; border:0">
+<div id="container" style="width: 100%; height: 100%">
+  <div id="map">
+  </div>
+</div>
+</body>
+</html>

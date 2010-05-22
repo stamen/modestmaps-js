@@ -683,7 +683,6 @@ if (!com) {
         zoomBy: function(zoomOffset) {
             this.coordinate = this.coordinate.zoomBy(zoomOffset);
             this.draw();
-    
             this.dispatchCallback('zoomed', zoomOffset);
         },
         
@@ -1035,7 +1034,6 @@ if (!com) {
                             var ty = ((this.dimensions.y/2) + (tile.coord.row - theCoord.row) * this.provider.tileHeight * scale);
                             tile.style.left = parseInt(tx) + 'px'; 
                             tile.style.top = parseInt(ty) + 'px'; 
-                            // FIXME: if a tile isn't 256px to begin with then this is broken:
                             tile.width = this.provider.tileWidth * scale;
                             tile.height = this.provider.tileHeight * scale;
                         }

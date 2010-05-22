@@ -4,40 +4,63 @@
 <script type="text/javascript" src="../../modestmaps.js"></script>
 <script type="text/javascript" src="follower.js"></script>
 <script type="text/javascript">
-    var map;
-    function initMap() {
-        var src = document.getElementById('src');
-        eval(src.textContent || src.innerText);
+
+var map;
+
+function initMap() {
+
+    var container = document.getElementById('container');
+    var input = document.getElementById('templateURL');
+
+    if (location.search && location.search.length > 1) {
+        var index = location.search.indexOf('url');
+        if (index > 0) {
+            input.value = decodeURIComponent(location.search.slice(index+4));
+        } 
     }
+    else {
+        location.search = "?url="+encodeURIComponent(input.value);
+    }
+
+    map = new com.modestmaps.Map('map', 
+                                 new com.modestmaps.TemplatedMapProvider(input.value), 
+                                 new com.modestmaps.Point(container.offsetWidth, container.offsetHeight))
+
+    var f = new com.modestmaps.Follower(map, new com.modestmaps.Location(37.811530, -122.2666097), '&#xB0; Broadway and Grand');
+
+    map.setCenterZoom(new com.modestmaps.Location(37.811530, -122.2666097), 14);
+
+    window.onresize = function() {
+        map.setSize(container.offsetWidth, container.offsetHeight);
+    };
+}
+
+function switchProvider() {
+    var input = document.getElementById('templateURL');
+    if (input.value.indexOf("http://") == 0 && 
+        input.value.indexOf('{Z}') > 0 && 
+        input.value.indexOf('{X}') > 0 && 
+        input.value.indexOf('{Z}') > 0) {
+        location.search = "?url="+encodeURIComponent(input.value);
+        var provider = new com.modestmaps.TemplatedMapProvider(input.value);
+        map.setProvider(provider);
+    }
+    return false;
+}
+
 </script>
 </head>
 <body onload="initMap()">
 <h1>Modest Maps JS</h1>
+<form onsubmit="return switchProvider()">
+<input type="text" id="templateURL" size="48" value="http://tile.openstreetmap.org/{Z}/{X}/{Y}.png">
+<input type="submit" value="Go!">
+</form>
 <p><a href="javascript:map.zoomIn()">zoom in</a> | <a href="javascript:map.zoomOut()">zoom out</a>
 <br><a href="javascript:map.panLeft()">pan left</a> | <a href="javascript:map.panRight()">pan right</a> | <a href="javascript:map.panDown()">pan down</a> | <a href="javascript:map.panUp()">pan up</a></p>
 <div id="container" style="width: 100%; height: 500px">
   <div id="map">
   </div>
 </div>
-<p>The above div is a map initialized like so:</p>
-<pre id="src">
-// "import" the namespace
-var mm = com.modestmaps;
-
-var container = document.getElementById('container');
-
-map = new mm.Map('map', new mm.TemplatedMapProvider('http://tile.openstreetmap.org/{Z}/{X}/{Y}.png'), new mm.Point(container.offsetWidth, container.offsetHeight))
-
-var f = new mm.Follower(map, new mm.Location(37.811530, -122.2666097), '&#xB0; Broadway and Grand');
-
-map.setCenterZoom(new mm.Location(37.811530, -122.2666097), 14);
-
-window.onresize = function() {
-    map.setSize(container.offsetWidth, container.offsetHeight);
-};
-
-</pre>
-<p>Hands up who wants overlays?</p>
-<div id="log"></div>
 </body>
 </html>
