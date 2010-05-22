@@ -367,9 +367,160 @@ if (!com) {
     
     MM.extend(MM.TemplatedMapProvider, MM.MapProvider);
     
+    
+    //////////////////////////// Event Handlers
+
+    MM.MouseHandler = function(map) {
+        this.map = map;
+        MM.addEvent(map.parent, 'dblclick', this.getDoubleClick());
+        MM.addEvent(map.parent, 'mousedown', this.getMouseDown());
+        MM.addEvent(map.parent, 'mousewheel', this.getMouseWheel());    
+    }
+    
+    MM.MouseHandler.prototype = {
+    
+        mouseDownHandler: null,
+    
+        getMouseDown: function() {
+            if (!this.mouseDownHandler) {
+                var theHandler = this;
+                this.mouseDownHandler = function(e) {
+                    if (!e) var e = window.event;
+        
+                    MM.addEvent(document, 'mouseup', theHandler.getMouseUp());
+                    MM.addEvent(document, 'mousemove', theHandler.getMouseMove());
+                            
+                    theHandler.prevMouse = new MM.Point(e.clientX, e.clientY);
+                    
+                    theHandler.map.parent.style.cursor = 'move';
+                
+                    return MM.cancelEvent(e);
+                };
+            }
+            return this.mouseDownHandler;
+        },
+        
+        mouseMoveHandler: null,
+        
+        getMouseMove: function() {
+            if (!this.mouseMoveHandler) {
+                var theHandler = this;
+                this.mouseMoveHandler = function(e) {
+                    if (!e) e = window.event;
+        
+                    if (theHandler.prevMouse) {
+                        theHandler.map.panBy(e.clientX - theHandler.prevMouse.x, e.clientY - theHandler.prevMouse.y);
+                        theHandler.prevMouse.x = e.clientX;
+                        theHandler.prevMouse.y = e.clientY;
+                    }
+                
+                    return MM.cancelEvent(e);
+                };
+            }
+            return this.mouseMoveHandler;
+        },
+    
+        mouseUpHandler: null,
+    
+        getMouseUp: function() {
+            if (!this.mouseUpHandler) {
+                var theHandler = this;
+                this.mouseUpHandler = function(e) {
+                    if (!e) e = window.event;
+        
+                    MM.removeEvent(document, 'mouseup', theHandler.getMouseUp());
+                    MM.removeEvent(document, 'mousemove', theHandler.getMouseMove());
+            
+                    theHandler.prevMouse = null;
+    
+                    theHandler.map.parent.style.cursor = '';                
+            
+                    return MM.cancelEvent(e);
+                };
+            }
+            return this.mouseUpHandler;
+        },
+        
+        mouseWheelHandler: null,
+    
+        getMouseWheel: function() {
+            if (!this.mouseWheelHandler) {
+                var theHandler = this;
+                var prevTime = new Date().getTime();
+                this.mouseWheelHandler = function(e) {
+                    if (!e) e = window.event;
+        
+                    var delta = 0;
+                    
+                    if (e.wheelDelta) {
+                        delta = e.wheelDelta;
+                    }
+                    else if (e.detail) {
+                        delta = -e.detail;
+                    }
+        
+                    // limit mousewheeling to once every 200ms
+                    var timeSince = new Date().getTime() - prevTime;
+        
+                    if (delta != 0 && (timeSince > 200)) {
+                        
+                        var point = theHandler.getMousePoint(e);
+                        
+                        theHandler.map.zoomByAbout(delta > 0 ? 1 : -1, point);
+                        
+                        prevTime = new Date().getTime();
+                    }
+                    
+                    return MM.cancelEvent(e);
+                };
+            }
+            return this.mouseWheelHandler;
+        },
+    
+        doubleClickHandler: null,
+    
+        getDoubleClick: function() {
+            if (!this.doubleClickHandler) {
+                var theHandler = this;
+                this.doubleClickHandler = function(e) {
+                    if (!e) e = window.event;
+        
+                    var point = theHandler.getMousePoint(e);
+                    
+                    // use shift-double-click to zoom out
+                    theHandler.map.zoomByAbout(e.shiftKey ? -1 : 1, point);    
+                    
+                    return MM.cancelEvent(e);
+                };
+            }
+            return this.doubleClickHandler;
+        },
+    
+        // interaction helper
+    
+        getMousePoint: function(e)
+        {
+            // start with just the mouse (x, y)
+            var point = new MM.Point(e.clientX, e.clientY);
+            
+            // correct for scrolled document
+            point.x += document.body.scrollLeft + document.documentElement.scrollLeft;
+            point.y += document.body.scrollTop + document.documentElement.scrollTop;
+    
+            // correct for nested offsets in DOM
+            for(var node = this.map.parent; node; node = node.offsetParent) {
+                point.x -= node.offsetLeft;
+                point.y -= node.offsetTop;
+            }
+            
+            return point;
+        }
+    
+    };
+    
     //////////////////////////// Map
     
-    MM.Map = function(parent, provider, dimensions) {
+    MM.Map = function(parent, provider, dimensions, enableMouseInteraction) {
         /* Instance of a map intended for drawing to a div.
         
             parent
@@ -380,6 +531,9 @@ if (!com) {
                 
             dimensions
                 Size of output image, instance of Point
+                
+            enableMouseInteraction
+                Add the default MouseHandler?
     
         */
         if (typeof parent == 'string') {
@@ -395,9 +549,10 @@ if (!com) {
         this.parent.style.overflow = 'hidden';
         this.parent.style.backgroundColor = '#eee';
         
-        MM.addEvent(this.parent, 'dblclick', this.getDoubleClick());
-        MM.addEvent(this.parent, 'mousedown', this.getMouseDown());
-        MM.addEvent(this.parent, 'mousewheel', this.getMouseWheel());
+        this.eventHandlers = [];
+        if (enableMouseInteraction || enableMouseInteraction === undefined) {
+            this.eventHandlers.push(new MM.MouseHandler(this));
+        }
     
         // add an invisible layer so that image.onload will have a srcElement in IE6
         this.loadingLayer = document.createElement('div');
@@ -455,6 +610,7 @@ if (!com) {
         tileCacheSize: null,
         
         callbacks: null,
+        eventHandlers: null,
     
         toString: function() {
             return 'Map(' + this.provider.toString() + this.dimensions.toString() + this.coordinate.toString() + ')';
@@ -493,146 +649,7 @@ if (!com) {
             canvas.style.left = '0px';        
             this.parent.appendChild(canvas);
         },
-    
-        // events
-    
-        mouseDownHandler: null,
-    
-        getMouseDown: function() {
-            if (!this.mouseDownHandler) {
-                var theMap = this;
-                this.mouseDownHandler = function(e) {
-                    if (!e) var e = window.event;
-        
-                    MM.addEvent(document, 'mouseup', theMap.getMouseUp());
-                    MM.addEvent(document, 'mousemove', theMap.getMouseMove());
-                            
-                    theMap.prevMouse = new MM.Point(e.clientX, e.clientY);
-                    
-                    theMap.parent.style.cursor = 'move';
-                
-                    return MM.cancelEvent(e);
-                };
-            }
-            return this.mouseDownHandler;
-        },
-        
-        mouseMoveHandler: null,
-        
-        getMouseMove: function() {
-            if (!this.mouseMoveHandler) {
-                var theMap = this;
-                this.mouseMoveHandler = function(e) {
-                    if (!e) e = window.event;
-        
-                    if (theMap.prevMouse) {
-                        theMap.panBy(e.clientX - theMap.prevMouse.x, e.clientY - theMap.prevMouse.y);
-                        theMap.prevMouse.x = e.clientX;
-                        theMap.prevMouse.y = e.clientY;
-                    }
-                
-                    return MM.cancelEvent(e);
-                };
-            }
-            return this.mouseMoveHandler;
-        },
-    
-        mouseUpHandler: null,
-    
-        getMouseUp: function() {
-            if (!this.mouseUpHandler) {
-                var theMap = this;
-                this.mouseUpHandler = function(e) {
-                    if (!e) e = window.event;
-        
-                    MM.removeEvent(document, 'mouseup', theMap.getMouseUp());
-                    MM.removeEvent(document, 'mousemove', theMap.getMouseMove());
-            
-                    theMap.prevMouse = null;
-    
-                    theMap.parent.style.cursor = '';                
-            
-                    return MM.cancelEvent(e);
-                };
-            }
-            return this.mouseUpHandler;
-        },
-        
-        mouseWheelHandler: null,
-    
-        getMouseWheel: function() {
-            if (!this.mouseWheelHandler) {
-                var theMap = this;
-                var prevTime = new Date().getTime();
-                this.mouseWheelHandler = function(e) {
-                    if (!e) e = window.event;
-        
-                    var delta = 0;
-                    
-                    if (e.wheelDelta) {
-                        delta = e.wheelDelta;
-                    }
-                    else if (e.detail) {
-                        delta = -e.detail;
-                    }
-        
-                    // limit mousewheeling to once every 200ms
-                    var timeSince = new Date().getTime() - prevTime;
-        
-                    if (delta != 0 && (timeSince > 200)) {
-                        
-                        var point = theMap.getMousePoint(e);
-                        
-                        theMap.zoomByAbout(delta > 0 ? 1 : -1, point);
-                        
-                        prevTime = new Date().getTime();
-                    }
-                    
-                    return MM.cancelEvent(e);
-                };
-            }
-            return this.mouseWheelHandler;
-        },
-    
-        doubleClickHandler: null,
-    
-        getDoubleClick: function() {
-            if (!this.doubleClickHandler) {
-                var theMap = this;
-                this.doubleClickHandler = function(e) {
-                    if (!e) e = window.event;
-        
-                    var point = theMap.getMousePoint(e);
-                    
-                    // use shift-double-click to zoom out
-                    theMap.zoomByAbout(e.shiftKey ? -1 : 1, point);    
-                    
-                    return MM.cancelEvent(e);
-                };
-            }
-            return this.doubleClickHandler;
-        },
-    
-        // interaction helper
-    
-        getMousePoint: function(e)
-        {
-            // start with just the mouse (x, y)
-            var point = new MM.Point(e.clientX, e.clientY);
-            
-            // correct for scrolled document
-            point.x += document.body.scrollLeft + document.documentElement.scrollLeft;
-            point.y += document.body.scrollTop + document.documentElement.scrollTop;
-    
-            // correct for nested offsets in DOM
-            for(var node = this.parent; node; node = node.offsetParent) {
-                point.x -= node.offsetLeft;
-                point.y -= node.offsetTop;
-            }
-            
-            return point;
-        },
-        
+
         // zooming
         
         zoomIn: function() {

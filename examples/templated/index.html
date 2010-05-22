@@ -26,7 +26,7 @@ var mm = com.modestmaps;
 
 var container = document.getElementById('container');
 
-map = new mm.Map('map', new mm.TemplatedMapProvider('http://tile.openstreetmap.org/{Z}/{X}/{Y}.png'), new mm.Point(container.offsetWidth, container.offsetHeight))
+map = new mm.Map('map', new mm.TemplatedMapProvider('http://tile.openstreetmap.org/{Z}/{X}/{Y}.png'), new mm.Point(container.offsetWidth, container.offsetHeight), true)
 
 var f = new mm.Follower(map, new mm.Location(37.811530, -122.2666097), '&#xB0; Broadway and Grand');
 
