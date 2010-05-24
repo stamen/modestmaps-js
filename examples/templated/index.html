@@ -41,7 +41,6 @@ function switchProvider() {
         input.value.indexOf('{Z}') > 0 && 
         input.value.indexOf('{X}') > 0 && 
         input.value.indexOf('{Z}') > 0) {
-        location.search = "?url="+encodeURIComponent(input.value);
         var provider = new com.modestmaps.TemplatedMapProvider(input.value);
         map.setProvider(provider);
     }
