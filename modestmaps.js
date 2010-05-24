@@ -1053,8 +1053,8 @@ if (!com) {
                         else if (theCoord) {
                             var tx = ((this.dimensions.x/2) + (tile.coord.column - theCoord.column) * this.provider.tileWidth * scale);
                             var ty = ((this.dimensions.y/2) + (tile.coord.row - theCoord.row) * this.provider.tileHeight * scale);
-                            tile.style.left = Math.floor(tx) + 'px'; 
-                            tile.style.top = Math.floor(ty) + 'px'; 
+                            tile.style.left = tx + 'px'; 
+                            tile.style.top = ty + 'px'; 
                             tile.width = this.provider.tileWidth * scale;
                             tile.height = this.provider.tileHeight * scale;
                         }
@@ -1199,6 +1199,20 @@ if (!com) {
                         // caching *everything* we've ever seen... that's bad!
                         theMap.tiles[tile.id] = tile;
                         theMap.tileCacheSize++;
+
+                        // add tile to its layer:                        
+                        var theLayer = theMap.layers[tile.coord.zoom];
+                        theLayer.appendChild(tile);
+
+                        // position this tile (to avoid redrawing everything)
+                        var theCoord = theMap.coordinate.zoomTo(theLayer.coordinate.zoom);
+                        var scale = Math.pow(2, theMap.coordinate.zoom - theLayer.coordinate.zoom);
+                        var tx = ((theMap.dimensions.x/2) + (tile.coord.column - theCoord.column) * theMap.provider.tileWidth * scale);
+                        var ty = ((theMap.dimensions.y/2) + (tile.coord.row - theCoord.row) * theMap.provider.tileHeight * scale);
+                        tile.style.left = tx + 'px'; 
+                        tile.style.top = ty + 'px'; 
+                        tile.width = theMap.provider.tileWidth * scale;
+                        tile.height = theMap.provider.tileHeight * scale;                    
                     }
                     else {
                         // if it didn't finish clear its src to make sure it 
@@ -1209,9 +1223,12 @@ if (!com) {
                         tile.src = null;
                     }
                     
-                    // TODO: can we position the tile here instead of redrawing all tiles?
-                    theMap.draw(true);
-                    // draw all layers will remove as well as reposition things:
+                    // keep going
+                    theMap.processQueue();
+                    
+                    // request a lazy redraw of all layers 
+                    // this will remove tiles that were only visible
+                    // to cover this tile while it loaded:
                     theMap.requestRedraw();
                 };
             }
