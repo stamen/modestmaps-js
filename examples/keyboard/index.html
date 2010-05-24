@@ -25,14 +25,14 @@
         keyDown: null,
         keyUp: null,
         theInterval: 0,
-
+        trappedKeys: { 37: true, 38: true, 39: true, 40: true },
         animate: null,
 
         getAnimate: function() {
             if (!this.animate) {
                 var theHandler = this;
                 this.animate = function() {
-                    window.console.log('animate');
+                    //window.console.log('animate');
                     if (theHandler.keysPressed[37]) {
                         theHandler.map.panBy(10,0);
                     }
@@ -54,14 +54,16 @@
             if (!this.keyDown) {
                 var theHandler = this;
                 this.keyDown = function(e) {
-                    theHandler.keyCount++;
-                    window.console.log('keycount ' + theHandler.keyCount);
-                    if (!theHandler.theInterval) {
-                        theHandler.theInterval = setInterval(theHandler.getAnimate(), 20);
+                    if (!(e.keyCode in theHandler.keysPressed)) {
+                        theHandler.keysPressed[e.keyCode] = true;
+                        theHandler.keyCount++;
+                        if (!theHandler.theInterval) {
+                            theHandler.theInterval = setInterval(theHandler.getAnimate(), 20);
+                        }
                     }
-                    window.console.log('key down ' + e.keyCode);
-                    theHandler.keysPressed[e.keyCode] = true;
-                    //return MM.cancelEvent(e);
+                    if (e.keyCode in theHandler.trappedKeys) {
+                      return MM.cancelEvent(e);
+                    }
                 }
             }
             return this.keyDown;
@@ -72,15 +74,15 @@
                 var theHandler = this;
                 this.keyUp = function(e) {
                     theHandler.keyCount--;
-                    window.console.log('keycount ' + theHandler.keyCount);
+                    delete theHandler.keysPressed[e.keyCode];
                     if (theHandler.keyCount == 0 && theHandler.theInterval) {
-                        window.console.log('clearing interval');
+                        //window.console.log('clearing interval');
                         clearInterval(theHandler.theInterval);
                         delete theHandler.theInterval;
                     }
-                    window.console.log('key up ' + e.keyCode);
-                    delete theHandler.keysPressed[e.keyCode];
-                    //return MM.cancelEvent(e);
+                    if (e.keyCode in theHandler.trappedKeys) {
+                      return MM.cancelEvent(e);
+                    }
                 }
             }
             return this.keyUp;
