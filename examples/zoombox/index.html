@@ -1,0 +1,155 @@
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0;" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<title>Modest Maps JS - Touch Tester</title>
+<script type="text/javascript" src="../../modestmaps.js"></script>
+<script type="text/javascript">
+
+function ZoomBox(map) {
+    this.map = map;
+
+    var theBox = this;
+
+    this.getMousePoint = function(e) {
+        // start with just the mouse (x, y)
+        var point = new com.modestmaps.Point(e.clientX, e.clientY);
+        
+        // correct for scrolled document
+        point.x += document.body.scrollLeft + document.documentElement.scrollLeft;
+        point.y += document.body.scrollTop + document.documentElement.scrollTop;
+
+        // correct for nested offsets in DOM
+        for(var node = this.map.parent; node; node = node.offsetParent) {
+            point.x -= node.offsetLeft;
+            point.y -= node.offsetTop;
+        }
+        
+        return point;
+    };
+
+    var boxDiv = document.createElement('div');
+    boxDiv.id = map.parent.id+'-zoombox';
+    boxDiv.width = map.dimensions.x;
+    boxDiv.height = map.dimensions.y;
+    boxDiv.style.margin = '0';
+    boxDiv.style.padding = '0';
+    boxDiv.style.position = 'absolute';
+    boxDiv.style.top = '0px';
+    boxDiv.style.left = '0px';
+    boxDiv.style.width = map.dimensions.x+'px';
+    boxDiv.style.height = map.dimensions.y+'px';        
+    map.parent.appendChild(boxDiv);    
+
+    var box = document.createElement('div');
+    box.id = map.parent.id+'-zoombox-box';
+    box.width = map.dimensions.x;
+    box.height = map.dimensions.y;
+    box.style.margin = '0';
+    box.style.padding = '0';
+    box.style.outlineWidth = '1000px';
+    box.style.outlineColor = 'rgba(0,0,0,0.2)';
+    box.style.outlineStyle = 'solid';
+    box.style.position = 'absolute';
+    box.style.display = 'none';
+    box.style.top = '0px';
+    box.style.left = '0px';    
+    box.style.width = '0px';
+    box.style.height = '0px';    
+    boxDiv.appendChild(box);    
+
+    // TODO: respond to resize
+
+    var mouseDownPoint = null;
+    
+    this.mouseDown = function(e) {
+        if (e.shiftKey) {
+            mouseDownPoint = theBox.getMousePoint(e);
+            
+            box.style.left = mouseDownPoint.x + 'px';
+            box.style.top = mouseDownPoint.y + 'px';
+    
+            com.modestmaps.addEvent(map.parent, 'mousemove', theBox.mouseMove);
+            com.modestmaps.addEvent(map.parent, 'mouseup', theBox.mouseUp);
+            
+            map.parent.style.cursor = 'crosshair';
+            
+            return com.modestmaps.cancelEvent(e);
+        }
+    };
+
+    this.mouseMove = function(e) {
+        var point = theBox.getMousePoint(e);
+        box.style.display = 'block';
+        if (point.x < mouseDownPoint.x) {
+            box.style.left = point.x + 'px';
+        }
+        else {
+            box.style.left = mouseDownPoint.x + 'px';
+        }
+        box.style.width = Math.abs(point.x - mouseDownPoint.x) + 'px';
+        if (point.y < mouseDownPoint.y) {
+            box.style.top = point.y + 'px';
+        }
+        else {
+            box.style.top = mouseDownPoint.y + 'px';
+        }
+        box.style.height = Math.abs(point.y - mouseDownPoint.y) + 'px';
+        return com.modestmaps.cancelEvent(e);
+    };    
+
+    this.mouseUp = function(e) {
+    
+        var point = theBox.getMousePoint(e);
+        
+        var l1 = map.pointLocation(point);
+        var l2 = map.pointLocation(mouseDownPoint);
+        map.setExtent([l1,l2]);
+    
+        box.style.display = 'none';        
+        com.modestmaps.removeEvent(map.parent, 'mousemove', theBox.mouseMove);
+        com.modestmaps.removeEvent(map.parent, 'mouseup', theBox.mouseUp);        
+
+        map.parent.style.cursor = 'auto';
+        
+        return com.modestmaps.cancelEvent(e);
+    };
+    
+    com.modestmaps.addEvent(boxDiv, 'mousedown', this.mouseDown);
+}
+
+var map, zoombox;
+
+function initMap() {
+
+    var container = document.getElementById('container');
+
+    map = new com.modestmaps.Map('map', 
+                                 new com.modestmaps.TemplatedMapProvider('http://tile.openstreetmap.org/{Z}/{X}/{Y}.png'), 
+                                 new com.modestmaps.Point(container.offsetWidth, container.offsetHeight));
+
+    map.setCenterZoom(new com.modestmaps.Location(37.811530, -122.2666097), 14);
+
+    zoombox = new ZoomBox(map);
+
+    window.onresize = function() {
+        map.setSize(container.offsetWidth, container.offsetHeight);
+    };
+
+}
+
+</script>
+<style type="text/css">
+div#map:focus {
+  outline: 0;
+}
+</style>
+</head>
+<body onload="initMap()" style="margin:0; padding:0; border:0">
+<div id="container" style="width: 100%; height: 100%; -webkit-touch-callout: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba(0,0,0,0);">
+  <div id="map" tabindex="0">
+  </div>
+</div>
+</body>
+</html>
