@@ -1,3 +1,14 @@
+/*!
+ * Modest Maps JS v1.mumble.mumble
+ * http://modestmaps.com/
+ *
+ * Copyright (c) 2010 Stamen Design All Rights Reserved.
+ *
+ * Open source under the BSD License.
+ * http://creativecommons.org/licenses/BSD/
+ *
+ */
+
 // namespacing!
 if (!com) {
     var com = { };
