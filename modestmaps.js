@@ -2,12 +2,10 @@
  * Modest Maps JS v1.mumble.mumble
  * http://modestmaps.com/
  *
- * Copyright (c) 2010 Stamen Design All Rights Reserved.
+ * Copyright (c) 2010 Stamen Design, All Rights Reserved.
  *
  * Open source under the BSD License.
  * http://creativecommons.org/licenses/BSD/
- *
- * $LastChangedDate$
  *
  */
 
@@ -645,6 +643,10 @@ if (!com) {
         
         this.tileCacheSize = 0;
         
+        this.maxTileCacheSize = 10;
+        this.recentTiles = [];
+        this.recentTilesById = {};
+        
         this.callbacks = { zoomed: [], panned: [], centered: [], extentset: [], resized: [] };
     };
     
@@ -664,6 +666,10 @@ if (!com) {
         requestQueue: null,
         
         tileCacheSize: null,
+        
+        maxTileCacheSize: null,
+        recentTiles: null,
+        recentTilesById: null,
         
         callbacks: null,
         eventHandlers: null,
@@ -922,11 +928,27 @@ if (!com) {
             
             this.tileCacheSize = 0;
             
-            // for later: check geometry and set a new center (not now)
+            this.maxTileCacheSize = 10;
+            this.recentTiles = [];
+            this.recentTilesById = {};
+
+            // for later: check geometry and set a new coordinate center 
+            // if needed (now? or when?)
             
             this.provider = newProvider;
             
             this.draw();
+        },
+
+        // stats
+        
+        getStats: function() {
+            return {
+                'Request Queue Length': this.requestQueue.length,
+                'Open Request Count': this.requestCount,
+                'Tile Cache Size': this.tileCacheSize,
+                'Tiles On Screen': this.parent.getElementsByTagName('img').length
+            };        
         },
         
         // rendering    
@@ -1036,6 +1058,9 @@ if (!com) {
                     }                    
                 }
             
+                // for tracking time of tile usage:
+                var now = new Date().getTime();
+            
                 // layers we want to see, if they have tiles in wantedTiles
                 var minLayer = Math.max(0, baseCoord.zoom-5);
                 var maxLayer = Math.min(baseCoord.zoom+2, this.layers.length);
@@ -1063,17 +1088,23 @@ if (!com) {
                         if (!wantedTiles[tile.id]) {
                             layer.removeChild(tile);
                         }
-                        else if (theCoord) {
-                            var tx = ((this.dimensions.x/2) + (tile.coord.column - theCoord.column) * this.provider.tileWidth * scale);
-                            var ty = ((this.dimensions.y/2) + (tile.coord.row - theCoord.row) * this.provider.tileHeight * scale);
-                            tile.style.left = tx + 'px'; 
-                            tile.style.top = ty + 'px'; 
-                            tile.width = this.provider.tileWidth * scale;
-                            tile.height = this.provider.tileHeight * scale;
-                        }
                         else {
-                            tile.width = this.provider.tileWidth;
-                            tile.height = this.provider.tileHeight;                    
+                            // position tiles (using theCoord if scaling is needed)
+                            if (theCoord) {
+                                var tx = ((this.dimensions.x/2) + (tile.coord.column - theCoord.column) * this.provider.tileWidth * scale);
+                                var ty = ((this.dimensions.y/2) + (tile.coord.row - theCoord.row) * this.provider.tileHeight * scale);
+                                tile.style.left = tx + 'px'; 
+                                tile.style.top = ty + 'px'; 
+                                tile.width = this.provider.tileWidth * scale;
+                                tile.height = this.provider.tileHeight * scale;
+                            }
+                            else {
+                                tile.width = this.provider.tileWidth;
+                                tile.height = this.provider.tileHeight;                    
+                            }
+                            
+                            // log last-touched-time of currently cached tiles
+                            this.recentTilesById[tile.id].lastTouchedTime = now;
                         }
                     }
                 }
@@ -1091,6 +1122,9 @@ if (!com) {
             }
             
             this.processQueue();
+            
+            // make sure we don't have too much stuff
+            this.checkCache();
             
             //console.log('--- end draw ' + onlyThisLayer);
         },
@@ -1132,6 +1166,39 @@ if (!com) {
                 tile.style.position = 'absolute';
                 this.requestedTiles[tileKey] = tile;
                 this.requestQueue.push( { tile: tile, coord: tileCoord.copy() });
+            }
+        },
+
+        /* 
+         * keeps cache below max size
+         * (called every time we receive a new tile and add it to the cache)
+         */
+        checkCache: function() {
+            var numTilesOnScreen = this.parent.getElementsByTagName('img').length;
+            var maxTiles = Math.max(numTilesOnScreen, this.maxTileCacheSize);
+            if (this.tileCacheSize > maxTiles) {
+                // sort from newest (highest) to oldest (lowest)
+                this.recentTiles.sort(function(t1, t2) {
+                    return t2.lastTouchedTime - t1.lastTouchedTime;
+                });            
+            }
+            while (this.tileCacheSize > maxTiles) {
+                // delete the oldest record
+                var tileRecord = this.recentTiles.pop();
+                var now = new Date().getTime();
+                delete this.recentTilesById[tileRecord.id];
+                //window.console.log('removing ' + tileRecord.id + 
+                //                   ' last seen ' + (now-tileRecord.lastTouchedTime) + 'ms ago');
+                // now actually remove it from the cache...
+                var tile = this.tiles[tileRecord.id];
+                if (tile.parentNode) {
+                    // I'm leaving this uncommented for now but you should never see it:
+                    alert("Gah: trying to removing cached tile even though it's still in the DOM");
+                }
+                else {
+                    delete this.tiles[tileRecord.id];
+                    this.tileCacheSize--;
+                }
             }
         },
         
@@ -1208,16 +1275,24 @@ if (!com) {
                     // NB:- complete is also true onerror if we got a 404
                     if (tile.complete || 
                         (tile.readyState && tile.readyState == 'complete')) {
-                        // FIXME: tiles never get removed so effectively we're 
-                        // caching *everything* we've ever seen... that's bad!
+
+                        // cache the tile itself:
                         theMap.tiles[tile.id] = tile;
                         theMap.tileCacheSize++;
+                        
+                        // also keep a record of when we last touched this tile:
+                        var record = { 
+                            id: tile.id, 
+                            lastTouchedTime: new Date().getTime() 
+                        };
+                        theMap.recentTilesById[tile.id] = record;
+                        theMap.recentTiles.push(record);                        
 
-                        // add tile to its layer:                        
+                        // add tile to its layer:
                         var theLayer = theMap.layers[tile.coord.zoom];
                         theLayer.appendChild(tile);
 
-                        // position this tile (to avoid redrawing everything)
+                        // position this tile (avoids a draw() call):
                         var theCoord = theMap.coordinate.zoomTo(theLayer.coordinate.zoom);
                         var scale = Math.pow(2, theMap.coordinate.zoom - theLayer.coordinate.zoom);
                         var tx = ((theMap.dimensions.x/2) + (tile.coord.column - theCoord.column) * theMap.provider.tileWidth * scale);

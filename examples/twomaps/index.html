@@ -25,16 +25,34 @@ function initMaps() {
     rightMap.parent.style.top = '0px';
 
     leftMap.setCenterZoom(new com.modestmaps.Location(0, 0), 2);
-    rightMap.setCenterZoom(new com.modestmaps.Location(0, 0), 2);
+    var pt = new com.modestmaps.Point(container.offsetWidth*0.75, container.offsetHeight*0.5);
+    var loc = leftMap.pointLocation(pt);
+    rightMap.setCenterZoom(loc, leftMap.getZoom());
 
     var leftChanging = false, rightChanging = false;
     function syncMaps() {
       if (leftChanging) {
-        rightMap.setCenterZoom(leftMap.getCenter(), leftMap.getZoom());
+        var pt = new com.modestmaps.Point(container.offsetWidth*0.75, container.offsetHeight*0.5);
+        var loc = leftMap.pointLocation(pt);
+        rightMap.setCenterZoom(loc, leftMap.getZoom());
       }
       if (rightChanging) {
-        leftMap.setCenterZoom(rightMap.getCenter(), rightMap.getZoom());
+        var pt = new com.modestmaps.Point(-container.offsetWidth*0.25, container.offsetHeight*0.5);
+        var loc = rightMap.pointLocation(pt);
+        leftMap.setCenterZoom(loc, rightMap.getZoom());
       }
+      var leftInfo = "";
+      var rightInfo = "";
+      var leftStats = leftMap.getStats();
+      var rightStats = rightMap.getStats();
+      for (var key in leftStats) {
+        leftInfo += key + ' = ' + leftStats[key] + '<br>';
+      }
+      for (var key in rightStats) {
+        rightInfo += key + ' = ' +  rightStats[key] + '<br>';
+      }
+      document.getElementById('left-info').innerHTML = leftInfo;
+      document.getElementById('right-info').innerHTML = rightInfo;
     }
     function leftSync() {
         if (!rightChanging) {
@@ -75,9 +93,15 @@ function initMaps() {
 <h1>Modest Maps JS</h1>
 <p><a href="javascript:leftMap.zoomIn()">zoom in</a> | <a href="javascript:leftMap.zoomOut()">zoom out</a>
 <br><a href="javascript:leftMap.panLeft()">pan left</a> | <a href="javascript:leftMap.panRight()">pan right</a> | <a href="javascript:leftMap.panDown()">pan down</a> | <a href="javascript:leftMap.panUp()">pan up</a></p>
-<div id="container" style="width: 100%; height: 500px; position: relative;">
+<div id="container" style="width: 100%; height: 512px; position: relative;">
   <div id="leftMap"></div>
   <div id="rightMap"></div>
 </div>
+<table width="100%">
+  <tr>
+    <td width="50%" id="left-info"></td>
+    <td width="50%" id="right-info"></td>
+  </tr>
+</table>
 </body>
 </html>
