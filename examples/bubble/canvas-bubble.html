@@ -23,10 +23,7 @@
 // "import" the namespace
 var mm = com.modestmaps;
 
-var provider = new mm.MapProvider(function(coord) {
-    var img = parseInt(coord.zoom) +'-r'+ parseInt(coord.row) +'-c'+ parseInt(coord.column) + '.jpg';
-    return 'http://osm-bayarea.s3.amazonaws.com/' + img;
-});
+var provider = new mm.TemplatedMapProvider('http://osm-bayarea.s3.amazonaws.com/{Z}-r{Y}-c{X}.jpg');
 
 map = new mm.Map('map', provider, new mm.Point(1024,768))
 

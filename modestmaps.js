@@ -72,6 +72,16 @@ if (!com) {
         }
     };
     
+    /////////////////////////////
+    
+    MM.getStyle = function(el,styleProp) {
+        if (el.currentStyle)
+            var y = el.currentStyle[styleProp];
+        else if (window.getComputedStyle)
+            var y = document.defaultView.getComputedStyle(el,null).getPropertyValue(styleProp);
+        return y;
+    }
+    
     //////////////////////////// Core
     
     MM.Point = function(x, y) {
@@ -192,7 +202,7 @@ if (!com) {
         this.by = by;
         this.cy = cy;
     };
-    
+
     MM.Transformation.prototype = {
     
         ax: 0, 
@@ -214,54 +224,57 @@ if (!com) {
                                 (point.x*this.ay - point.y*this.ax
                                - this.cx*this.ay + this.cy*this.ax)
                               / (this.bx*this.ay - this.by*this.ax));
-        },
-    
-        deriveTransformation: function(a1x, a1y, a2x, a2y, b1x, b1y, 
-                                       b2x, b2y, c1x, c1y, c2x, c2y) {
-            // Generates a transform based on three pairs of points, 
-            // a1 -> a2, b1 -> b2, c1 -> c2.
-            var x = this.linearSolution(a1x, a1y, a2x, 
-                                        b1x, b1y, b2x, 
-                                        c1x, c1y, c2x);
-            var y = this.linearSolution(a1x, a1y, a2y, 
-                                        b1x, b1y, b2y, 
-                                        c1x, c1y, c2y);
-            return new MM.Transformation(x[0], x[1], x[2], y[0], y[1], y[2]);
-        },
-    
-        linearSolution: function(r1, s1, t1, r2, s2, t2, r3, s3, t3) {
-            /* Solves a system of linear equations.
-    
-              t1 = (a * r1) + (b + s1) + c
-              t2 = (a * r2) + (b + s2) + c
-              t3 = (a * r3) + (b + s3) + c
-    
-            r1 - t3 are the known values.
-            a, b, c are the unknowns to be solved.
-            returns the a, b, c coefficients.
-            */
-    
-            // make them all floats
-            r1 = parseFloat(r1);
-            s1 = parseFloat(s1);
-            t1 = parseFloat(t1);
-            r2 = parseFloat(r2);
-            s2 = parseFloat(s2);
-            t2 = parseFloat(t2);
-            r3 = parseFloat(r3);
-            s3 = parseFloat(s3);
-            t3 = parseFloat(t3);
-    
-            var a = (((t2 - t3) * (s1 - s2)) - ((t1 - t2) * (s2 - s3)))
-                  / (((r2 - r3) * (s1 - s2)) - ((r1 - r2) * (s2 - s3)));
-    
-            var b = (((t2 - t3) * (r1 - r2)) - ((t1 - t2) * (r2 - r3))) 
-                  / (((s2 - s3) * (r1 - r2)) - ((s1 - s2) * (r2 - r3)));
-    
-            var c = t1 - (r1 * a) - (s1 * b);
-        
-            return [ a, b, c ];
         }
+        
+    };
+
+    
+    MM.deriveTransformation = function(a1x, a1y, a2x, a2y, 
+                                       b1x, b1y, b2x, b2y, 
+                                       c1x, c1y, c2x, c2y) {
+        // Generates a transform based on three pairs of points, 
+        // a1 -> a2, b1 -> b2, c1 -> c2.
+        var x = MM.linearSolution(a1x, a1y, a2x, 
+                                  b1x, b1y, b2x, 
+                                  c1x, c1y, c2x);
+        var y = MM.linearSolution(a1x, a1y, a2y, 
+                                  b1x, b1y, b2y, 
+                                  c1x, c1y, c2y);
+        return new MM.Transformation(x[0], x[1], x[2], y[0], y[1], y[2]);
+    };
+    
+    MM.linearSolution = function(r1, s1, t1, r2, s2, t2, r3, s3, t3) {
+        /* Solves a system of linear equations.
+
+          t1 = (a * r1) + (b + s1) + c
+          t2 = (a * r2) + (b + s2) + c
+          t3 = (a * r3) + (b + s3) + c
+
+        r1 - t3 are the known values.
+        a, b, c are the unknowns to be solved.
+        returns the a, b, c coefficients.
+        */
+
+        // make them all floats
+        r1 = parseFloat(r1);
+        s1 = parseFloat(s1);
+        t1 = parseFloat(t1);
+        r2 = parseFloat(r2);
+        s2 = parseFloat(s2);
+        t2 = parseFloat(t2);
+        r3 = parseFloat(r3);
+        s3 = parseFloat(s3);
+        t3 = parseFloat(t3);
+
+        var a = (((t2 - t3) * (s1 - s2)) - ((t1 - t2) * (s2 - s3)))
+              / (((r2 - r3) * (s1 - s2)) - ((r1 - r2) * (s2 - s3)));
+
+        var b = (((t2 - t3) * (r1 - r2)) - ((t1 - t2) * (r2 - r3))) 
+              / (((s2 - s3) * (r1 - r2)) - ((s1 - s2) * (r2 - r3)));
+
+        var c = t1 - (r1 * a) - (s1 * b);
+    
+        return [ a, b, c ];
     };
     
     MM.Projection = function(zoom, transformation) {
@@ -388,23 +401,26 @@ if (!com) {
         sourceCoordinate: function(coord) {
             // TODO: fix this function for linear projections
             var size = Math.pow(2, coord.zoom);
-        
-            var wrappedColumn = coord.column % size;
-    
-            while (wrappedColumn < 0) {
-                wrappedColumn += size;
+            // assume infinite horizontal scrolling
+            if (coord.row >= 0 && coord.row < size) {
+                var wrappedColumn = coord.column % size;
+                while (wrappedColumn < 0) {
+                    wrappedColumn += size;
+                }
+                return new MM.Coordinate(coord.row, wrappedColumn, coord.zoom);
             }
-                
-            return new MM.Coordinate(coord.row, wrappedColumn, coord.zoom);
+            // otherwise it's too high or too low:
+            return null;
         }
     };
     
     MM.TemplatedMapProvider = function(template) {
         MM.MapProvider.call(this, function(coordinate) {
             coordinate = this.sourceCoordinate(coordinate);
-            var url = template.replace('{Z}', coordinate.zoom.toFixed(0));
-            url = url.replace('{X}', coordinate.column.toFixed(0));
-            return url.replace('{Y}', coordinate.row.toFixed(0));
+            if (!coordinate) {
+                return null;
+            }
+            return template.replace('{Z}', coordinate.zoom.toFixed(0)).replace('{X}', coordinate.column.toFixed(0)).replace('{Y}', coordinate.row.toFixed(0));
         });
     };
     
@@ -574,7 +590,7 @@ if (!com) {
             provider (required MapProvider)
                 Provides tile URLs and map projections
                 
-            dimensions (required Point)
+            dimensions (optional Point)
                 Size of map to create
                 
             eventHandlers (optional Array)
@@ -587,14 +603,49 @@ if (!com) {
         }
         this.parent = parent;
         this.idBase = parent.id;
-        
-        this.parent.style.position = 'relative';
-        this.parent.style.width = Math.round(dimensions.x) + 'px';
-        this.parent.style.height = Math.round(dimensions.y) + 'px';
+    
+        // we're no longer adding width and height to parent.style but we still
+        // need to enforce padding, overflow and position otherwise everything screws up
+        // TODO: maybe console.warn if the current values are bad?
         this.parent.style.padding = '0';
         this.parent.style.overflow = 'hidden';
-        this.parent.style.backgroundColor = '#eee';
         
+        var position = MM.getStyle(this.parent, 'position');
+        if (position != "relative" && position != "absolute") {
+            this.parent.style.position = 'relative';
+        }
+
+        // if you don't specify dimensions we assume you want to fill the parent
+        // unless the parent has no w/h, in which case we'll still use a default
+        if (!dimensions) {
+            var w = this.parent.offsetWidth;
+            var h = this.parent.offsetHeight;
+            if (!w) {
+                w = 640;
+                this.parent.style.width = w+'px';
+            }
+            if (!h) {
+                h = 480;
+                this.parent.style.height = h+'px';
+            }        
+            dimensions = new MM.Point(w, h);
+            // FIXME: listeners like this will stop the map being removed cleanly?
+            var theMap = this;
+            MM.addEvent(window, 'resize', function(event) {
+                // don't call setSize here because it sets parent.style.width/height
+                // and setting the height breaks percentages and default styles
+                theMap.dimensions = new MM.Point(theMap.parent.offsetWidth, theMap.parent.offsetHeight);
+                theMap.draw();
+                theMap.dispatchCallback('resized', [ theMap.dimensions ]);
+            });
+        }
+        else {
+            this.parent.style.width = Math.round(dimensions.x)+'px';
+            this.parent.style.height = Math.round(dimensions.y)+'px';
+        }
+
+        this.dimensions = dimensions;
+                                
         if (eventHandlers === undefined) {
             this.eventHandlers = [];
             this.eventHandlers.push(new MM.MouseHandler(this));
@@ -630,22 +681,10 @@ if (!com) {
             this.parent.appendChild(layer);
             this.layers.push(layer);
         }
-        
-        this.provider = provider;
-        this.dimensions = dimensions;
+
         this.coordinate = new MM.Coordinate(0.5,0.5,0);
-        this.tiles = {};
-        this.requestedTiles = {};
-    
-        this.requestCount = 0;
-        this.maxSimultaneousRequests = 4;
-        this.requestQueue = [];
         
-        this.tileCacheSize = 0;
-        
-        this.maxTileCacheSize = 10;
-        this.recentTiles = [];
-        this.recentTilesById = {};
+        this.setProvider(provider);
         
         this.callbacks = { zoomed: [], panned: [], centered: [], extentset: [], resized: [] };
     };
@@ -898,27 +937,38 @@ if (!com) {
             return this.coordinate.zoom;
         },
     
-        setProvider: function(newProvider)
-        {
-            // hasOwnProperty protects against prototype additions
-            // "The standard describes an augmentable Object.prototype. 
-            //  Ignore standards at your own peril."
-            // -- http://www.yuiblog.com/blog/2006/09/26/for-in-intrigue/
-            for (var tileKey in this.requestedTiles) {
-                if (this.requestedTiles.hasOwnProperty(tileKey)) {
-                    var tile = this.requestedTiles[tileKey];
-                    this.cancelTileRequest(tile);
-                    tile = null;
+        setProvider: function(newProvider) {
+
+            var firstProvider = false;            
+            if (this.provider === null) {
+                firstProvider = true;
+            }        
+        
+            // if we already have a provider the we'll need to
+            // clear the DOM, cancel requests and redraw
+            if (!firstProvider) {
+                // hasOwnProperty protects against prototype additions
+                // "The standard describes an augmentable Object.prototype. 
+                //  Ignore standards at your own peril."
+                // -- http://www.yuiblog.com/blog/2006/09/26/for-in-intrigue/
+                for (var tileKey in this.requestedTiles) {
+                    if (this.requestedTiles.hasOwnProperty(tileKey)) {
+                        var tile = this.requestedTiles[tileKey];
+                        this.cancelTileRequest(tile);
+                        tile = null;
+                    }
+                }
+                
+                for(var i = 0; i < this.layers.length; i += 1) {
+                    var layer = this.layers[i];
+                    while(layer.firstChild) {
+                        layer.removeChild(layer.firstChild);
+                    }
                 }
             }
-    
-            for(var i = 0; i < this.layers.length; i += 1) {
-                var layer = this.layers[i];
-                while(layer.firstChild) {
-                    layer.removeChild(layer.firstChild);
-                }
-            }
-            
+
+            // first provider or not we'll init/reset some values...
+
             this.tiles = {};
             this.requestedTiles = {};
         
@@ -928,16 +978,18 @@ if (!com) {
             
             this.tileCacheSize = 0;
             
-            this.maxTileCacheSize = 10;
+            this.maxTileCacheSize = 64;
             this.recentTiles = [];
-            this.recentTilesById = {};
+            this.recentTilesById = {};            
 
-            // for later: check geometry and set a new coordinate center 
+            // for later: check geometry of old provider and set a new coordinate center 
             // if needed (now? or when?)
-            
+
             this.provider = newProvider;
-            
-            this.draw();
+
+            if (!firstProvider) {            
+                this.draw();
+            }
         },
 
         // stats
@@ -1156,16 +1208,21 @@ if (!com) {
                 // new Image() in Firefox and roughly the same in Safari:
                 // http://tinyurl.com/y9wz2jj http://tinyurl.com/yes6rrt 
                 var tile = document.createElement('img');
-                // FIXME: tileKey is technically not unique in document if there 
-                // are two Maps but toKey is supposed to be fast so we're trying 
-                // to avoid a prefix ... hence we can't use any calls to
-                // document.getElementById() to retrieve tiles
-                tile.id = tileKey;
-                tile.width = this.provider.tileWidth;
-                tile.height = this.provider.tileHeight;
-                tile.style.position = 'absolute';
+                // if there's no tileURL we still should't request this tile again
                 this.requestedTiles[tileKey] = tile;
-                this.requestQueue.push( { tile: tile, coord: tileCoord.copy() });
+                var tileURL = this.provider.getTileUrl(tileCoord);
+                if (tileURL) {
+                    // FIXME: tileKey is technically not unique in document if there 
+                    // are two Maps but toKey is supposed to be fast so we're trying 
+                    // to avoid a prefix ... hence we can't use any calls to
+                    // document.getElementById() to retrieve tiles
+                    tile.id = tileKey;
+                    tile.width = this.provider.tileWidth;
+                    tile.height = this.provider.tileHeight;
+                    tile.style.position = 'absolute';                
+                    tile.coord = tileCoord.copy(); // FIXME: store this elsewhere to avoid scary memory leaks?
+                    this.requestQueue.push({ tile: tile, url: tileURL });
+                }
             }
         },
 
@@ -1215,10 +1272,9 @@ if (!com) {
                     this.loadingLayer.appendChild(request.tile);                
                     // set these before tile.src to avoid missing a tile that's already cached            
                     request.tile.onload = request.tile.onerror = this.getLoadComplete();
-                    request.tile.src = this.provider.getTileUrl(request.coord);
-                    request.tile.coord = request.coord; // FIXME: store this elsewhere to avoid scary memory leaks
+                    request.tile.src = request.url;
                     // keep things tidy
-                    request.tile = request.coord = null;
+                    request.tile = request.url = null;
                 }
             }
         },
@@ -1242,7 +1298,7 @@ if (!com) {
                     var request = this.requestQueue[i];
                     if (request && request.tile === tile) {
                         this.requestQueue[i] = null;
-                        request.tile = request.coord = null;
+                        request.tile = request.tile.coord = request.url = null;
                     }
                 }
             }
@@ -1323,12 +1379,14 @@ if (!com) {
             return this._loadComplete;
         },
         
+        // compares manhattan distance from center of 
+        // requested tiles to current map center
         getCenterDistanceCompare: function() {
             var theCoordinate = this.coordinate.copy();
             return function(r1, r2) {
                 if (r1 && r2) {
-                    var c1 = r1.coord;
-                    var c2 = r2.coord;
+                    var c1 = r1.tile.coord;
+                    var c2 = r2.tile.coord;
                     var ds1 = Math.abs(theCoordinate.row - c1.row - 0.5) + 
                               Math.abs(theCoordinate.column - c1.column - 0.5);
                     var ds2 = Math.abs(theCoordinate.row - c2.row - 0.5) + 
