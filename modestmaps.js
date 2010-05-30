@@ -118,7 +118,6 @@ if (!com) {
         /* hopfully/somewhat optimized because firebug 
            said we were spending a lot of time in toString() */
         toKey: function() {
-            // using floor here (not parseInt, ~~) because we want -0.56 --> -1
             var a = Math.floor(this.row);
             var b = Math.floor(this.column);
             var c = Math.floor(this.zoom);
@@ -139,6 +138,7 @@ if (!com) {
         },
     
         container: function() {
+            // using floor here (not parseInt, ~~) because we want -0.56 --> -1
             return new MM.Coordinate(Math.floor(this.row), 
                                      Math.floor(this.column), 
                                      Math.floor(this.zoom));
@@ -414,13 +414,18 @@ if (!com) {
         }
     };
     
-    MM.TemplatedMapProvider = function(template) {
+    MM.TemplatedMapProvider = function(template, subdomains) {
         MM.MapProvider.call(this, function(coordinate) {
             coordinate = this.sourceCoordinate(coordinate);
             if (!coordinate) {
                 return null;
             }
-            return template.replace('{Z}', coordinate.zoom.toFixed(0)).replace('{X}', coordinate.column.toFixed(0)).replace('{Y}', coordinate.row.toFixed(0));
+            var base = template;
+            if (subdomains && subdomains.length && base.indexOf("{S}") >= 0) {
+                var subdomain = parseInt(coordinate.zoom + coordinate.row + coordinate.column) % subdomains.length;
+                base = base.replace('{S}', subdomains[subdomain]);
+            }
+            return base.replace('{Z}', coordinate.zoom.toFixed(0)).replace('{X}', coordinate.column.toFixed(0)).replace('{Y}', coordinate.row.toFixed(0));
         });
     };
     
@@ -1005,14 +1010,8 @@ if (!com) {
         
         // rendering    
         
-        draw: function(onlyThisLayer) {
+        draw: function() {
     
-    //        console.log('requestQueue: ' + this.requestQueue.length);
-    //        console.log('requestCount: ' + this.requestCount);
-    //        console.log('tileCacheSize: ' + this.tileCacheSize);
-    
-            //console.log('--- begin draw ' + onlyThisLayer);
-            
             // so this is the corner, taking the container offset into account
             var baseCoord = this.coordinate.container();
             var baseCorner = new MM.Point(this.dimensions.x/2, this.dimensions.y/2);
@@ -1034,8 +1033,6 @@ if (!com) {
             var thisLayer = this.layers[baseCoord.zoom];
             thisLayer.coordinate = baseCoord.copy();
             
-            var showParentLayer = false;
-            
             var tileCoord = baseCoord.copy();
     
             // storing these locally might not be faster but it is clearer
@@ -1053,29 +1050,24 @@ if (!com) {
                         if (!this.requestedTiles[tileKey]) {
                             this.requestTile(tileCoord);
                         }
-                        showParentLayer = true;
-                        if (!onlyThisLayer) {
-                            for (var pz = 1; pz <= 5; pz++) {
-                                var parentKey = tileCoord.zoomBy(-pz).container().toKey();
-                                wantedTiles[parentKey] = true;
-                            }
-                            var childCoord = tileCoord.zoomBy(1);
-                            wantedTiles[childCoord.toKey()] = true;
-                            childCoord.column += 1;
-                            wantedTiles[childCoord.toKey()] = true;
-                            childCoord.row += 1;
-                            wantedTiles[childCoord.toKey()] = true;
-                            childCoord.column -= 1;
-                            wantedTiles[childCoord.toKey()] = true;
+                        for (var pz = 1; pz <= 5; pz++) {
+                            var parentKey = tileCoord.zoomBy(-pz).container().toKey();
+                            wantedTiles[parentKey] = true;
                         }
+                        var childCoord = tileCoord.zoomBy(1);
+                        wantedTiles[childCoord.toKey()] = true;
+                        childCoord.column += 1;
+                        wantedTiles[childCoord.toKey()] = true;
+                        childCoord.row += 1;
+                        wantedTiles[childCoord.toKey()] = true;
+                        childCoord.column -= 1;
+                        wantedTiles[childCoord.toKey()] = true;
                     }
                     else {
                         var tile = this.tiles[tileKey];
                         if (tile.parentNode != thisLayer) {
                             thisLayer.appendChild(tile);
                         }
-                        tile.style.left = x + 'px';
-                        tile.style.top = y + 'px';
                     }
                     tileCoord.column += 1;
                 }
@@ -1083,81 +1075,58 @@ if (!com) {
                 tileCoord.column = baseCoord.column;
             }
             
-            //console.log(showParentLayer);
-            
-            if (!onlyThisLayer || !showParentLayer) {
-    
-                // layers that would be scaled too big:
-                for (var i = 0; i < baseCoord.zoom-5; i++) {
-                    var layer = this.layers[i];
-                    layer.style.display = 'none';
-    
-                    var visibleTiles = layer.getElementsByTagName('img');
-                    for (var j = visibleTiles.length-1; j >= 0; j--) {
-                        layer.removeChild(visibleTiles[j]);
-                    }                    
+
+            // i from i to zoom-5 are layers that would be scaled too big,
+            // i from zoom+2 to layers.length are layers that would be 
+            // scaled too small (and tiles would be too numerous)                
+            for (var i = 0; i < this.layers.length; i++) {
+                if (i >= baseCoord.zoom-5 && i < baseCoord.zoom+2) continue;
+                var layer = this.layers[i];
+                layer.style.display = 'none';
+                var visibleTiles = layer.getElementsByTagName('img');
+                for (var j = visibleTiles.length-1; j >= 0; j--) {
+                    layer.removeChild(visibleTiles[j]);
+                }                    
+            }
+        
+            // for tracking time of tile usage:
+            var now = new Date().getTime();
+        
+            // layers we want to see, if they have tiles in wantedTiles
+            var minLayer = Math.max(0, baseCoord.zoom-5);
+            var maxLayer = Math.min(baseCoord.zoom+2, this.layers.length);
+            for (var i = minLayer; i < maxLayer; i++) {
+
+                var layer = this.layers[i];
+
+                var theCoord = null;
+                var scale = 1;
+
+                if (layer.coordinate) {
+                    layer.style.display = 'block';
+                    theCoord = this.coordinate.zoomTo(layer.coordinate.zoom);
+                    scale = Math.pow(2, this.coordinate.zoom - layer.coordinate.zoom);
                 }
-    
-                // layers that would be scaled too small, 
-                // and tiles would be too numerous:
-                for (var i = baseCoord.zoom+2; i < this.layers.length; i++) {
-                    var layer = this.layers[i];
+                else {
                     layer.style.display = 'none';
-    
-                    var visibleTiles = layer.getElementsByTagName('img');
-                    for (var j = visibleTiles.length-1; j >= 0; j--) {
-                        layer.removeChild(visibleTiles[j]);
-                    }                    
                 }
-            
-                // for tracking time of tile usage:
-                var now = new Date().getTime();
-            
-                // layers we want to see, if they have tiles in wantedTiles
-                var minLayer = Math.max(0, baseCoord.zoom-5);
-                var maxLayer = Math.min(baseCoord.zoom+2, this.layers.length);
-                for (var i = minLayer; i < maxLayer; i++) {
-    
-                    var layer = this.layers[i];
-    
-                    var theCoord = null;
-                    var scale = 1;
-    
-                    if (layer.coordinate) {
-                        layer.style.display = 'block';
-                        if (layer != thisLayer) {
-                            theCoord = this.coordinate.zoomTo(layer.coordinate.zoom);
-                            scale = Math.pow(2, this.coordinate.zoom - layer.coordinate.zoom);
-                        }
+
+                var visibleTiles = layer.getElementsByTagName('img');
+                for (var j = visibleTiles.length-1; j >= 0; j--) {
+                    var tile = visibleTiles[j];
+                    if (!wantedTiles[tile.id]) {
+                        layer.removeChild(tile);
                     }
                     else {
-                        layer.style.display = 'none';
-                    }
-    
-                    var visibleTiles = layer.getElementsByTagName('img');
-                    for (var j = visibleTiles.length-1; j >= 0; j--) {
-                        var tile = visibleTiles[j];
-                        if (!wantedTiles[tile.id]) {
-                            layer.removeChild(tile);
-                        }
-                        else {
-                            // position tiles (using theCoord if scaling is needed)
-                            if (theCoord) {
-                                var tx = ((this.dimensions.x/2) + (tile.coord.column - theCoord.column) * this.provider.tileWidth * scale);
-                                var ty = ((this.dimensions.y/2) + (tile.coord.row - theCoord.row) * this.provider.tileHeight * scale);
-                                tile.style.left = tx + 'px'; 
-                                tile.style.top = ty + 'px'; 
-                                tile.width = this.provider.tileWidth * scale;
-                                tile.height = this.provider.tileHeight * scale;
-                            }
-                            else {
-                                tile.width = this.provider.tileWidth;
-                                tile.height = this.provider.tileHeight;                    
-                            }
-                            
-                            // log last-touched-time of currently cached tiles
-                            this.recentTilesById[tile.id].lastTouchedTime = now;
-                        }
+                        // position tiles (using theCoord if scaling is needed)
+                        var tx = ((this.dimensions.x/2) + (tile.coord.column - theCoord.column) * this.provider.tileWidth * scale);
+                        var ty = ((this.dimensions.y/2) + (tile.coord.row - theCoord.row) * this.provider.tileHeight * scale);
+                        tile.style.left = tx + 'px'; 
+                        tile.style.top = ty + 'px'; 
+                        tile.width = this.provider.tileWidth * scale;
+                        tile.height = this.provider.tileHeight * scale;
+                        // log last-touched-time of currently cached tiles
+                        this.recentTilesById[tile.id].lastTouchedTime = now;
                     }
                 }
                 
@@ -1173,12 +1142,11 @@ if (!com) {
                 }
             }
             
+            // get newly requested tiles
             this.processQueue();
             
             // make sure we don't have too much stuff
             this.checkCache();
-            
-            //console.log('--- end draw ' + onlyThisLayer);
         },
         
         redrawTimer: undefined,

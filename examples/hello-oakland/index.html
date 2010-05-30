@@ -1,0 +1,104 @@
+<html>
+<head>
+<title>Modest Maps JS</title>
+<script type="text/javascript" src="../../modestmaps.js"></script>
+<script type="text/javascript">
+
+var maps = [];
+
+function initMaps() {
+
+    var container = document.getElementById('container');
+
+    var subdomains = [ 'a.', 'b.', 'c.', '' ];
+    var providers = [
+        new com.modestmaps.TemplatedMapProvider('http://osm-bayarea.s3.amazonaws.com/{Z}-r{Y}-c{X}.png'),
+        new com.modestmaps.TemplatedMapProvider('http://oakland-1967.s3.amazonaws.com/{Z}-r{Y}-c{X}.jpg'),
+        new com.modestmaps.TemplatedMapProvider('http://oakland-1950s.s3.amazonaws.com/{Z}-r{Y}-c{X}.jpg'),
+        new com.modestmaps.TemplatedMapProvider('http://oakland-sf-1936.s3.amazonaws.com/{Z}-r{Y}-c{X}.jpg'),
+        new com.modestmaps.TemplatedMapProvider('http://oakland-1912.s3.amazonaws.com/{Z}-r{Y}-c{X}.jpg'),
+        new com.modestmaps.TemplatedMapProvider('http://oakland-1877.s3.amazonaws.com/{Z}-r{Y}-c{X}.jpg'),
+        new com.modestmaps.TemplatedMapProvider('http://{S}tile.cloudmade.com/1a914755a77758e49e19a26e799268b7/997/256/{Z}/{X}/{Y}.png', subdomains),
+        new com.modestmaps.TemplatedMapProvider('http://{S}tile.cloudmade.com/1a914755a77758e49e19a26e799268b7/998/256/{Z}/{X}/{Y}.png', subdomains),
+        new com.modestmaps.TemplatedMapProvider('http://{S}tile.cloudmade.com/1a914755a77758e49e19a26e799268b7/999/256/{Z}/{X}/{Y}.png', subdomains)
+    ];
+    
+    for (var i = 0; i < providers.length; i++) {
+        var mapSize = new com.modestmaps.Point(container.offsetWidth/3, container.offsetHeight/3);
+        maps.push(new com.modestmaps.Map('map'+i, providers[i], mapSize));
+        maps[i].parent.style.position = 'absolute';
+        maps[i].parent.style.left = ((i%3) * mapSize.x) + 'px';
+        maps[i].parent.style.top = (Math.floor(i/3) * mapSize.y) + 'px';
+        maps[i].setCenterZoom(new com.modestmaps.Location(37.804, -122.258), 13);
+    }
+                                          
+    var changingMap = null;
+    
+    function syncMaps() {
+        if (changingMap) {
+            var mapSize = new com.modestmaps.Point(container.offsetWidth/3, container.offsetHeight/3);
+            var pt = new com.modestmaps.Point(mapSize.x/2, mapSize.y/2);
+            var loc = changingMap.pointLocation(pt);
+            var zoom = changingMap.getZoom();
+            for (var i = 0; i < maps.length; i++) {
+                if (maps[i] != changingMap) {
+                    maps[i].setCenterZoom(loc, zoom);
+                }
+            }
+        }  
+    }
+    
+    function onMapChange(map) {
+        if (!changingMap) {
+            changingMap = map;
+            syncMaps();
+            changingMap = null;
+        }
+    }
+
+    for (var i = 0; i < maps.length; i++) {
+        maps[i].addCallback('panned', onMapChange);
+        maps[i].addCallback('zoomed', onMapChange);
+        maps[i].addCallback('extentset', onMapChange);
+        maps[i].addCallback('centered', onMapChange);
+    }
+
+    window.onresize = function() {
+        for (var i = 0; i < maps.length; i++) {
+            var mapSize = new com.modestmaps.Point(container.offsetWidth/3, container.offsetHeight/3);    
+            maps[i].setSize(mapSize);
+            maps[i].parent.style.left = ((i%3) * mapSize.x) + 'px';
+            maps[i].parent.style.top = (Math.floor(i/3) * mapSize.y) + 'px';
+        }
+    };
+}
+
+</script>
+<style type="text/css">
+#container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+body {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: #fff;
+}
+</style>
+</head>
+<body onload="initMaps()">
+<div id="container">
+  <div id="map0"></div>
+  <div id="map1"></div>
+  <div id="map2"></div>
+  <div id="map3"></div>
+  <div id="map4"></div>
+  <div id="map5"></div>
+  <div id="map6"></div>
+  <div id="map7"></div>
+  <div id="map8"></div>
+</div>
+</body>
+</html>
