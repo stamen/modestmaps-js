@@ -388,7 +388,7 @@ if (!com) {
                     
         tileWidth: 256,
         tileHeight: 256,
-    
+        
         getTileUrl: function(coordinate) {
             alert("Abstract method not implemented by subclass.");
         },
@@ -610,7 +610,6 @@ if (!com) {
             parent = document.getElementById(parent);
         }
         this.parent = parent;
-        this.idBase = parent.id;
     
         // we're no longer adding width and height to parent.style but we still
         // need to enforce padding, overflow and position otherwise everything screws up
@@ -690,27 +689,24 @@ if (!com) {
     
         // add an invisible layer so that image.onload will have a srcElement in IE6
         this.loadingLayer = document.createElement('div');
-        this.loadingLayer.id = this.idBase+'loading layer';
+        this.loadingLayer.id = this.parent.id+'-loading-layer';
         this.loadingLayer.style.display = 'none';
         this.parent.appendChild(this.loadingLayer);
     
-        this.layers = [];
-    
-        // add a div for each zoom level
-        for (var z = 0; z <= 20; z++) {
-            var layer = document.createElement('div');
-            layer.id = this.idBase+'zoom-'+z;
-            layer.style.margin = '0';
-            layer.style.padding = '0';
-            layer.style.width = '100%';
-            layer.style.height = '100%';
-            layer.style.position = 'absolute';
-            layer.style.top = '0px';
-            layer.style.left = '0px';
-            this.parent.appendChild(layer);
-            this.layers.push(layer);
-        }
+        this.layers = {};
 
+        this.layerParent = document.createElement('div');
+        this.layerParent.id = this.parent.id+'-layers';
+        this.layerParent.style.margin = '0';
+        this.layerParent.style.padding = '0';
+        this.layerParent.style.width = '100%';
+        this.layerParent.style.height = '100%';
+        this.layerParent.style.position = 'absolute';
+        this.layerParent.style.top = '0px';
+        this.layerParent.style.left = '0px';
+        this.layerParent.style.zIndex = '0';
+        this.parent.appendChild(this.layerParent);
+    
         this.coordinate = new MM.Coordinate(0.5,0.5,0);
         
         this.setProvider(provider);
@@ -728,6 +724,8 @@ if (!com) {
         tiles: null,
         requestedTiles: null,
         layers: null,
+        layerParent: null,
+        loadingLayer: null,
     
         requestCount: null,
         maxSimultaneousRequests: null,
@@ -988,10 +986,12 @@ if (!com) {
                     }
                 }
                 
-                for(var i = 0; i < this.layers.length; i += 1) {
-                    var layer = this.layers[i];
-                    while(layer.firstChild) {
-                        layer.removeChild(layer.firstChild);
+                for (var name in this.layers) {
+                    if (this.layers.hasOwnProperty(name)) {
+                        var layer = this.layers[name];
+                        while(layer.firstChild) {
+                            layer.removeChild(layer.firstChild);
+                        }
                     }
                 }
             }
@@ -1055,6 +1055,9 @@ if (!com) {
             var wantedTiles = { };
             
             var thisLayer = this.layers[baseCoord.zoom];
+            if (!thisLayer) {
+                thisLayer = this.createLayer(baseCoord.zoom);
+            }
             thisLayer.coordinate = baseCoord.copy();
             
             var tileCoord = baseCoord.copy();
@@ -1099,29 +1102,37 @@ if (!com) {
                 tileCoord.column = baseCoord.column;
             }
             
-
             // i from i to zoom-5 are layers that would be scaled too big,
             // i from zoom+2 to layers.length are layers that would be 
             // scaled too small (and tiles would be too numerous)                
-            for (var i = 0; i < this.layers.length; i++) {
-                if (i >= baseCoord.zoom-5 && i < baseCoord.zoom+2) continue;
-                var layer = this.layers[i];
-                layer.style.display = 'none';
-                var visibleTiles = layer.getElementsByTagName('img');
-                for (var j = visibleTiles.length-1; j >= 0; j--) {
-                    layer.removeChild(visibleTiles[j]);
-                }                    
+            for (var name in this.layers) {
+                if (this.layers.hasOwnProperty(name)) {
+                    var zoom = parseInt(name,10);
+                    if (zoom >= baseCoord.zoom-5 && zoom < baseCoord.zoom+2) {
+                        continue;
+                    }
+                    var layer = this.layers[name];
+                    layer.style.display = 'none';
+                    var visibleTiles = layer.getElementsByTagName('img');
+                    for (var j = visibleTiles.length-1; j >= 0; j--) {
+                        layer.removeChild(visibleTiles[j]);
+                    }                    
+                }
             }
         
             // for tracking time of tile usage:
             var now = new Date().getTime();
         
             // layers we want to see, if they have tiles in wantedTiles
-            var minLayer = Math.max(0, baseCoord.zoom-5);
-            var maxLayer = Math.min(baseCoord.zoom+2, this.layers.length);
+            var minLayer = baseCoord.zoom-5;
+            var maxLayer = baseCoord.zoom+2;
             for (var i = minLayer; i < maxLayer; i++) {
 
                 var layer = this.layers[i];
+                
+                if (!layer) {
+                    continue;
+                }
 
                 var theCoord = null;
                 var scale = 1;
@@ -1191,6 +1202,22 @@ if (!com) {
                 };
             }
             return this._redraw;
+        },
+        
+        createLayer: function(zoom) {
+            var layer = document.createElement('div');
+            layer.id = this.parent.id+'-zoom-'+zoom;
+            layer.style.margin = '0';
+            layer.style.padding = '0';
+            layer.style.width = '100%';
+            layer.style.height = '100%';
+            layer.style.position = 'absolute';
+            layer.style.top = '0px';
+            layer.style.left = '0px';
+            layer.style.zIndex = zoom;
+            this.layerParent.appendChild(layer);
+            this.layers[zoom] = layer;
+            return layer;
         },
         
         requestTile: function(tileCoord) {
@@ -1338,6 +1365,9 @@ if (!com) {
 
                         // add tile to its layer:
                         var theLayer = theMap.layers[tile.coord.zoom];
+                        //if (!theLayer) {
+                        //    theLayer = theMap.createLayer(tile.coord.zoom);
+                        //}
                         theLayer.appendChild(tile);
 
                         // position this tile (avoids a draw() call):
