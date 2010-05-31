@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v0.9.0
+ * Modest Maps JS v0.9.2
  * http://modestmaps.com/
  *
  * Copyright (c) 2010 Stamen Design, All Rights Reserved.
@@ -826,7 +826,8 @@ if (!com) {
         },
     
         setCenterZoom: function(location, zoom) {
-            this.coordinate = this.provider.locationCoordinate(location).zoomTo(zoom);
+            
+            this.coordinate = this.provider.locationCoordinate(location).zoomTo(parseFloat(zoom) || 0);
             this.draw();
     
             this.dispatchCallback('centered', [location, zoom]);

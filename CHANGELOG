@@ -1,3 +1,5 @@
+v0.9.2
+ - fixed bug that could break zooming if setCenterZoom was called with a string
 
 v0.9.1
  - removed assumption that layers go from 0 to 20
