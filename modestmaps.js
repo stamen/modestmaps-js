@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v1.mumble.mumble
+ * Modest Maps JS v0.9.0
  * http://modestmaps.com/
  *
  * Copyright (c) 2010 Stamen Design, All Rights Reserved.
@@ -7,6 +7,9 @@
  * Open source under the BSD License.
  * http://creativecommons.org/licenses/BSD/
  *
+ * Versioned using Semantic Versioning.
+ * See http://semver.org/ for details.
+ * 
  */
 
 // namespacing!
@@ -73,7 +76,7 @@ if (!com) {
     };
     
     /////////////////////////////
-    
+        
     MM.getStyle = function(el,styleProp) {
         if (el.currentStyle)
             var y = el.currentStyle[styleProp];
@@ -663,6 +666,27 @@ if (!com) {
                 }
             }
         }
+        
+        // TODO: is it sensible to do this (could be more than one map on a page)
+        /*
+        // add a style element so layer/tile styles can be class-based
+        // thanks to http://www.phpied.com/dynamic-script-and-style-elements-in-ie/
+        var css = document.createElement('style');
+        css.setAttribute("type", "text/css");
+        var def = "div.modestmaps-layer {"
+            + "position: absolute;"
+            + "top: 0px; left: 0px;"
+            + "width: 100%; height: 100%;"
+            + "margin: 0; padding: 0; border: 0;"
+        + "}";
+        if (css.styleSheet) { // IE
+            css.styleSheet.cssText = def;
+        } else { // the world
+            css.appendChild(document.createTextNode(def));
+        }
+        //document.getElementsByTagName('head')[0].appendChild(ss1);        
+        this.parent.appendChild(css);        
+        */
     
         // add an invisible layer so that image.onload will have a srcElement in IE6
         this.loadingLayer = document.createElement('div');

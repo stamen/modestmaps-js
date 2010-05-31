@@ -26,6 +26,7 @@ function initMaps() {
     for (var i = 0; i < providers.length; i++) {
         var mapSize = new com.modestmaps.Point(container.offsetWidth/3, container.offsetHeight/3);
         maps.push(new com.modestmaps.Map('map'+i, providers[i], mapSize));
+        maps[i].maxSimultaneousRequests = 1;
         maps[i].parent.style.position = 'absolute';
         maps[i].parent.style.left = ((i%3) * mapSize.x) + 'px';
         maps[i].parent.style.top = (Math.floor(i/3) * mapSize.y) + 'px';
