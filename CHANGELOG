@@ -1,4 +1,7 @@
 
+v0.10.2
+ - tweak to sorting function that appears to fix an issue in IE8
+
 v0.10.1
  - fixed tile sorting for in-between zoom levels
  - fixed tile position in onload handler 

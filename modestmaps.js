@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v0.10.1
+ * Modest Maps JS v0.10.2
  * http://modestmaps.com/
  *
  * Copyright (c) 2010 Stamen Design, All Rights Reserved.
@@ -1310,7 +1310,7 @@ if (!com) {
             if (this.tileCacheSize > maxTiles) {
                 // sort from newest (highest) to oldest (lowest)
                 this.recentTiles.sort(function(t1, t2) {
-                    return t2.lastTouchedTime - t1.lastTouchedTime;
+                    return t2.lastTouchedTime < t1.lastTouchedTime ? -1 : t2.lastTouchedTime > t1.lastTouchedTime ? 1 : 0;
                 });            
             }
             while (this.tileCacheSize > maxTiles) {
