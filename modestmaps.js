@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v0.9.2
+ * Modest Maps JS v0.9.3
  * http://modestmaps.com/
  *
  * Copyright (c) 2010 Stamen Design, All Rights Reserved.
@@ -389,6 +389,9 @@ if (!com) {
         tileWidth: 256,
         tileHeight: 256,
         
+        topLeftOuterLimit: new MM.Coordinate(0,0,0),
+        bottomRightInnerLimit: new MM.Coordinate(1,1,0).zoomTo(18),
+        
         getTileUrl: function(coordinate) {
             alert("Abstract method not implemented by subclass.");
         },
@@ -399,6 +402,11 @@ if (!com) {
     
         coordinateLocation: function(location) {
             return this.projection.coordinateLocation(location);
+        },
+        
+        outerLimits: function() {
+            return [ this.topLeftOuterLimit.copy(), 
+                     this.bottomRightInnerLimit.copy() ];
         },
     
         sourceCoordinate: function(coord) {
@@ -786,11 +794,9 @@ if (!com) {
         
         zoomByAbout: function(zoomOffset, point) {
             var location = this.pointLocation(point);
-            this.coordinate = this.coordinate.zoomBy(zoomOffset);
+            this.zoomBy(zoomOffset);
             var newPoint = this.locationPoint(location);
             this.panBy(point.x - newPoint.x, point.y - newPoint.y);
-    
-            this.dispatchCallback('zoomed', zoomOffset);
         },
     
         // panning
@@ -799,7 +805,6 @@ if (!com) {
             this.coordinate.column -= dx / this.provider.tileWidth;
             this.coordinate.row -= dy / this.provider.tileHeight;
             this.draw();
-    
             this.dispatchCallback('panned', [dx, dy]);
         },
     
@@ -826,10 +831,8 @@ if (!com) {
         },
     
         setCenterZoom: function(location, zoom) {
-            
             this.coordinate = this.provider.locationCoordinate(location).zoomTo(parseFloat(zoom) || 0);
             this.draw();
-    
             this.dispatchCallback('centered', [location, zoom]);
         },
     
@@ -1033,9 +1036,29 @@ if (!com) {
             };        
         },
         
+        // limits
+        
+        enforceLimits: function(coord) {
+            coord = coord.copy();
+            var limits = this.provider.outerLimits();
+            if (limits) {                
+                var minZoom = limits[0].zoom;
+                var maxZoom = limits[1].zoom;
+                if (coord.zoom < minZoom) {
+                    coord = coord.zoomTo(minZoom);
+                }
+                else if (coord.zoom > maxZoom) {
+                    coord = coord.zoomTo(maxZoom);
+                }
+            }
+            return coord;
+        },
+        
         // rendering    
         
         draw: function() {
+    
+            this.coordinate = this.enforceLimits(this.coordinate);
     
             // so this is the corner, taking the container offset into account
             var baseCoord = this.coordinate.container();
