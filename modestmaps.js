@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v0.10.0
+ * Modest Maps JS v0.10.1
  * http://modestmaps.com/
  *
  * Copyright (c) 2010 Stamen Design, All Rights Reserved.
@@ -1109,10 +1109,7 @@ if (!com) {
 
             var wantedTiles = { };
             
-            var thisLayer = this.layers[baseCoord.zoom];
-            if (!thisLayer) {
-                thisLayer = this.createLayer(baseCoord.zoom);
-            }
+            var thisLayer = this.createOrGetLayer(baseCoord.zoom);
             thisLayer.coordinate = baseCoord.copy();
             
             var tileCoord = baseCoord.copy();
@@ -1259,7 +1256,10 @@ if (!com) {
             return this._redraw;
         },
         
-        createLayer: function(zoom) {
+        createOrGetLayer: function(zoom) {
+            if (zoom in this.layers) {
+                return this.layers[zoom];
+            }
             var layer = document.createElement('div');
             layer.id = this.parent.id+'-zoom-'+zoom;
             layer.style.margin = '0';
@@ -1427,10 +1427,10 @@ if (!com) {
                         var scale = Math.pow(2, theMap.coordinate.zoom - theLayer.coordinate.zoom);
                         var tx = ((theMap.dimensions.x/2) + (tile.coord.column - theCoord.column) * theMap.provider.tileWidth * scale);
                         var ty = ((theMap.dimensions.y/2) + (tile.coord.row - theCoord.row) * theMap.provider.tileHeight * scale);
-                        tile.style.left = tx + 'px'; 
-                        tile.style.top = ty + 'px'; 
-                        tile.width = theMap.provider.tileWidth * scale;
-                        tile.height = theMap.provider.tileHeight * scale;                    
+                        tile.style.left = Math.round(tx) + 'px'; 
+                        tile.style.top = Math.round(ty) + 'px'; 
+                        tile.width = Math.ceil(theMap.provider.tileWidth * scale);
+                        tile.height = Math.ceil(theMap.provider.tileHeight * scale);
                     }
                     else {
                         // if it didn't finish clear its src to make sure it 
@@ -1456,7 +1456,7 @@ if (!com) {
         // compares manhattan distance from center of 
         // requested tiles to current map center
         getCenterDistanceCompare: function() {
-            var theCoordinate = this.coordinate.copy();
+            var theCoordinate = this.coordinate.zoomTo(Math.round(this.coordinate.zoom));
             return function(r1, r2) {
                 if (r1 && r2) {
                     var c1 = r1.tile.coord;

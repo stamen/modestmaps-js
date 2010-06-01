@@ -1,4 +1,8 @@
 
+v0.10.1
+ - fixed tile sorting for in-between zoom levels
+ - fixed tile position in onload handler 
+
 v0.10.0
  - tidied up initial coord/position maths, now supports arbitrary zoom levels (with seams)
 
@@ -18,4 +22,23 @@ v0.9.1
 
 v0.9.0
  - added rational version numbering
+
+May 2010, pre-semver
+
+ + added setSize and setProvider methods (fixed the latter so that all loads are canceled)
+ + optional interaction (factored out mouse handling... enables touch or keyboard later)
+ + made a touch handler for iphads
+ + made a TemplatedMapProvider
+ + made a demo that accepts a URL template for a map provider 
+ + started to work towards jslint conformance
+ + started to move to 80 character line length where practical
+ + made a demo with two maps, synchronized 
+ + jslint fixes, 80 char lines, better sorting, removed createOverlay
+ + templated providers wrap around in longitude by default
+ + added a demo keyboard handler
+ + positioning single tiles in onload instead of redrawing everything
+ + added a zoom box demo
+ + make sure the cache gets cleared after a while (BIG FEATURE)
+ + don't load above/below north/south poles (for default mercator maps)
+ + added a random subdomain helper to templated providers
 
