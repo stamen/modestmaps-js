@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v0.9.3
+ * Modest Maps JS v0.9.4
  * http://modestmaps.com/
  *
  * Copyright (c) 2010 Stamen Design, All Rights Reserved.
@@ -389,6 +389,9 @@ if (!com) {
         tileWidth: 256,
         tileHeight: 256,
         
+        // these are limits for available *tiles*
+        // panning limits will be different (since you can wrap around columns)
+        // but if you put Infinity in here it will screw up sourceCoordinate
         topLeftOuterLimit: new MM.Coordinate(0,0,0),
         bottomRightInnerLimit: new MM.Coordinate(1,1,0).zoomTo(18),
         
@@ -410,18 +413,20 @@ if (!com) {
         },
     
         sourceCoordinate: function(coord) {
-            // TODO: fix this function for linear projections
-            var size = Math.pow(2, coord.zoom);
-            // assume infinite horizontal scrolling
-            if (coord.row >= 0 && coord.row < size) {
-                var wrappedColumn = coord.column % size;
-                while (wrappedColumn < 0) {
-                    wrappedColumn += size;
-                }
-                return new MM.Coordinate(coord.row, wrappedColumn, coord.zoom);
+            var TL = this.topLeftOuterLimit.zoomTo(coord.zoom);
+            var BR = this.bottomRightInnerLimit.zoomTo(coord.zoom);
+            var vSize = BR.row - TL.row;
+            if (coord.row >= 0 && coord.row < vSize) {
+                // it's too high or too low:
+                return null;
             }
-            // otherwise it's too high or too low:
-            return null;
+            var hSize = BR.column - TL.column;
+            // assume infinite horizontal scrolling
+            var wrappedColumn = coord.column % hSize;
+            while (wrappedColumn < 0) {
+                wrappedColumn += hSize;
+            }
+            return new MM.Coordinate(coord.row, wrappedColumn, coord.zoom);
         }
     };
     
@@ -1050,6 +1055,42 @@ if (!com) {
                 else if (coord.zoom > maxZoom) {
                     coord = coord.zoomTo(maxZoom);
                 }
+                
+                /*                 
+                // this generally does the *intended* thing,
+                // but it's not always desired behavior so it's disabled for now
+                
+                var topLeftLimit = limits[0].zoomTo(coord.zoom);
+                var bottomRightLimit = limits[1].zoomTo(coord.zoom);
+                var currentTopLeft = this.pointCoordinate(new MM.Point(0,0));
+                var currentBottomRight = this.pointCoordinate(this.dimensions);
+                
+                if (bottomRightLimit.row - topLeftLimit.row < currentBottomRight.row - currentTopLeft.row) {
+                    // if the limit is smaller than the current view center it
+                    coord.row = (bottomRightLimit.row + topLeftLimit.row) / 2;
+                }
+                else {
+                    if (currentTopLeft.row < topLeftLimit.row) {
+                        coord.row += topLeftLimit.row - currentTopLeft.row;
+                    }
+                    else if (currentBottomRight.row > bottomRightLimit.row) {
+                        coord.row -= currentBottomRight.row - bottomRightLimit.row;
+                    }
+                }
+                if (bottomRightLimit.column - topLeftLimit.column < currentBottomRight.column - currentTopLeft.column) {
+                    // if the limit is smaller than the current view, center it
+                    coord.column = (bottomRightLimit.column + topLeftLimit.column) / 2;                    
+                }
+                else {
+                    if (currentTopLeft.column < topLeftLimit.column) {
+                        coord.column += topLeftLimit.column - currentTopLeft.column;
+                    }
+                    else if (currentBottomRight.column > bottomRightLimit.column) {
+                        coord.column -= currentBottomRight.column - bottomRightLimit.column;
+                    }
+                }
+                */
+                
             }
             return coord;
         },

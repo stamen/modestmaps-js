@@ -1,3 +1,6 @@
+v0.9.4
+ - changes to MapProvider.sourceCoordinate to support non-Mercator bounds
+
 v0.9.3
  - added inner and outer limits to providers and enforcing min/max zoom in Map.draw()
  - changed zoomByAbout to use zoomBy (and draw/enforceLimits) before applying panBy
