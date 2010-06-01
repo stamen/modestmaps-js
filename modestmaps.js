@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v0.9.4
+ * Modest Maps JS v0.9.5
  * http://modestmaps.com/
  *
  * Copyright (c) 2010 Stamen Design, All Rights Reserved.
@@ -416,7 +416,7 @@ if (!com) {
             var TL = this.topLeftOuterLimit.zoomTo(coord.zoom);
             var BR = this.bottomRightInnerLimit.zoomTo(coord.zoom);
             var vSize = BR.row - TL.row;
-            if (coord.row >= 0 && coord.row < vSize) {
+            if (coord.row < 0 | coord.row >= vSize) {
                 // it's too high or too low:
                 return null;
             }
