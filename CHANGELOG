@@ -1,4 +1,7 @@
 
+v0.10.0
+ - tidied up initial coord/position maths, now supports arbitrary zoom levels (with seams)
+
 v0.9.5
 v0.9.4
  - changes to MapProvider.sourceCoordinate to support non-Mercator bounds

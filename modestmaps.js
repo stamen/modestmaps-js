@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v0.9.5
+ * Modest Maps JS v0.10.0
  * http://modestmaps.com/
  *
  * Copyright (c) 2010 Stamen Design, All Rights Reserved.
@@ -7,8 +7,8 @@
  * Open source under the BSD License.
  * http://creativecommons.org/licenses/BSD/
  *
- * Versioned using Semantic Versioning.
- * See http://semver.org/ for details.
+ * Versioned using Semantic Versioning (v.major.minor.patch)
+ * See http://semver.org/ for more details.
  * 
  */
 
@@ -650,6 +650,7 @@ if (!com) {
             }        
             dimensions = new MM.Point(w, h);
             // FIXME: listeners like this will stop the map being removed cleanly?
+            // when does removeEvent get called?
             var theMap = this;
             MM.addEvent(window, 'resize', function(event) {
                 // don't call setSize here because it sets parent.style.width/height
@@ -1102,21 +1103,10 @@ if (!com) {
             this.coordinate = this.enforceLimits(this.coordinate);
     
             // so this is the corner, taking the container offset into account
-            var baseCoord = this.coordinate.container();
-            var baseCorner = new MM.Point(this.dimensions.x/2, this.dimensions.y/2);
-            baseCorner.x += (baseCoord.column - this.coordinate.column) * this.provider.tileWidth;
-            baseCorner.y += (baseCoord.row - this.coordinate.row) * this.provider.tileHeight;
-    
-            // get back to the top left
-            while (baseCorner.x > 0) {
-                baseCorner.x -= this.provider.tileWidth;
-                baseCoord.column -= 1;
-            }
-            while (baseCorner.y > 0) {
-                baseCorner.y -= this.provider.tileHeight;
-                baseCoord.row -= 1;
-            }
-    
+            var baseZoom = Math.round(this.coordinate.zoom);
+            var baseCoord = this.pointCoordinate(new MM.Point(0,0)).zoomTo(baseZoom).container();
+            var baseCorner = this.coordinatePoint(baseCoord);
+
             var wantedTiles = { };
             
             var thisLayer = this.layers[baseCoord.zoom];
@@ -1129,8 +1119,8 @@ if (!com) {
     
             // storing these locally might not be faster but it is clearer
             // [JSLitmus tests were inconclusive]
-            var maxY = this.dimensions.y;
-            var maxX = this.dimensions.x;
+            var maxY = this.dimensions.y + this.provider.tileHeight;
+            var maxX = this.dimensions.x + this.provider.tileWidth;
             var yStep = this.provider.tileHeight;
             var xStep = this.provider.tileWidth;
     
@@ -1221,10 +1211,10 @@ if (!com) {
                         // position tiles (using theCoord if scaling is needed)
                         var tx = ((this.dimensions.x/2) + (tile.coord.column - theCoord.column) * this.provider.tileWidth * scale);
                         var ty = ((this.dimensions.y/2) + (tile.coord.row - theCoord.row) * this.provider.tileHeight * scale);
-                        tile.style.left = tx + 'px'; 
-                        tile.style.top = ty + 'px'; 
-                        tile.width = this.provider.tileWidth * scale;
-                        tile.height = this.provider.tileHeight * scale;
+                        tile.style.left = Math.round(tx) + 'px'; 
+                        tile.style.top = Math.round(ty) + 'px'; 
+                        tile.width = Math.ceil(this.provider.tileWidth * scale);
+                        tile.height = Math.ceil(this.provider.tileHeight * scale);
                         // log last-touched-time of currently cached tiles
                         this.recentTilesById[tile.id].lastTouchedTime = now;
                     }
@@ -1430,9 +1420,6 @@ if (!com) {
 
                         // add tile to its layer:
                         var theLayer = theMap.layers[tile.coord.zoom];
-                        //if (!theLayer) {
-                        //    theLayer = theMap.createLayer(tile.coord.zoom);
-                        //}
                         theLayer.appendChild(tile);
 
                         // position this tile (avoids a draw() call):
