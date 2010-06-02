@@ -4,22 +4,248 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <title>Modest Maps JS - Touch Tester</title>
+<script type="text/javascript" src="underscore-min.js"></script>
 <script type="text/javascript" src="../../modestmaps.js"></script>
 <script type="text/javascript">
 
+function stderr(msg)
+{
+    req = new XMLHttpRequest();
+    req.open('POST', 'trace.php', false);
+    req.send(msg);
+}
+
 (function(MM){
 
+    function distance(t1, t2)
+    {
+        return Math.sqrt(Math.pow(t1.screenX - t2.screenX, 2) + Math.pow(t1.screenY - t2.screenY, 2));
+    }
+    
+    function Start(touch, time)
+    {
+        this.screenX = touch.screenX;
+        this.screenY = touch.screenY;
+
+        this.touch = touch;
+        this.time = time;
+    }
+    
+    function End(touch, time)
+    {
+        this.screenX = touch.screenX;
+        this.screenY = touch.screenY;
+
+        this.touch = touch;
+        this.time = time;
+    }
+    
+    function Tap(x, y, time)
+    {
+        this.x = x;
+        this.y = y;
+        this.time = time;
+    }
+    
+    function Hold(x, y, end, duration)
+    {
+        this.x = x;
+        this.y = y;
+        this.end = end;
+        this.duration = duration;
+    }
+    
+    function Drag(x1, y1, x2, y2, end, duration)
+    {
+        this.x1 = x1;
+        this.y1 = y1;
+        this.x2 = x2;
+        this.y2 = y2;
+        this.end = end;
+        this.duration = duration;
+    }
+    
+    function hasattr(obj, attr)
+    {
+        return _.any(_.keys(obj), function(key) { return key == attr });
+    }
+    
+    function sameTouch(state, touch)
+    {
+        if(typeof state == 'object' && hasattr(state, 'touch')) {
+            if(state.constructor == Start || state.constructor == End) {
+                return touch == state.touch;
+            }
+        }
+    }
+    
     MM.TouchHandler = function() { }
 
     MM.TouchHandler.prototype = {
 
         init: function(map) {
             this.map = map;
+            /*
             MM.addEvent(map.parent, 'touchstart', this.getDoubleTap());
             MM.addEvent(map.parent, 'touchstart', this.getTouchStart());
             MM.addEvent(map.parent, 'gesturestart', this.getGestureStart());            
+            */
+
+            MM.addEvent(map.parent, 'touchstart', this.getTouchStartLog());
+            MM.addEvent(map.parent, 'touchmove', this.getTouchMoveLog());
+            //MM.addEvent(map.parent, 'touchend', this.getTouchEndLog());
+
+            MM.addEvent(map.parent, 'touchstart', this.getTouchStartMachine());
+            MM.addEvent(map.parent, 'touchmove', this.getTouchMoveMachine());
+            MM.addEvent(map.parent, 'touchend', this.getTouchEndMachine());
         },
 
+        getTouchStartLogHandler: null,
+        
+        getTouchStartLog: function() {
+            if (!this.getTouchStartLogHandler) {
+                var theHandler = this;
+                this.getTouchStartLogHandler = function(e)
+                {
+                    points = _.map(e.touches, function(t) { return '(' + t.screenX + ', ' + t.screenY + ')'; }).join(', ');
+                    stderr('touch start: ' + e.changedTouches.length + '/' + e.touches.length + ', ' + points);
+                }
+            }
+            return this.getTouchStartLogHandler;
+        },
+        
+        getTouchStartLogHandler: null,
+        
+        getTouchMoveLog: function() {
+            if (!this.getTouchMoveLogHandler) {
+                var theHandler = this;
+                this.getTouchMoveLogHandler = function(e)
+                {
+                    //stderr('touch move');
+                }
+            }
+            return this.getTouchMoveLogHandler;
+        },
+        
+        getTouchEndLogHandler: null,
+        
+        getTouchEndLog: function() {
+            if (!this.getTouchEndLogHandler) {
+                var theHandler = this;
+                this.getTouchEndLogHandler = function(e)
+                {
+                    points = _.map(e.touches, function(t) { return '(' + t.screenX + ', ' + t.screenY + ')'; }).join(', ');
+                    stderr('touch end, all: ' + e.changedTouches.length + '/' + e.touches.length + ', ' + points);
+                }
+            }
+            return this.getTouchEndLogHandler;
+        },
+        
+        maxTapTime: 150,
+        maxTapDistance: 10,
+        maxDoubleTapDelay: 150,
+        states: [],
+
+        getTouchStartMachineHandler: null,
+        
+        getTouchStartMachine: function() {
+            var states = this.states;
+
+            if (!this.getTouchStartMachineHandler) {
+                var theHandler = this;
+                this.getTouchStartMachineHandler = function(e)
+                {
+                    var time = new Date().getTime();
+                    _.each(e.changedTouches, function(touch) { states.push(new Start(touch, time)); });
+                }
+            }
+            return this.getTouchStartMachineHandler;
+        },
+        
+        getTouchStartMachineHandler: null,
+        
+        getTouchMoveMachine: function() {
+            if (!this.getTouchMoveMachineHandler) {
+                var theHandler = this;
+                this.getTouchMoveMachineHandler = function(e)
+                {
+                }
+            }
+            return this.getTouchMoveMachineHandler;
+        },
+        
+        getTouchEndMachineHandler: null,
+        
+        getTouchEndMachine: function() {
+            if (!this.getTouchEndMachineHandler) {
+                var theHandler = this;
+                this.getTouchEndMachineHandler = function(e)
+                {
+                    var states = theHandler.states;
+                    var now = new Date().getTime();
+
+                    // look at each changed touch in turn.
+                    for(var i = 0; i < e.changedTouches.length; i += 1)
+                    {
+                        var touch = e.changedTouches[i];
+                        
+                        for(var j = 0; j < states.length; j += 1)
+                        {
+                            var state = states[j];
+                        
+                            if(sameTouch(state, touch))
+                            {
+                                states.splice(j, 1);
+                                j -= 1;
+
+                                // we now know we have a Start or End object and
+                                // a matching touch that's just ended. Let's see
+                                // what kind of event it is based on how long it
+                                // lasted and how far it moved.
+                            
+                                var time = now - state.time;
+                                var dist = distance(state, touch);
+                                
+                                if(dist > theHandler.maxTapDistance) {
+                                    var drag = new Drag(state.screenX, state.screenY, touch.screenX, touch.screenY, now, time);
+                                    theHandler.onDrag(drag);
+                                
+                                } else if(time > theHandler.maxTapTime) {
+                                    // close in time, but not in space: a hold
+                                    var hold = new Hold(touch.screenX, touch.screenY, now, time);
+                                    theHandler.onHold(hold);
+                                
+                                } else {
+                                    // close in both time and space: a tap
+                                    var tap = new Tap(touch.screenX, touch.screenY, now);
+                                    theHandler.onTap(tap);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return this.getTouchEndMachineHandler;
+        },
+        
+        onDrag: function(drag)
+        {
+            stderr('Drag: (' + drag.x1 + ', ' + drag.y1 + ') to (' + drag.x2 + ', ' + drag.y2 + ') for ' + drag.duration + ' msec');
+        },
+        
+        onHold: function(hold)
+        {
+            stderr('Hold: (' + hold.x + ', ' + hold.y + ') for ' + hold.duration + ' msec');
+        },
+        
+        onTap: function(tap)
+        {
+            stderr('Tap: (' + tap.x + ', ' + tap.y + ')');
+        }
+        
+        
+        
+        /*
         gestureStart: null,
         gestureChange: null,
         gestureCenter: null,
@@ -178,6 +404,7 @@
             }
             return this.doubleTapHandler;
         }
+        */
     
     };
 
@@ -199,6 +426,8 @@ function initMap() {
     window.onresize = function() {
         map.setSize(container.offsetWidth, container.offsetHeight);
     };
+    
+    stderr('------------------------------------------------------------------------');
 }
 
 </script>
