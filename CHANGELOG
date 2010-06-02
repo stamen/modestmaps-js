@@ -1,4 +1,8 @@
 
+v0.10.3
+ - added Point.distance and Point.interpolate
+ - added Location.distance and Location.interpolate
+
 v0.10.2
  - tweak to sorting function that appears to fix an issue in IE8
 
