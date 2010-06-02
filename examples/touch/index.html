@@ -70,12 +70,11 @@ function stderr(msg)
         return _.any(_.keys(obj), function(key) { return key == attr });
     }
     
-    function sameTouch(state, touch)
+    function sameTouch(event, touch)
     {
-        if(typeof state == 'object' && hasattr(state, 'touch')) {
-            if(state.constructor == Start || state.constructor == End) {
-                return touch == state.touch;
-            }
+        if(typeof event == 'object' && hasattr(event, 'touch'))
+        {
+            return touch == event.touch;
         }
     }
     
@@ -144,19 +143,19 @@ function stderr(msg)
         maxTapTime: 150,
         maxTapDistance: 10,
         maxDoubleTapDelay: 150,
-        states: [],
+        events: [],
 
         getTouchStartMachineHandler: null,
         
         getTouchStartMachine: function() {
-            var states = this.states;
+            var events = this.events;
 
             if (!this.getTouchStartMachineHandler) {
                 var theHandler = this;
                 this.getTouchStartMachineHandler = function(e)
                 {
                     var time = new Date().getTime();
-                    _.each(e.changedTouches, function(touch) { states.push(new Start(touch, time)); });
+                    _.each(e.changedTouches, function(touch) { events.push(new Start(touch, time)); });
                 }
             }
             return this.getTouchStartMachineHandler;
@@ -181,7 +180,7 @@ function stderr(msg)
                 var theHandler = this;
                 this.getTouchEndMachineHandler = function(e)
                 {
-                    var states = theHandler.states;
+                    var events = theHandler.events;
                     var now = new Date().getTime();
 
                     // look at each changed touch in turn.
@@ -189,13 +188,13 @@ function stderr(msg)
                     {
                         var touch = e.changedTouches[i];
                         
-                        for(var j = 0; j < states.length; j += 1)
+                        for(var j = 0; j < events.length; j += 1)
                         {
-                            var state = states[j];
+                            var event = events[j];
                         
-                            if(sameTouch(state, touch))
+                            if(sameTouch(event, touch))
                             {
-                                states.splice(j, 1);
+                                events.splice(j, 1);
                                 j -= 1;
 
                                 // we now know we have a Start or End object and
@@ -203,11 +202,11 @@ function stderr(msg)
                                 // what kind of event it is based on how long it
                                 // lasted and how far it moved.
                             
-                                var time = now - state.time;
-                                var dist = distance(state, touch);
+                                var time = now - event.time;
+                                var dist = distance(event, touch);
                                 
                                 if(dist > theHandler.maxTapDistance) {
-                                    var drag = new Drag(state.screenX, state.screenY, touch.screenX, touch.screenY, now, time);
+                                    var drag = new Drag(event.screenX, event.screenY, touch.screenX, touch.screenY, now, time);
                                     theHandler.onDrag(drag);
                                 
                                 } else if(time > theHandler.maxTapTime) {
