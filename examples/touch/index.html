@@ -92,7 +92,7 @@ function stderr(msg)
 
             MM.addEvent(map.parent, 'touchstart', this.getTouchStartLog());
             MM.addEvent(map.parent, 'touchmove', this.getTouchMoveLog());
-            //MM.addEvent(map.parent, 'touchend', this.getTouchEndLog());
+            MM.addEvent(map.parent, 'touchend', this.getTouchEndLog());
 
             MM.addEvent(map.parent, 'touchstart', this.getTouchStartMachine());
             MM.addEvent(map.parent, 'touchmove', this.getTouchMoveMachine());
@@ -106,8 +106,8 @@ function stderr(msg)
                 var theHandler = this;
                 this.getTouchStartLogHandler = function(e)
                 {
-                    points = _.map(e.touches, function(t) { return '(' + t.screenX + ', ' + t.screenY + ')'; }).join(', ');
-                    stderr('touch start: ' + e.changedTouches.length + '/' + e.touches.length + ', ' + points);
+                    points = _.map(e.changedTouches, function(t) { return '(#' + t.identifier + ': ' + t.screenX + ', ' + t.screenY + ')'; }).join(', ');
+                    stderr('                                touch start: ' + e.changedTouches.length + '/' + e.touches.length + ', ' + points);
                 }
             }
             return this.getTouchStartLogHandler;
@@ -133,8 +133,8 @@ function stderr(msg)
                 var theHandler = this;
                 this.getTouchEndLogHandler = function(e)
                 {
-                    points = _.map(e.touches, function(t) { return '(' + t.screenX + ', ' + t.screenY + ')'; }).join(', ');
-                    stderr('touch end, all: ' + e.changedTouches.length + '/' + e.touches.length + ', ' + points);
+                    points = _.map(e.changedTouches, function(t) { return '(#' + t.identifier + ': ' + t.screenX + ', ' + t.screenY + ')'; }).join(', ');
+                    stderr('                                touch end: ' + e.changedTouches.length + '/' + e.touches.length + ', ' + points);
                 }
             }
             return this.getTouchEndLogHandler;
@@ -144,18 +144,53 @@ function stderr(msg)
         maxTapDistance: 10,
         maxDoubleTapDelay: 150,
         events: [],
+        touchTimeouts: {},
+        
+        checkupOnStart: function(start) {
+        
+            stderr('Checking up on touch #' + start.touch.identifier);
+            
+            var events = this.events;
+            
+            for(var i = 0; i < events.length; i += 1)
+            {
+                var event = events[i];
+                
+                if(event == start)
+                {
+                    stderr('Ah found it at events[' + i + ']');
+                    break;
+                }
+            }
+        
+        },
 
         getTouchStartMachineHandler: null,
         
         getTouchStartMachine: function() {
             var events = this.events;
+            var timeouts = this.touchTimeouts;
 
             if (!this.getTouchStartMachineHandler) {
                 var theHandler = this;
                 this.getTouchStartMachineHandler = function(e)
                 {
                     var time = new Date().getTime();
-                    _.each(e.changedTouches, function(touch) { events.push(new Start(touch, time)); });
+                    
+                    for(var i = 0; i < e.changedTouches.length; i += 1)
+                    {
+                        // as we start with this touch even, drop in a deferred
+                        // call to checkupOnStart() to figure out what kind of
+                        // event it is while it's in progress.
+
+                        var touch = e.changedTouches[i];
+                        var start = new Start(touch, time);
+                        var later = function() { theHandler.checkupOnStart(start) };
+
+                        events.push(start);
+                        stderr('Will check up on touch #' + touch.identifier);
+                        timeouts[touch.identifier] = setTimeout(later, theHandler.maxTapTime);
+                    }
                 }
             }
             return this.getTouchStartMachineHandler;
@@ -181,6 +216,7 @@ function stderr(msg)
                 this.getTouchEndMachineHandler = function(e)
                 {
                     var events = theHandler.events;
+                    var timeouts = theHandler.touchTimeouts;
                     var now = new Date().getTime();
 
                     // look at each changed touch in turn.
@@ -196,6 +232,16 @@ function stderr(msg)
                             {
                                 events.splice(j, 1);
                                 j -= 1;
+                                
+                                try {
+                                if(timeouts[touch.identifier] != undefined)
+                                {
+                                    clearTimeout(timeouts[touch.identifier]);
+                                    delete timeouts[touch.identifier];
+                                }
+                                } catch(e) {
+                                    stderr('Fuck: ' + e);
+                                }
 
                                 // we now know we have a Start or End object and
                                 // a matching touch that's just ended. Let's see
