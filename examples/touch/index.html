@@ -17,6 +17,8 @@ function stderr(msg)
 
 (function(MM){
 
+    var maxTapDistance = 10,
+    
     function distance(t1, t2)
     {
         return Math.sqrt(Math.pow(t1.screenX - t2.screenX, 2) + Math.pow(t1.screenY - t2.screenY, 2));
@@ -29,15 +31,46 @@ function stderr(msg)
 
         this.touch = touch;
         this.time = time;
+        
+        // the pointer chase ends here
+        this.start = this;
+        this.count = 0;
+        this.travel = 0;
+        this.last = null;
     }
     
-    function End(touch, time)
+    function Move(touch, last, time)
     {
-        this.screenX = touch.screenX;
-        this.screenY = touch.screenY;
+        moved = distance(touch, last);
+        
+        if(moved >= 5) {
+            stderr(moved.toFixed(0) + 'px');
+            this.screenX = touch.screenX;
+            this.screenY = touch.screenY;
+            
+            this.touch = touch;
+            this.time = time;
+    
+            // pointer chase
+            this.start = last.start;
+            this.count = last.count + 1;
+            this.travel = last.travel + moved;
+            this.last = last;
 
-        this.touch = touch;
-        this.time = time;
+        } else {
+            // basically this == last
+            this.screenX = last.screenX;
+            this.screenY = last.screenY;
+
+            this.touch = last.touch;
+            this.time = last.time;
+    
+            // pointer chase
+            this.start = last.start;
+            this.count = last.count;
+            this.travel = last.travel;
+            this.last = last.last;
+        }
     }
     
     function Tap(x, y, time)
@@ -144,52 +177,25 @@ function stderr(msg)
         maxTapDistance: 10,
         maxDoubleTapDelay: 150,
         events: [],
-        touchTimeouts: {},
         
-        checkupOnStart: function(start) {
-        
-            stderr('Checking up on touch #' + start.touch.identifier);
-            
-            var events = this.events;
-            
-            for(var i = 0; i < events.length; i += 1)
-            {
-                var event = events[i];
-                
-                if(event == start)
-                {
-                    stderr('Ah found it at events[' + i + ']');
-                    break;
-                }
-            }
-        
-        },
-
         getTouchStartMachineHandler: null,
         
         getTouchStartMachine: function() {
-            var events = this.events;
-            var timeouts = this.touchTimeouts;
-
             if (!this.getTouchStartMachineHandler) {
                 var theHandler = this;
+                var events = this.events;
+
                 this.getTouchStartMachineHandler = function(e)
                 {
-                    var time = new Date().getTime();
+                    var now = new Date().getTime();
                     
                     for(var i = 0; i < e.changedTouches.length; i += 1)
                     {
-                        // as we start with this touch even, drop in a deferred
-                        // call to checkupOnStart() to figure out what kind of
-                        // event it is while it's in progress.
-
                         var touch = e.changedTouches[i];
-                        var start = new Start(touch, time);
-                        var later = function() { theHandler.checkupOnStart(start) };
-
+                        var start = new Start(touch, now);
+                        
                         events.push(start);
-                        stderr('Will check up on touch #' + touch.identifier);
-                        timeouts[touch.identifier] = setTimeout(later, theHandler.maxTapTime);
+                        stderr('Started touch #' + touch.identifier);
                     }
                 }
             }
@@ -201,8 +207,32 @@ function stderr(msg)
         getTouchMoveMachine: function() {
             if (!this.getTouchMoveMachineHandler) {
                 var theHandler = this;
+                var events = this.events;
+
                 this.getTouchMoveMachineHandler = function(e)
                 {
+                    var now = new Date().getTime();
+
+                    // look at each changed touch in turn.
+                    for(var i = 0; i < e.changedTouches.length; i += 1)
+                    {
+                        var touch = e.changedTouches[i];
+                        
+                        for(var j = 0; j < events.length; j += 1)
+                        {
+                            if(sameTouch(events[j], touch))
+                            {
+                                var event = new Move(touch, events[j], now);
+
+                                events.splice(j, 1, event);
+                                
+                                if(event.count && event.travel > maxTapDistance)
+                                {
+                                    // it's moving
+                                }
+                            }
+                        }
+                    }
                 }
             }
             return this.getTouchMoveMachineHandler;
@@ -213,10 +243,10 @@ function stderr(msg)
         getTouchEndMachine: function() {
             if (!this.getTouchEndMachineHandler) {
                 var theHandler = this;
+                var events = this.events;
+
                 this.getTouchEndMachineHandler = function(e)
                 {
-                    var events = theHandler.events;
-                    var timeouts = theHandler.touchTimeouts;
                     var now = new Date().getTime();
 
                     // look at each changed touch in turn.
@@ -226,34 +256,23 @@ function stderr(msg)
                         
                         for(var j = 0; j < events.length; j += 1)
                         {
-                            var event = events[j];
-                        
-                            if(sameTouch(event, touch))
+                            if(sameTouch(events[j], touch))
                             {
+                                var event = new Move(touch, events[j], now);
+                                
+                                stderr('End of the line for touch #' + touch.identifier + ', c=' + event.count + ', ' + (now - event.start.time) + 'ms, ' + event.travel.toFixed(0) + 'px');
                                 events.splice(j, 1);
                                 j -= 1;
                                 
-                                try {
-                                if(timeouts[touch.identifier] != undefined)
-                                {
-                                    clearTimeout(timeouts[touch.identifier]);
-                                    delete timeouts[touch.identifier];
-                                }
-                                } catch(e) {
-                                    stderr('Fuck: ' + e);
-                                }
-
-                                // we now know we have a Start or End object and
-                                // a matching touch that's just ended. Let's see
+                                // we now know we have an event object and a
+                                // matching touch that's just ended. Let's see
                                 // what kind of event it is based on how long it
                                 // lasted and how far it moved.
                             
                                 var time = now - event.time;
-                                var dist = distance(event, touch);
                                 
-                                if(dist > theHandler.maxTapDistance) {
-                                    var drag = new Drag(event.screenX, event.screenY, touch.screenX, touch.screenY, now, time);
-                                    theHandler.onDrag(drag);
+                                if(event.travel > theHandler.maxTapDistance) {
+                                    // we will to assume that the drag has been handled separately
                                 
                                 } else if(time > theHandler.maxTapTime) {
                                     // close in time, but not in space: a hold
@@ -271,11 +290,6 @@ function stderr(msg)
                 }
             }
             return this.getTouchEndMachineHandler;
-        },
-        
-        onDrag: function(drag)
-        {
-            stderr('Drag: (' + drag.x1 + ', ' + drag.y1 + ') to (' + drag.x2 + ', ' + drag.y2 + ') for ' + drag.duration + ' msec');
         },
         
         onHold: function(hold)
