@@ -1,9 +1,6 @@
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0;" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<title>Modest Maps JS - Touch Tester</title>
+<title>Modest Maps JS - Zoom Box</title>
 <script type="text/javascript" src="../../modestmaps.js"></script>
 <script type="text/javascript">
 
@@ -48,9 +45,13 @@ function ZoomBox(map) {
     box.height = map.dimensions.y;
     box.style.margin = '0';
     box.style.padding = '0';
-    box.style.outlineWidth = '1000px';
-    box.style.outlineColor = 'rgba(0,0,0,0.2)';
-    box.style.outlineStyle = 'solid';
+    box.style.borderWidth = '2px';
+    box.style.borderColor = '#ff0000';
+    box.style.borderStyle = 'solid';
+    box.style.background = 'rgba(255,255,255,0.25)';
+    //box.style.outlineWidth = '1000px';
+    //box.style.outlineColor = 'rgba(0,0,0,0.2)';
+    //box.style.outlineStyle = 'solid';
     box.style.position = 'absolute';
     box.style.display = 'none';
     box.style.top = '0px';
@@ -125,31 +126,32 @@ function initMap() {
 
     var container = document.getElementById('container');
 
-    map = new com.modestmaps.Map('map', 
-                                 new com.modestmaps.TemplatedMapProvider('http://tile.openstreetmap.org/{Z}/{X}/{Y}.png'), 
-                                 new com.modestmaps.Point(container.offsetWidth, container.offsetHeight));
+    var template = 'http://{S}tile.openstreetmap.org/{Z}/{X}/{Y}.png';
+    var subdomains = [ 'a.', 'b.', 'c.', ''];
+    var provider = new com.modestmaps.TemplatedMapProvider(template, subdomains);
+
+    map = new com.modestmaps.Map('map', provider); 
 
     map.setCenterZoom(new com.modestmaps.Location(37.811530, -122.2666097), 14);
 
-    zoombox = new ZoomBox(map);
-
-    window.onresize = function() {
-        map.setSize(container.offsetWidth, container.offsetHeight);
-    };
-
+    zoombox = new com.modestmaps.ZoomBox(map);
 }
 
 </script>
 <style type="text/css">
-div#map:focus {
-  outline: 0;
+body {
+  margin: 0;
+  padding: 0;
+  border: 0
+}
+#map {
+  width: 100%;
+  height: 100%;
 }
 </style>
 </head>
-<body onload="initMap()" style="margin:0; padding:0; border:0">
-<div id="container" style="width: 100%; height: 100%; -webkit-touch-callout: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba(0,0,0,0);">
-  <div id="map" tabindex="0">
+<body onload="initMap()">
+  <div id="map">
   </div>
-</div>
 </body>
 </html>
