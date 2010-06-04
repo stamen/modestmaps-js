@@ -1,4 +1,9 @@
 
+v0.10.4
+ - modified queue sorting to support pyramid loading
+ - stubbed out pyramid loading
+ - tidied up draw code to be clearer (wantedTiles --> validTileKeys)
+
 v0.10.3
  - added Point.distance and Point.interpolate
  - added Location.distance and Location.interpolate

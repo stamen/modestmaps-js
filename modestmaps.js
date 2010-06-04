@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v0.10.3
+ * Modest Maps JS v0.10.4
  * http://modestmaps.com/
  *
  * Copyright (c) 2010 Stamen Design, All Rights Reserved.
@@ -136,15 +136,15 @@ if (!com) {
             var a = Math.floor(this.row);
             var b = Math.floor(this.column);
             var c = Math.floor(this.zoom);
-            a=a-b;	a=a-c;	a=a^(c >>> 13);
-            b=b-c;	b=b-a;	b=b^(a << 8); 
-            c=c-a;	c=c-b;	c=c^(b >>> 13);
-            a=a-b;	a=a-c;	a=a^(c >>> 12);
-            b=b-c;	b=b-a;	b=b^(a << 16);
-            c=c-a;	c=c-b;	c=c^(b >>> 5);
-            a=a-b;	a=a-c;	a=a^(c >>> 3);
-            b=b-c;	b=b-a;	b=b^(a << 10);
-            c=c-a;	c=c-b;	c=c^(b >>> 15);
+            a=a-b; a=a-c; a=a^(c >>> 13);
+            b=b-c; b=b-a; b=b^(a << 8); 
+            c=c-a; c=c-b; c=c^(b >>> 13);
+            a=a-b; a=a-c; a=a^(c >>> 12);
+            b=b-c; b=b-a; b=b^(a << 16);
+            c=c-a; c=c-b; c=c^(b >>> 5);
+            a=a-b; a=a-c; a=a^(c >>> 3);
+            b=b-c; b=b-a; b=b^(a << 10);
+            c=c-a; c=c-b; c=c^(b >>> 15);
             return c;
         },
     
@@ -174,7 +174,7 @@ if (!com) {
         },
     
         up: function(dist) {
-            if (dist === undefined)	dist = 1;
+            if (dist === undefined) dist = 1;
             return new MM.Coordinate(this.row - dist, this.column, this.zoom);
         },
     
@@ -1178,7 +1178,10 @@ if (!com) {
             var baseCoord = this.pointCoordinate(new MM.Point(0,0)).zoomTo(baseZoom).container();
             var baseCorner = this.coordinatePoint(baseCoord);
 
-            var wantedTiles = { };
+            // tiles with invalid keys will be removed from visible layers
+            // requests for tiles with invalid keys will be canceled
+            // (maps from tile key to a boolean)
+            var validTileKeys = { };
             
             var thisLayer = this.createOrGetLayer(baseCoord.zoom);
             thisLayer.coordinate = baseCoord.copy();
@@ -1195,28 +1198,58 @@ if (!com) {
             for (var y = baseCorner.y; y < maxY; y += yStep) {
                 for (var x = baseCorner.x; x < maxX; x += xStep) {
                     var tileKey = tileCoord.toKey();
-                    wantedTiles[tileKey] = true;
-                    if (!this.tiles[tileKey]) {
-                        if (!this.requestedTiles[tileKey]) {
-                            this.requestTile(tileCoord);
-                        }
-                        for (var pz = 1; pz <= 5; pz++) {
-                            var parentKey = tileCoord.zoomBy(-pz).container().toKey();
-                            wantedTiles[parentKey] = true;
-                        }
-                        var childCoord = tileCoord.zoomBy(1);
-                        wantedTiles[childCoord.toKey()] = true;
-                        childCoord.column += 1;
-                        wantedTiles[childCoord.toKey()] = true;
-                        childCoord.row += 1;
-                        wantedTiles[childCoord.toKey()] = true;
-                        childCoord.column -= 1;
-                        wantedTiles[childCoord.toKey()] = true;
-                    }
-                    else {
+                    validTileKeys[tileKey] = true;
+                    if (tileKey in this.tiles) {
                         var tile = this.tiles[tileKey];
+                        // ensure it's in the DOM:
                         if (tile.parentNode != thisLayer) {
                             thisLayer.appendChild(tile);
+                        }
+                    }
+                    else {
+                        if (!(tileKey in this.requestedTiles)) {
+                            this.requestTile(tileCoord);
+                        }
+                        // look for a parent tile in our image cache
+                        var tileCovered = false;
+                        for (var pz = 1; pz <= 5; pz++) {
+                            var parentCoord = tileCoord.zoomBy(-pz).container();
+                            var parentKey = parentCoord.toKey();
+
+                            // only mark it valid if we have it already
+                            if (parentKey in this.tiles) {
+                                validTileKeys[parentKey] = true;
+                                tileCovered = true;
+                                break;
+                            }
+                            
+                            /* pyramid load would look like this:
+                            validTileKeys[parentKey] = true;
+                            var parentLayer = this.createOrGetLayer(parentCoord.zoom);
+                            parentLayer.coordinate = parentCoord.copy();
+                            if (parentKey in this.tiles) {
+                                var parentTile = this.tiles[parentKey];
+                                if (parentTile.parentNode != parentLayer) {
+                                    parentLayer.appendChild(parentTile);
+                                }                            
+                            }
+                            else if (!(parentKey in this.requestedTiles)) {
+                                this.requestTile(parentCoord);
+                            }//*/
+                            
+                        }
+                        // if we didn't find a parent, look at the children:
+                        if (!tileCovered) {
+                            // only mark it valid if we have it
+                            var childCoord = tileCoord.zoomBy(1);
+                            // mark everything valid whether or not we have it:
+                            validTileKeys[childCoord.toKey()] = true;
+                            childCoord.column += 1;
+                            validTileKeys[childCoord.toKey()] = true;
+                            childCoord.row += 1;
+                            validTileKeys[childCoord.toKey()] = true;
+                            childCoord.column -= 1;
+                            validTileKeys[childCoord.toKey()] = true;
                         }
                     }
                     tileCoord.column += 1;
@@ -1246,7 +1279,7 @@ if (!com) {
             // for tracking time of tile usage:
             var now = new Date().getTime();
         
-            // layers we want to see, if they have tiles in wantedTiles
+            // layers we want to see, if they have tiles in validTileKeys
             var minLayer = baseCoord.zoom-5;
             var maxLayer = baseCoord.zoom+2;
             for (var i = minLayer; i < maxLayer; i++) {
@@ -1254,6 +1287,7 @@ if (!com) {
                 var layer = this.layers[i];
                 
                 if (!layer) {
+                    // no tiles for this layer yet
                     continue;
                 }
 
@@ -1268,21 +1302,25 @@ if (!com) {
                 else {
                     layer.style.display = 'none';
                 }
+                
+                var tileWidth = this.provider.tileWidth * scale;
+                var tileHeight = this.provider.tileHeight * scale;
+                var center = new MM.Point(this.dimensions.x/2, this.dimensions.y/2);
 
                 var visibleTiles = layer.getElementsByTagName('img');
                 for (var j = visibleTiles.length-1; j >= 0; j--) {
                     var tile = visibleTiles[j];
-                    if (!wantedTiles[tile.id]) {
+                    if (!validTileKeys[tile.id]) {
                         layer.removeChild(tile);
                     }
                     else {
                         // position tiles (using theCoord if scaling is needed)
-                        var tx = ((this.dimensions.x/2) + (tile.coord.column - theCoord.column) * this.provider.tileWidth * scale);
-                        var ty = ((this.dimensions.y/2) + (tile.coord.row - theCoord.row) * this.provider.tileHeight * scale);
+                        var tx = center.x + (tile.coord.column - theCoord.column) * tileWidth;
+                        var ty = center.y + (tile.coord.row - theCoord.row) * tileHeight;
                         tile.style.left = Math.round(tx) + 'px'; 
                         tile.style.top = Math.round(ty) + 'px'; 
-                        tile.width = Math.ceil(this.provider.tileWidth * scale);
-                        tile.height = Math.ceil(this.provider.tileHeight * scale);
+                        tile.width = Math.ceil(tileWidth);
+                        tile.height = Math.ceil(tileHeight);
                         // log last-touched-time of currently cached tiles
                         this.recentTilesById[tile.id].lastTouchedTime = now;
                     }
@@ -1292,7 +1330,7 @@ if (!com) {
     
             for (var tileKey in this.requestedTiles) {
                 if (this.requestedTiles.hasOwnProperty(tileKey)) {
-                    if (!(tileKey in wantedTiles)) {
+                    if (!(tileKey in validTileKeys)) {
                         var tile = this.requestedTiles[tileKey];
                         this.cancelTileRequest(tile);
                         tile = null;
@@ -1364,7 +1402,7 @@ if (!com) {
                     tile.id = tileKey;
                     tile.width = this.provider.tileWidth;
                     tile.height = this.provider.tileHeight;
-                    tile.style.position = 'absolute';                
+                    tile.style.position = 'absolute';    
                     tile.coord = tileCoord.copy(); // FIXME: store this elsewhere to avoid scary memory leaks?
                     this.requestQueue.push({ tile: tile, url: tileURL });
                 }
@@ -1526,17 +1564,23 @@ if (!com) {
         
         // compares manhattan distance from center of 
         // requested tiles to current map center
+        // NB:- requested are *popped* from queue, so we do a descending sort
         getCenterDistanceCompare: function() {
             var theCoordinate = this.coordinate.zoomTo(Math.round(this.coordinate.zoom));
             return function(r1, r2) {
                 if (r1 && r2) {
                     var c1 = r1.tile.coord;
                     var c2 = r2.tile.coord;
-                    var ds1 = Math.abs(theCoordinate.row - c1.row - 0.5) + 
-                              Math.abs(theCoordinate.column - c1.column - 0.5);
-                    var ds2 = Math.abs(theCoordinate.row - c2.row - 0.5) + 
-                              Math.abs(theCoordinate.column - c2.column - 0.5);
-                    return ds1 < ds2 ? 1 : ds1 > ds2 ? -1 : 0;
+                    if (c1.zoom == c2.zoom) {
+                        var ds1 = Math.abs(theCoordinate.row - c1.row - 0.5) + 
+                                  Math.abs(theCoordinate.column - c1.column - 0.5);
+                        var ds2 = Math.abs(theCoordinate.row - c2.row - 0.5) + 
+                                  Math.abs(theCoordinate.column - c2.column - 0.5);
+                        return ds1 < ds2 ? 1 : ds1 > ds2 ? -1 : 0;
+                    }
+                    else {
+                        return c1.zoom < c2.zoom ? 1 : c1.zoom > c2.zoom ? -1 : 0;
+                    }
                 }
                 return r1 ? 1 : r2 ? -1 : 0;
             };
