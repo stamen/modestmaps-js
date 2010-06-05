@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v0.11.0
+ * Modest Maps JS v0.11.1
  * http://modestmaps.com/
  *
  * Copyright (c) 2010 Stamen Design, All Rights Reserved.
@@ -782,14 +782,9 @@ if (!com) {
 
         this.layerParent = document.createElement('div');
         this.layerParent.id = this.parent.id+'-layers';
-        this.layerParent.style.margin = '0';
-        this.layerParent.style.padding = '0';
-        this.layerParent.style.width = '100%';
-        this.layerParent.style.height = '100%';
-        this.layerParent.style.position = 'absolute';
-        this.layerParent.style.top = '0px';
-        this.layerParent.style.left = '0px';
-        this.layerParent.style.zIndex = '0';
+        // this text is also used in createOrGetLayer
+        this.layerParent.style.cssText = 'position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; margin: 0; padding: 0; z-index: 0';
+        
         this.parent.appendChild(this.layerParent);
     
         this.coordinate = new MM.Coordinate(0.5,0.5,0);
@@ -1384,13 +1379,7 @@ if (!com) {
             }
             var layer = document.createElement('div');
             layer.id = this.parent.id+'-zoom-'+zoom;
-            layer.style.margin = '0';
-            layer.style.padding = '0';
-            layer.style.width = '100%';
-            layer.style.height = '100%';
-            layer.style.position = 'absolute';
-            layer.style.top = '0px';
-            layer.style.left = '0px';
+            layer.style.cssText = this.layerParent.style.cssText;
             layer.style.zIndex = zoom;
             this.layerParent.appendChild(layer);
             this.layers[zoom] = layer;
