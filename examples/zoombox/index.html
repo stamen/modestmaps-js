@@ -4,7 +4,8 @@
 <script type="text/javascript" src="../../modestmaps.js"></script>
 <script type="text/javascript">
 
-function ZoomBox(map) {
+com.modestmaps.ZoomBox = function(map) {
+
     this.map = map;
 
     var theBox = this;
@@ -28,36 +29,14 @@ function ZoomBox(map) {
 
     var boxDiv = document.createElement('div');
     boxDiv.id = map.parent.id+'-zoombox';
-    boxDiv.width = map.dimensions.x;
-    boxDiv.height = map.dimensions.y;
-    boxDiv.style.margin = '0';
-    boxDiv.style.padding = '0';
-    boxDiv.style.position = 'absolute';
-    boxDiv.style.top = '0px';
-    boxDiv.style.left = '0px';
+    boxDiv.style.cssText = 'margin:0; padding:0; position:absolute; top:0; left:0;'
     boxDiv.style.width = map.dimensions.x+'px';
     boxDiv.style.height = map.dimensions.y+'px';        
     map.parent.appendChild(boxDiv);    
 
     var box = document.createElement('div');
     box.id = map.parent.id+'-zoombox-box';
-    box.width = map.dimensions.x;
-    box.height = map.dimensions.y;
-    box.style.margin = '0';
-    box.style.padding = '0';
-    box.style.borderWidth = '2px';
-    box.style.borderColor = '#ff0000';
-    box.style.borderStyle = 'solid';
-    box.style.background = 'rgba(255,255,255,0.25)';
-    //box.style.outlineWidth = '1000px';
-    //box.style.outlineColor = 'rgba(0,0,0,0.2)';
-    //box.style.outlineStyle = 'solid';
-    box.style.position = 'absolute';
-    box.style.display = 'none';
-    box.style.top = '0px';
-    box.style.left = '0px';    
-    box.style.width = '0px';
-    box.style.height = '0px';    
+    box.style.cssText = 'margin:0; padding:0; border:1px dashed #888; background: rgba(255,255,255,0.25); position: absolute; top: 0; left: 0; width: 0; height: 0; display: none;';
     boxDiv.appendChild(box);    
 
     // TODO: respond to resize
