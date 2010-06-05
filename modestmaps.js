@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v0.10.4
+ * Modest Maps JS v0.11.0
  * http://modestmaps.com/
  *
  * Copyright (c) 2010 Stamen Design, All Rights Reserved.
@@ -796,7 +796,7 @@ if (!com) {
         
         this.setProvider(provider);
         
-        this.callbacks = { zoomed: [], panned: [], centered: [], extentset: [], resized: [] };
+        this.callbacks = { zoomed: [], panned: [], centered: [], extentset: [], resized: [], drawn: [] };
     };
     
     MM.Map.prototype = {
@@ -826,18 +826,29 @@ if (!com) {
         eventHandlers: null,
     
         toString: function() {
-            return 'Map(' + this.provider.toString() + this.dimensions.toString() + this.coordinate.toString() + ')';
+            return 'Map(#' + this.parent.id + ')';
         },
         
-        addCallback: function(event, callback)
-        {
+        addCallback: function(event, callback) {
             if (typeof(callback) == 'function' && this.callbacks[event]) {
                 this.callbacks[event].push(callback);
             }
         },
+
+        removeCallback: function(event, callback) {
+            if (typeof(callback) == 'function' && this.callbacks[event]) {
+                var cbs = this.callbacks[event],
+                    len = cbs.length;
+                for (var i = 0; i < len; i++) {
+                  if (cbs[i] === callback) {
+                    cbs.splice(i,1);
+                    break;
+                  }
+                }
+            }
+        },
         
-        dispatchCallback: function(event, message)
-        {
+        dispatchCallback: function(event, message) {
             if(this.callbacks[event]) {
                 for (var i = 0; i < this.callbacks[event].length; i += 1) {
                     try {
@@ -1343,6 +1354,8 @@ if (!com) {
             
             // make sure we don't have too much stuff
             this.checkCache();
+
+            this.dispatchCallback('drawn');
         },
         
         redrawTimer: undefined,

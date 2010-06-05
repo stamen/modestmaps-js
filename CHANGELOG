@@ -1,3 +1,17 @@
+Modest Maps JS Changelog.
+
+Following the semantic versioning recommendation best we can:
+
+   "Consider a version format of X.Y.Z (Major.Minor.Patch). 
+    Bug fixes not affecting the API increment the patch version, 
+    backwards compatible API additions/changes increment the 
+    minor version, and backwards incompatible API changes increment 
+    the major version." -- http://semver.org/
+
+v0.11.0
+ - added 'drawn' callback
+ - added removeCallback
+ - correctly following semver.org now, incrementing minor version!
 
 v0.10.4
  - modified queue sorting to support pyramid loading
