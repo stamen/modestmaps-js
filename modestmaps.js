@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v0.11.1
+ * Modest Maps JS v0.11.2
  * http://modestmaps.com/
  *
  * Copyright (c) 2010 Stamen Design, All Rights Reserved.
@@ -963,8 +963,8 @@ if (!com) {
             var initZoom = Math.min(hPossibleZoom, vPossibleZoom);
         
             // additionally, make sure it's not outside the boundaries set by provider limits
-            // initZoom = min(initZoom, provider.outerLimits()[1].zoom)
-            // initZoom = max(initZoom, provider.outerLimits()[0].zoom)
+            initZoom = Math.min(initZoom, this.provider.outerLimits()[1].zoom)
+            initZoom = Math.max(initZoom, this.provider.outerLimits()[0].zoom)
         
             // coordinate of extent center
             var centerRow = (TL.row + BR.row) / 2;

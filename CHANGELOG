@@ -8,6 +8,9 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment 
     the major version." -- http://semver.org/
 
+v0.11.2
+ - re-instated zoom level check for setExtent (fixes bug where locations are all the same)
+
 v0.11.1
  - moved to cssText for long CSS inits
 
