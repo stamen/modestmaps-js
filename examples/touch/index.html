@@ -8,16 +8,14 @@
 <script type="text/javascript" src="../../modestmaps.js"></script>
 <script type="text/javascript">
 
-function stderr(msg)
-{
-    req = new XMLHttpRequest();
-    req.open('POST', 'trace.php', false);
-    req.send(msg);
-}
-
 (function(MM){
 
-    var maxTapDistance = 10,
+    function stderr(msg)
+    {
+        req = new XMLHttpRequest();
+        req.open('POST', 'trace.php', false);
+        req.send(msg);
+    }
     
     function distance(t1, t2)
     {
@@ -132,6 +130,12 @@ function stderr(msg)
 
     MM.TouchHandler.prototype = {
 
+        maxTapTime: 150,
+        maxTapDistance: 10,
+        maxDoubleTapDelay: 350,
+        events: [],
+        taps: [],
+        
         init: function(map) {
             this.map = map;
             /*
@@ -189,12 +193,6 @@ function stderr(msg)
             }
             return this.getTouchEndLogHandler;
         },
-        
-        maxTapTime: 150,
-        maxTapDistance: 10,
-        maxDoubleTapDelay: 350,
-        events: [],
-        taps: [],
         
         getTouchStartMachineHandler: null,
         
