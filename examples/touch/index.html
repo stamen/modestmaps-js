@@ -192,8 +192,9 @@ function stderr(msg)
         
         maxTapTime: 150,
         maxTapDistance: 10,
-        maxDoubleTapDelay: 150,
+        maxDoubleTapDelay: 350,
         events: [],
+        taps: [],
         
         getTouchStartMachineHandler: null,
         
@@ -341,7 +342,28 @@ function stderr(msg)
         
         onTap: function(tap)
         {
+            if(this.taps.length && (tap.time - this.taps[0].time) < this.maxDoubleTapDelay)
+            {
+                this.onDoubleTap(tap);
+                return;
+            }
+            
             stderr('Tap: (' + tap.x + ', ' + tap.y + ')');
+            
+            this.taps = [tap];
+        },
+        
+        onDoubleTap: function(tap)
+        {
+            stderr('Double-tap: (' + tap.x + ', ' + tap.y + ')');
+            
+            // zoom in to a round number
+            var z = Math.floor(this.map.getZoom() + 2);
+            z = z - this.map.getZoom();
+
+            var p = new MM.Point(tap.x, tap.y);
+            
+            this.map.zoomByAbout(z, p);
         },
         
         onPanning: function(touch)
