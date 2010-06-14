@@ -71,16 +71,6 @@ function stderr(msg)
         this.duration = duration;
     }
     
-    function Drag(x1, y1, x2, y2, end, duration)
-    {
-        this.x1 = x1;
-        this.y1 = y1;
-        this.x2 = x2;
-        this.y2 = y2;
-        this.end = end;
-        this.duration = duration;
-    }
-    
     function hasattr(obj, attr)
     {
         return _.any(_.keys(obj), function(key) { return key == attr });
@@ -92,6 +82,50 @@ function stderr(msg)
         {
             return touch == event.touch;
         }
+    }
+    
+    function interruptTouches(events)
+    {
+        var now = new Date().getTime();
+
+        for(var i = 0; i < events.length; i += 1)
+        {
+            var touch = events[i].touch;
+            var start = new Start(touch, now);
+            
+            events[i] = start;
+        }
+    }
+    
+    function oneTouchMatrix(touch)
+    {
+        var start = touch.start;
+
+        var x = touch.screenX - start.screenX;
+        var y = touch.screenY - start.screenY;
+        
+        return [1, 0, 0, 1, x, y];
+    }
+    
+    function twoTouchMatrix(t1, t2)
+    {
+        var t1_ = t1.start;
+        var t2_ = t2.start;
+        
+        var span = distance(t1, t2);
+        var span_ = distance(t1_, t2_);
+        
+        var s = span / span_;
+        
+        var x = (t1.screenX + t2.screenX) / 2;
+        var y = (t1.screenY + t2.screenY) / 2;
+        var x_ = (t1_.screenX + t2_.screenX) / 2;
+        var y_ = (t1_.screenY + t2_.screenY) / 2;
+        
+        var tx = s * -x_ + x;
+        var ty = s * -y_ + y;
+        
+        return [s, 0, 0, s, tx, ty];
     }
     
     MM.TouchHandler = function() { }
@@ -170,16 +204,17 @@ function stderr(msg)
 
                 this.getTouchStartMachineHandler = function(e)
                 {
-                    var now = new Date().getTime();
+                    interruptTouches(events);
                     
                     for(var i = 0; i < e.changedTouches.length; i += 1)
                     {
                         var touch = e.changedTouches[i];
-                        var start = new Start(touch, now);
-                        
+                        var start = new Start(touch, new Date().getTime());
+
                         events.push(start);
-                        stderr('Started touch #' + touch.identifier);
                     }
+
+                    return MM.cancelEvent(e);
                 }
             }
             return this.getTouchStartMachineHandler;
@@ -196,7 +231,9 @@ function stderr(msg)
                 {
                     var now = new Date().getTime();
 
-                    // look at each changed touch in turn.
+                   /**
+                    * Look at each changed touch in turn.
+                    */
                     for(var i = 0; i < e.changedTouches.length; i += 1)
                     {
                         var touch = e.changedTouches[i];
@@ -205,18 +242,16 @@ function stderr(msg)
                         {
                             if(sameTouch(events[j], touch))
                             {
-                                var event = new Move(touch, events[j], now);
-                                events.splice(j, 1, event);
+                                events[j] = new Move(touch, events[j], now);
                             }
                         }
                     }
                     
-                    if(events.length == 1)
-                    {
-                        var first = events[0].start;
-                        var last = events[0];
-                        
-                        theHandler.map.parent.style.webkitTransform = 'translate(' + (last.screenX - first.screenX) + 'px, ' + (last.screenY - first.screenY) + 'px)';
+                    if(events.length == 1) {
+                        theHandler.onPanning(events[0]);
+
+                    } else if(events.length == 2) {
+                        theHandler.onPinching(events[0], events[1]);
                     }
 
                     return MM.cancelEvent(e);
@@ -236,16 +271,16 @@ function stderr(msg)
                 {
                     var now = new Date().getTime();
                     
-                    if(events.length == 1)
-                    {
-                        var first = events[0].start;
-                        var last = events[0];
-                        
-                        theHandler.map.panBy(last.screenX - first.screenX, last.screenY - first.screenY);
-                        theHandler.map.parent.style.webkitTransform = '';
+                    if(events.length == 1) {
+                        theHandler.onPanned(events[0]);
+
+                    } else if(events.length == 2) {
+                        theHandler.onPinched(events[0], events[1]);
                     }
 
-                    // look at each changed touch in turn.
+                   /**
+                    * Look at each changed touch in turn.
+                    */
                     for(var i = 0; i < e.changedTouches.length; i += 1)
                     {
                         var touch = e.changedTouches[i];
@@ -265,7 +300,7 @@ function stderr(msg)
                                 // what kind of event it is based on how long it
                                 // lasted and how far it moved.
                             
-                                var time = now - event.time;
+                                var time = now - event.start.time;
                                 
                                 if(event.travel > theHandler.maxTapDistance) {
                                     // we will to assume that the drag has been handled separately
@@ -283,7 +318,16 @@ function stderr(msg)
                             }
                         }
                     }
-
+                    
+                    interruptTouches(events);
+                    
+                    if(e.touches.length == 0 && events.length >= 1)
+                    {
+                        // Weird, sometimes an end event doesn't get thrown
+                        // for a touch that nevertheless has disappeared.
+                        events.splice(0, events.length);
+                    }
+                    
                     return MM.cancelEvent(e);
                 }
             }
@@ -298,6 +342,50 @@ function stderr(msg)
         onTap: function(tap)
         {
             stderr('Tap: (' + tap.x + ', ' + tap.y + ')');
+        },
+        
+        onPanning: function(touch)
+        {
+            var m = oneTouchMatrix(touch);
+            m = ['1', '0', '0', '1', m[4].toFixed(0), m[5].toFixed(0)];
+            m = 'matrix(' + m.join(', ') + ')';
+            
+            this.map.parent.style.webkitTransformOrigin = '0px 0px';
+            this.map.parent.style.webkitTransform = m;
+        },
+        
+        onPanned: function(touch)
+        {
+            var m = oneTouchMatrix(touch);
+
+            stderr('Pan by ' + m[4].toFixed(0) + ', ' + m[5].toFixed(0));
+
+            this.map.panBy(m[4], m[5]);
+            this.map.parent.style.webkitTransform = '';
+        },
+        
+        onPinching: function(touch1, touch2)
+        {
+            var m = twoTouchMatrix(touch1, touch2);
+            m = [m[0].toFixed(3), '0', '0', m[3].toFixed(3), m[4].toFixed(0), m[5].toFixed(0)];
+            m = 'matrix(' + m.join(', ') + ')';
+            
+            this.map.parent.style.webkitTransformOrigin = '0px 0px';
+            this.map.parent.style.webkitTransform = m;
+        },
+        
+        onPinched: function(touch1, touch2)
+        {
+            var m = twoTouchMatrix(touch1, touch2);
+            var z = Math.log(m[0]) / Math.log(2);
+            var p = new MM.Point(0, 0);
+
+            stderr('Zoom by ' + z.toFixed(3) + ' about ' + p.toString());
+            stderr('Pan by ' + m[4].toFixed(0) + ', ' + m[5].toFixed(0));
+            
+            this.map.zoomByAbout(z, p);
+            this.map.panBy(m[4], m[5]);
+            this.map.parent.style.webkitTransform = '';
         }
         
         
