@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v0.11.2
+ * Modest Maps JS v0.13.0
  * http://modestmaps.com/
  *
  * Copyright (c) 2010 Stamen Design, All Rights Reserved.
@@ -8,7 +8,7 @@
  * http://creativecommons.org/licenses/BSD/
  *
  * Versioned using Semantic Versioning (v.major.minor.patch)
- * See http://semver.org/ for more details.
+ * See CHANGELOG and http://semver.org/ for more details.
  * 
  */
 
@@ -670,26 +670,278 @@ if (!com) {
         }
     
     };
+
+
+    ////////////////////////// Callback stuff... used by Map and RequestManager
+
+    MM.CallbackManager = function(owner, events) {
+        this.owner = owner;
+        this.callbacks = {};
+        for (var i = 0; i < events.length; i++) {
+            this.callbacks[events[i]] = [];
+        }
+    }
     
+    MM.CallbackManager.prototype = {
+    
+        owner: null,
+        callbacks: null,
+    
+        addCallback: function(event, callback) {
+            if (typeof(callback) == 'function' && this.callbacks[event]) {
+                this.callbacks[event].push(callback);
+            }
+        },
+    
+        removeCallback: function(event, callback) {
+            if (typeof(callback) == 'function' && this.callbacks[event]) {
+                var cbs = this.callbacks[event],
+                    len = cbs.length;
+                for (var i = 0; i < len; i++) {
+                  if (cbs[i] === callback) {
+                    cbs.splice(i,1);
+                    break;
+                  }
+                }
+            }
+        },
+        
+        dispatchCallback: function(event, message) {
+            if(this.callbacks[event]) {
+                for (var i = 0; i < this.callbacks[event].length; i += 1) {
+                    try {
+                        this.callbacks[event][i](this.owner, message);
+                    } catch(e) {
+                        //console.log(e);
+                        // meh
+                    }
+                }
+            }
+        }
+        
+    };
+
+    //////////////////////////// RequestManager is an image loading queue 
+    
+    MM.RequestManager = function(parent) {
+    
+        // add an invisible div so that image.onload will have a srcElement in IE6
+        // TODO: can we do this with a DOM fragment?
+        this.loadingBay = document.createElement('div');
+        this.loadingBay.id = parent.id+'-loading-bay';
+        this.loadingBay.style.display = 'none';
+        parent.appendChild(this.loadingBay);
+
+        this.requestsById = {};
+        this.openRequestCount = 0;
+        
+        this.maxOpenRequests = 4;
+        this.requestQueue = [];    
+        
+        this.callbackManager = new MM.CallbackManager(this, [ 'requestcomplete' ]);
+    }
+    
+    MM.RequestManager.prototype = {
+
+        // DOM element, hidden, for making sure images dispatch complete events
+        loadingBay: null,
+        
+        // all known requests, by ID
+        requestsById: null,
+        
+        // current pending requests
+        requestQueue: null,
+        
+        // current open requests (children of loadingBay)
+        openRequestCount: null,
+        maxOpenRequests: null,
+        
+        // for dispatching 'requestcomplete'
+        callbackManager: null,
+
+        addCallback: function(event, callback) {
+            this.callbackManager.addCallback(event,callback);
+        },
+
+        removeCallback: function(event, callback) {
+            this.callbackManager.removeCallback(event,callback);
+        },
+        
+        dispatchCallback: function(event, message) {
+            this.callbackManager.dispatchCallback(event,message);
+        },
+
+        // queue management:
+
+        clear: function() {
+            this.clearExcept({});
+        },
+        
+        clearExcept: function(validKeys) {
+
+            // clear things from the queue first...
+            for (var i = 0; i < this.requestQueue.length; i++) {
+                var request = this.requestQueue[i];
+                if (request && !(request.key in validKeys)) {
+                    this.requestQueue[i] = null;
+                }
+            }
+            
+            // then check the loadingBay...
+            var openRequests = this.loadingBay.getElementsByTagName('img');
+            for (var i = openRequests.length-1; i >= 0; i--) {
+                var img = openRequests[i];
+                if (!(img.id in validKeys)) {
+                    this.loadingBay.removeChild(img);
+                    this.openRequestCount--;
+                    //console.log(this.openRequestCount + " open requests");
+                    img.src = img.coord = img.onload = img.onerror = null;
+                }
+            }
+        
+            // hasOwnProperty protects against prototype additions
+            // "The standard describes an augmentable Object.prototype. 
+            //  Ignore standards at your own peril."
+            // -- http://www.yuiblog.com/blog/2006/09/26/for-in-intrigue/
+            for (var id in this.requestsById) {
+                if (this.requestsById.hasOwnProperty(id)) {
+                    if (!(id in validKeys)) {
+                        var request = this.requestsById[id];
+                        // whether we've done the request or not...
+                        delete this.requestsById[id];
+                        if (request != null) {
+                            request = request.key = request.coord = request.url = null;
+                        }
+                    }
+                }
+            }
+
+        },
+
+        hasRequest: function(id) {
+            return (id in this.requestsById);
+        },
+
+        // TODO: remove dependency on coord (it's for sorting, maybe call it data?)
+        // TODO: rename to requestImage once it's not tile specific
+        requestTile: function(key, coord, url) {
+            if (!(key in this.requestsById)) {
+                var request = { key: key, coord: coord.copy(), url: url };
+                // if there's no url just make sure we don't request this image again
+                this.requestsById[key] = request;
+                if (url) {
+                    this.requestQueue.push(request);
+                    //console.log(this.requestQueue.length + ' pending requests');
+                }
+            }
+        },
+
+        processQueue: function(sortFunc) {
+            if (sortFunc && this.requestQueue.length > 8) {
+                this.requestQueue.sort(sortFunc);
+            }
+            while (this.openRequestCount < this.maxOpenRequests && this.requestQueue.length > 0) {
+                var request = this.requestQueue.pop();
+                if (request) {
+                    
+                    this.openRequestCount++;
+                    //console.log(this.openRequestCount + ' open requests');
+
+                    // JSLitmus benchmark shows createElement is a little faster than
+                    // new Image() in Firefox and roughly the same in Safari:
+                    // http://tinyurl.com/y9wz2jj http://tinyurl.com/yes6rrt 
+                    var img = document.createElement('img');
+
+                    // FIXME: key is technically not unique in document if there 
+                    // are two Maps but toKey is supposed to be fast so we're trying 
+                    // to avoid a prefix ... hence we can't use any calls to
+                    // document.getElementById() to retrieve images                    
+                    img.id = request.key;
+                    img.style.position = 'absolute';
+                    // FIXME: store this elsewhere to avoid scary memory leaks?
+                    // FIXME: call this 'data' not 'coord' so that RequestManager is less Tile-centric?
+                    img.coord = request.coord; 
+                    
+                    // add it to the DOM in a hidden layer, this is a bit of a hack, but it's
+                    // so that the event we get in image.onload has srcElement assigned in IE6
+                    this.loadingBay.appendChild(img);
+                    // set these before img.src to avoid missing an img that's already cached            
+                    img.onload = img.onerror = this.getLoadComplete();
+                    img.src = request.url;
+                    
+                    // keep things tidy
+                    request = request.key = request.coord = request.url = null;
+                }
+            }
+        },
+    
+        _loadComplete: null,
+        
+        getLoadComplete: function() {
+            // let's only create this closure once...
+            if (!this._loadComplete) {
+                var theManager = this;
+                this._loadComplete = function(e) {
+                    // this is needed because we don't use MM.addEvent for images
+                    e = e || window.event;
+    
+                    // srcElement for IE, target for FF, Safari etc.
+                    var img = e.srcElement || e.target;
+    
+                    // unset these straight away so we don't call this twice
+                    img.onload = img.onerror = null;
+    
+                    // pull it back out of the (hidden) DOM 
+                    // so that draw will add it correctly later
+                    theManager.loadingBay.removeChild(img);
+                    theManager.openRequestCount--;
+                    delete theManager.requestsById[img.id];
+    
+                    //console.log(theManager.openRequestCount + ' open requests');
+
+                    // NB:- complete is also true onerror if we got a 404
+                    if (img.complete || 
+                        (img.readyState && img.readyState == 'complete')) {
+                        theManager.dispatchCallback('requestcomplete', img);
+                    }
+                    else {
+                        // if it didn't finish clear its src to make sure it 
+                        // really stops loading
+                        // FIXME: we'll never retry because this id is still
+                        // in requestsById - is that right?
+                        img.src = null;
+                    }
+                    
+                    // keep going in the same order
+                    theManager.processQueue();
+
+                };
+            }
+            return this._loadComplete;
+        },        
+    
+    };
+
     //////////////////////////// Map
+
+    /* Instance of a map intended for drawing to a div.
     
+        parent (required DOM element)
+            Can also be an ID of a DOM element
+    
+        provider (required MapProvider)
+            Provides tile URLs and map projections
+            
+        dimensions (optional Point)
+            Size of map to create
+            
+        eventHandlers (optional Array)
+            If empty or null MouseHandler will be used
+            Otherwise, each handler will be called with init(map)
+
+    */    
     MM.Map = function(parent, provider, dimensions, eventHandlers) {
-        /* Instance of a map intended for drawing to a div.
-        
-            parent (required DOM element)
-                Can also be an ID of a DOM element
-        
-            provider (required MapProvider)
-                Provides tile URLs and map projections
-                
-            dimensions (optional Point)
-                Size of map to create
-                
-            eventHandlers (optional Array)
-                If empty or null MouseHandler will be used
-                Otherwise, each handler will be called with init(map)
     
-        */
         if (typeof parent == 'string') {
             parent = document.getElementById(parent);
         }
@@ -771,12 +1023,9 @@ if (!com) {
         //document.getElementsByTagName('head')[0].appendChild(ss1);        
         this.parent.appendChild(css);        
         */
-    
-        // add an invisible layer so that image.onload will have a srcElement in IE6
-        this.loadingLayer = document.createElement('div');
-        this.loadingLayer.id = this.parent.id+'-loading-layer';
-        this.loadingLayer.style.display = 'none';
-        this.parent.appendChild(this.loadingLayer);
+
+        this.requestManager = new MM.RequestManager(this.parent);    
+        this.requestManager.addCallback('requestcomplete', this.getTileComplete());
     
         this.layers = {};
 
@@ -791,7 +1040,7 @@ if (!com) {
         
         this.setProvider(provider);
         
-        this.callbacks = { zoomed: [], panned: [], centered: [], extentset: [], resized: [], drawn: [] };
+        this.callbackManager = new MM.CallbackManager(this, [ 'zoomed', 'panned', 'centered', 'extentset', 'resized', 'drawn' ]);
     };
     
     MM.Map.prototype = {
@@ -802,79 +1051,50 @@ if (!com) {
         coordinate: null,
     
         tiles: null,
-        requestedTiles: null,
         layers: null,
         layerParent: null,
-        loadingLayer: null,
     
-        requestCount: null,
-        maxSimultaneousRequests: null,
-        requestQueue: null,
-        
+        requestManager: null,
+    
         tileCacheSize: null,
         
         maxTileCacheSize: null,
         recentTiles: null,
         recentTilesById: null,
-        
-        callbacks: null,
+
+        callbackManager: null,        
         eventHandlers: null,
     
         toString: function() {
             return 'Map(#' + this.parent.id + ')';
         },
         
+        // callbacks...
+        
         addCallback: function(event, callback) {
-            if (typeof(callback) == 'function' && this.callbacks[event]) {
-                this.callbacks[event].push(callback);
-            }
+            this.callbackManager.addCallback(event,callback);
         },
 
         removeCallback: function(event, callback) {
-            if (typeof(callback) == 'function' && this.callbacks[event]) {
-                var cbs = this.callbacks[event],
-                    len = cbs.length;
-                for (var i = 0; i < len; i++) {
-                  if (cbs[i] === callback) {
-                    cbs.splice(i,1);
-                    break;
-                  }
-                }
-            }
+            this.callbackManager.removeCallback(event,callback);
         },
         
         dispatchCallback: function(event, message) {
-            if(this.callbacks[event]) {
-                for (var i = 0; i < this.callbacks[event].length; i += 1) {
-                    try {
-                        this.callbacks[event][i](this, message);
-                    } catch(e) {
-                        // meh
-                    }
-                }
-            }
+            this.callbackManager.dispatchCallback(event,message);
         },
     
         // zooming
-        
-        zoomIn: function() {
-            this.zoomBy(1);
-        },
-    
-        zoomOut: function() {
-            this.zoomBy(-1);
-        },
-        
-        setZoom: function(z) {
-            this.zoomBy(z - this.coordinate.zoom);
-        },
         
         zoomBy: function(zoomOffset) {
             this.coordinate = this.coordinate.zoomBy(zoomOffset);
             this.draw();
             this.dispatchCallback('zoomed', zoomOffset);
         },
-        
+
+        zoomIn:  function()  { this.zoomBy(1); },
+        zoomOut: function()  { this.zoomBy(-1); },
+        setZoom: function(z) { this.zoomBy(z - this.coordinate.zoom); },
+                
         zoomByAbout: function(zoomOffset, point) {
             var location = this.pointLocation(point);
             this.zoomBy(zoomOffset);
@@ -891,21 +1111,10 @@ if (!com) {
             this.dispatchCallback('panned', [dx, dy]);
         },
     
-        panLeft: function() {
-            this.panBy(100,0);
-        },
-        
-        panRight: function() {
-            this.panBy(-100,0);
-        },
-        
-        panDown: function() {
-            this.panBy(0,-100);
-        },
-        
-        panUp: function() {
-            this.panBy(0,100);
-        },
+        panLeft:  function() { this.panBy(100,0); },
+        panRight: function() { this.panBy(-100,0); },
+        panDown:  function() { this.panBy(0,-100); },
+        panUp:    function() { this.panBy(0,100); },
         
         // positioning
         
@@ -963,6 +1172,7 @@ if (!com) {
             var initZoom = Math.min(hPossibleZoom, vPossibleZoom);
         
             // additionally, make sure it's not outside the boundaries set by provider limits
+            // this also catches Infinity stuff
             initZoom = Math.min(initZoom, this.provider.outerLimits()[1].zoom)
             initZoom = Math.max(initZoom, this.provider.outerLimits()[0].zoom)
         
@@ -1061,17 +1271,8 @@ if (!com) {
             // if we already have a provider the we'll need to
             // clear the DOM, cancel requests and redraw
             if (!firstProvider) {
-                // hasOwnProperty protects against prototype additions
-                // "The standard describes an augmentable Object.prototype. 
-                //  Ignore standards at your own peril."
-                // -- http://www.yuiblog.com/blog/2006/09/26/for-in-intrigue/
-                for (var tileKey in this.requestedTiles) {
-                    if (this.requestedTiles.hasOwnProperty(tileKey)) {
-                        var tile = this.requestedTiles[tileKey];
-                        this.cancelTileRequest(tile);
-                        tile = null;
-                    }
-                }
+
+                this.requestManager.clear();
                 
                 for (var name in this.layers) {
                     if (this.layers.hasOwnProperty(name)) {
@@ -1086,12 +1287,7 @@ if (!com) {
             // first provider or not we'll init/reset some values...
 
             this.tiles = {};
-            this.requestedTiles = {};
         
-            this.requestCount = 0;
-            this.maxSimultaneousRequests = 4;
-            this.requestQueue = [];
-            
             this.tileCacheSize = 0;
             
             this.maxTileCacheSize = 64;
@@ -1110,14 +1306,15 @@ if (!com) {
 
         // stats
         
+        /*
         getStats: function() {
             return {
-                'Request Queue Length': this.requestQueue.length,
-                'Open Request Count': this.requestCount,
+                'Request Queue Length': this.requestManager.requestQueue.length,
+                'Open Request Count': this.requestManager.requestCount,
                 'Tile Cache Size': this.tileCacheSize,
                 'Tiles On Screen': this.parent.getElementsByTagName('img').length
             };        
-        },
+        },//*/
         
         // limits
         
@@ -1183,6 +1380,7 @@ if (!com) {
             var baseZoom = Math.round(this.coordinate.zoom);
             var baseCoord = this.pointCoordinate(new MM.Point(0,0)).zoomTo(baseZoom).container();
             var baseCorner = this.coordinatePoint(baseCoord);
+            var sizeCorrection = Math.pow(2, baseZoom - this.coordinate.zoom);
 
             // tiles with invalid keys will be removed from visible layers
             // requests for tiles with invalid keys will be canceled
@@ -1196,13 +1394,13 @@ if (!com) {
     
             // storing these locally might not be faster but it is clearer
             // [JSLitmus tests were inconclusive]
-            var maxY = this.dimensions.y + this.provider.tileHeight;
-            var maxX = this.dimensions.x + this.provider.tileWidth;
+            var maxY = this.dimensions.y + (this.provider.tileHeight * sizeCorrection);
+            var maxX = this.dimensions.x + (this.provider.tileWidth * sizeCorrection);
             var yStep = this.provider.tileHeight;
             var xStep = this.provider.tileWidth;
     
-            for (var y = baseCorner.y; y < maxY; y += yStep) {
-                for (var x = baseCorner.x; x < maxX; x += xStep) {
+            for (var y = baseCorner.y; y <= maxY; y += yStep) {
+                for (var x = baseCorner.x; x <= maxX; x += xStep) {
                     var tileKey = tileCoord.toKey();
                     validTileKeys[tileKey] = true;
                     if (tileKey in this.tiles) {
@@ -1213,8 +1411,9 @@ if (!com) {
                         }
                     }
                     else {
-                        if (!(tileKey in this.requestedTiles)) {
-                            this.requestTile(tileCoord);
+                        if (!this.requestManager.hasRequest(tileKey)) {
+                            var tileURL = this.provider.getTileUrl(tileCoord);
+                            this.requestManager.requestTile(tileKey, tileCoord, tileURL);
                         }
                         // look for a parent tile in our image cache
                         var tileCovered = false;
@@ -1239,8 +1438,9 @@ if (!com) {
                                     parentLayer.appendChild(parentTile);
                                 }                            
                             }
-                            else if (!(parentKey in this.requestedTiles)) {
-                                this.requestTile(parentCoord);
+                            else if (!this.requestManager.hasRequest(parentKey)) {
+                                var tileURL = this.provider.getTileUrl(tileCoord);
+                                this.requestManager.requestTile(parentKey, parentCoord, tileURL);                            
                             }//*/
                             
                         }
@@ -1320,7 +1520,7 @@ if (!com) {
                         layer.removeChild(tile);
                     }
                     else {
-                        // position tiles (using theCoord if scaling is needed)
+                        // position tiles
                         var tx = center.x + (tile.coord.column - theCoord.column) * tileWidth;
                         var ty = center.y + (tile.coord.row - theCoord.row) * tileHeight;
                         tile.style.left = Math.round(tx) + 'px'; 
@@ -1334,30 +1534,72 @@ if (!com) {
                 
             }
     
-            for (var tileKey in this.requestedTiles) {
-                if (this.requestedTiles.hasOwnProperty(tileKey)) {
-                    if (!(tileKey in validTileKeys)) {
-                        var tile = this.requestedTiles[tileKey];
-                        this.cancelTileRequest(tile);
-                        tile = null;
-                    }
-                }
-            }
+            // cancel requests that aren't visible:
+            this.requestManager.clearExcept(validTileKeys);
             
-            // get newly requested tiles
-            this.processQueue();
+            // get newly requested tiles, sort according to current view:
+            this.requestManager.processQueue(this.getCenterDistanceCompare());
             
-            // make sure we don't have too much stuff
+            // make sure we don't have too much stuff:
             this.checkCache();
 
             this.dispatchCallback('drawn');
         },
         
-        redrawTimer: undefined,
+        _tileComplete: null,
+        
+        getTileComplete: function() {
+            if (!this._tileComplete) {
+                var theMap = this;
+                this._tileComplete = function(manager, tile) {
+                
+                    // cache the tile itself:
+                    theMap.tiles[tile.id] = tile;
+                    theMap.tileCacheSize++;
+                    
+                    // also keep a record of when we last touched this tile:
+                    var record = { 
+                        id: tile.id, 
+                        lastTouchedTime: new Date().getTime() 
+                    };
+                    theMap.recentTilesById[tile.id] = record;
+                    theMap.recentTiles.push(record);                        
+
+                    // add tile to its layer:
+                    var theLayer = theMap.layers[tile.coord.zoom];
+                    theLayer.appendChild(tile);
+
+                    // position this tile (avoids a full draw() call):
+                    var theCoord = theMap.coordinate.zoomTo(theLayer.coordinate.zoom);
+                    var scale = Math.pow(2, theMap.coordinate.zoom - theLayer.coordinate.zoom);
+                    var tx = ((theMap.dimensions.x/2) + (tile.coord.column - theCoord.column) * theMap.provider.tileWidth * scale);
+                    var ty = ((theMap.dimensions.y/2) + (tile.coord.row - theCoord.row) * theMap.provider.tileHeight * scale);
+                    tile.style.left = Math.round(tx) + 'px'; 
+                    tile.style.top = Math.round(ty) + 'px'; 
+                    tile.width = Math.ceil(theMap.provider.tileWidth * scale);
+                    tile.height = Math.ceil(theMap.provider.tileHeight * scale);
+
+                    // request a lazy redraw of all layers 
+                    // this will remove tiles that were only visible
+                    // to cover this tile while it loaded:
+                    theMap.requestRedraw();                
+                }
+            }
+            return this._tileComplete;
+        },
+        
+        
+        _redrawTimer: undefined,
         
         requestRedraw: function() {
-            if (this.redrawTimer) clearTimeout(this.redrawTimer);
-            this.redrawTimer = setTimeout(this.getRedraw(), 1000);
+            // we'll always draw within 1 second of this request,
+            // sometimes faster if there's already a pending redraw
+            // this is used when a new tile arrives so that we clear
+            // any parent/child tiles that were only being displayed
+            // until the tile loads at the right zoom level
+            if (!this._redrawTimer) {
+                this._redrawTimer = setTimeout(this.getRedraw(), 1000);
+            }
         },
     
         _redraw: null,
@@ -1368,6 +1610,7 @@ if (!com) {
                 var theMap = this;
                 this._redraw = function() {
                     theMap.draw();
+                    theMap._redrawTimer = 0;
                 };
             }
             return this._redraw;
@@ -1377,6 +1620,7 @@ if (!com) {
             if (zoom in this.layers) {
                 return this.layers[zoom];
             }
+            //console.log('creating layer ' + zoom);
             var layer = document.createElement('div');
             layer.id = this.parent.id+'-zoom-'+zoom;
             layer.style.cssText = this.layerParent.style.cssText;
@@ -1386,31 +1630,6 @@ if (!com) {
             return layer;
         },
         
-        requestTile: function(tileCoord) {
-            var tileKey = tileCoord.toKey();
-            if (!this.requestedTiles[tileKey]) {
-                // JSLitmus benchmark shows createElement is a little faster than
-                // new Image() in Firefox and roughly the same in Safari:
-                // http://tinyurl.com/y9wz2jj http://tinyurl.com/yes6rrt 
-                var tile = document.createElement('img');
-                // if there's no tileURL we still should't request this tile again
-                this.requestedTiles[tileKey] = tile;
-                var tileURL = this.provider.getTileUrl(tileCoord);
-                if (tileURL) {
-                    // FIXME: tileKey is technically not unique in document if there 
-                    // are two Maps but toKey is supposed to be fast so we're trying 
-                    // to avoid a prefix ... hence we can't use any calls to
-                    // document.getElementById() to retrieve tiles
-                    tile.id = tileKey;
-                    tile.width = this.provider.tileWidth;
-                    tile.height = this.provider.tileHeight;
-                    tile.style.position = 'absolute';    
-                    tile.coord = tileCoord.copy(); // FIXME: store this elsewhere to avoid scary memory leaks?
-                    this.requestQueue.push({ tile: tile, url: tileURL });
-                }
-            }
-        },
-
         /* 
          * keeps cache below max size
          * (called every time we receive a new tile and add it to the cache)
@@ -1444,135 +1663,15 @@ if (!com) {
             }
         },
         
-        processQueue: function() {
-            if (this.requestQueue.length > 8) {
-                this.requestQueue.sort(this.getCenterDistanceCompare());
-            }
-            while (this.requestCount < this.maxSimultaneousRequests && this.requestQueue.length > 0) {
-                var request = this.requestQueue.pop();
-                if (request) {
-                    this.requestCount++;
-                    // add it to the DOM in a hidden layer, this is a bit of a hack, but it's
-                    // so that the event we get in image.onload has srcElement assigned in IE6
-                    this.loadingLayer.appendChild(request.tile);                
-                    // set these before tile.src to avoid missing a tile that's already cached            
-                    request.tile.onload = request.tile.onerror = this.getLoadComplete();
-                    request.tile.src = request.url;
-                    // keep things tidy
-                    request.tile = request.url = null;
-                }
-            }
-        },
-    
-        cancelTileRequest: function(tile) {
-            // whether we've done the request or not...
-            delete this.requestedTiles[tile.id];    
-            if (tile.src) { // FIXME: what if the tile *should* have a null URL?
-                tile.onload = tile.onerror = null;
-                //delete tile['coord']; // causes an error in IE6
-                tile.coord = null;
-                // not sure if this is necessary, but hopefully it guarantees the tile stops loading?
-                tile.src = null;
-                // pull it back out of the DOM
-                this.loadingLayer.removeChild(tile);
-                // correct this...
-                this.requestCount--;
-            }
-            else {
-                for (var i = 0; i < this.requestQueue.length; i++) {
-                    var request = this.requestQueue[i];
-                    if (request && request.tile === tile) {
-                        this.requestQueue[i] = null;
-                        request.tile = request.tile.coord = request.url = null;
-                    }
-                }
-            }
-        },
-        
-        _loadComplete: null,
-        
-        getLoadComplete: function() {
-            // let's only create this closure once...
-            if (!this._loadComplete) {
-                var theMap = this;
-                this._loadComplete = function(e) {
-                    // this is needed because we don't use MM.addEvent for tiles
-                    e = e || window.event;
-    
-                    // srcElement for IE, target for FF, Safari etc.
-                    var tile = e.srcElement || e.target;
-    
-                    // unset these straight away so we don't call this twice
-                    tile.onload = tile.onerror = null;
-    
-                    // pull it back out of the (hidden) DOM 
-                    // so that draw will add it correctly later
-                    theMap.loadingLayer.removeChild(tile);
-                    
-                    theMap.requestCount--;
-    
-                    delete theMap.requestedTiles[tile.id];
-    
-                    // NB:- complete is also true onerror if we got a 404
-                    if (tile.complete || 
-                        (tile.readyState && tile.readyState == 'complete')) {
-
-                        // cache the tile itself:
-                        theMap.tiles[tile.id] = tile;
-                        theMap.tileCacheSize++;
-                        
-                        // also keep a record of when we last touched this tile:
-                        var record = { 
-                            id: tile.id, 
-                            lastTouchedTime: new Date().getTime() 
-                        };
-                        theMap.recentTilesById[tile.id] = record;
-                        theMap.recentTiles.push(record);                        
-
-                        // add tile to its layer:
-                        var theLayer = theMap.layers[tile.coord.zoom];
-                        theLayer.appendChild(tile);
-
-                        // position this tile (avoids a draw() call):
-                        var theCoord = theMap.coordinate.zoomTo(theLayer.coordinate.zoom);
-                        var scale = Math.pow(2, theMap.coordinate.zoom - theLayer.coordinate.zoom);
-                        var tx = ((theMap.dimensions.x/2) + (tile.coord.column - theCoord.column) * theMap.provider.tileWidth * scale);
-                        var ty = ((theMap.dimensions.y/2) + (tile.coord.row - theCoord.row) * theMap.provider.tileHeight * scale);
-                        tile.style.left = Math.round(tx) + 'px'; 
-                        tile.style.top = Math.round(ty) + 'px'; 
-                        tile.width = Math.ceil(theMap.provider.tileWidth * scale);
-                        tile.height = Math.ceil(theMap.provider.tileHeight * scale);
-                    }
-                    else {
-                        // if it didn't finish clear its src to make sure it 
-                        // really stops loading
-                        // FIXME: if we don't add it to theMap.tiles then we'll
-                        // request it  again if and when the map moves
-                        // - that's probably broken behaviour :(
-                        tile.src = null;
-                    }
-                    
-                    // keep going
-                    theMap.processQueue();
-                    
-                    // request a lazy redraw of all layers 
-                    // this will remove tiles that were only visible
-                    // to cover this tile while it loaded:
-                    theMap.requestRedraw();
-                };
-            }
-            return this._loadComplete;
-        },
-        
         // compares manhattan distance from center of 
         // requested tiles to current map center
-        // NB:- requested are *popped* from queue, so we do a descending sort
+        // NB:- requested tiles are *popped* from queue, so we do a descending sort
         getCenterDistanceCompare: function() {
             var theCoordinate = this.coordinate.zoomTo(Math.round(this.coordinate.zoom));
             return function(r1, r2) {
                 if (r1 && r2) {
-                    var c1 = r1.tile.coord;
-                    var c2 = r2.tile.coord;
+                    var c1 = r1.coord;
+                    var c2 = r2.coord;
                     if (c1.zoom == c2.zoom) {
                         var ds1 = Math.abs(theCoordinate.row - c1.row - 0.5) + 
                                   Math.abs(theCoordinate.column - c1.column - 0.5);
@@ -1589,5 +1688,5 @@ if (!com) {
         }
         
     };
-
+    
 })(com.modestmaps);

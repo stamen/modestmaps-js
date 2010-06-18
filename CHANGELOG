@@ -8,6 +8,13 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment 
     the major version." -- http://semver.org/
 
+v0.13.0
+ - factored image loading out into a separate RequestManager
+ - cleaned up RequestManager to be less tile-centric, more img-centric
+
+v0.12.0
+ - made callback handling more modular
+
 v0.11.2
  - re-instated zoom level check for setExtent (fixes bug where locations are all the same)
 
