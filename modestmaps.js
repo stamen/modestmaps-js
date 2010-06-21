@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v0.13.1
+ * Modest Maps JS v0.13.2
  * http://modestmaps.com/
  *
  * Copyright (c) 2010 Stamen Design, All Rights Reserved.
@@ -449,13 +449,10 @@ if (!com) {
     MM.MapProvider.prototype = {
     
         // defaults to Google-y Mercator style maps
-        // (for how to generate these magic numbers
-        // see http://modestmaps.com/calculator.html)
-        projection: new MM.MercatorProjection(
-                        26, 
-                        new MM.Transformation(1.068070779e7, 0, 3.355443185e7,
-                                              0, -1.068070890e7, 3.355443057e7)
-                    ),
+        projection: new MM.MercatorProjection( 0, 
+                        MM.deriveTransformation(-Math.PI,  Math.PI, 0, 0, 
+                                                 Math.PI,  Math.PI, 1, 0, 
+                                                -Math.PI, -Math.PI, 0, 1) ),
                     
         tileWidth: 256,
         tileHeight: 256,

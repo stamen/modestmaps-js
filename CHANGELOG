@@ -8,6 +8,9 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment 
     the major version." -- http://semver.org/
 
+v0.13.2
+ - removing magic numbers from Mercator projection for parity with Python version
+
 v0.13.1
  - rejiggered the Map's draw function to be a bit clearer
  - removed superfluous layer.coordinate (internal only)
