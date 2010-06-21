@@ -8,6 +8,10 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment 
     the major version." -- http://semver.org/
 
+v0.13.1
+ - rejiggered the Map's draw function to be a bit clearer
+ - removed superfluous layer.coordinate (internal only)
+
 v0.13.0
  - factored image loading out into a separate RequestManager
  - cleaned up RequestManager to be less tile-centric, more img-centric

@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v0.13.0
+ * Modest Maps JS v0.13.1
  * http://modestmaps.com/
  *
  * Copyright (c) 2010 Stamen Design, All Rights Reserved.
@@ -1374,33 +1374,30 @@ if (!com) {
         
         draw: function() {
     
+            // make sure we're not too far in or out:
             this.coordinate = this.enforceLimits(this.coordinate);
-    
-            // so this is the corner, taking the container offset into account
+
+            // if we're in between zoom levels, we need to choose the nearest:
             var baseZoom = Math.round(this.coordinate.zoom);
-            var baseCoord = this.pointCoordinate(new MM.Point(0,0)).zoomTo(baseZoom).container();
-            var baseCorner = this.coordinatePoint(baseCoord);
-            var sizeCorrection = Math.pow(2, baseZoom - this.coordinate.zoom);
+
+            // these are the top left and bottom right tile coordinates
+            // we'll be loading everything in between:
+            var startCoord = this.pointCoordinate(new MM.Point(0,0)).zoomTo(baseZoom).container();
+            var endCoord = this.pointCoordinate(this.dimensions).zoomTo(baseZoom).container().right().down();
 
             // tiles with invalid keys will be removed from visible layers
             // requests for tiles with invalid keys will be canceled
-            // (maps from tile key to a boolean)
+            // (this object maps from a tile key to a boolean)
             var validTileKeys = { };
             
-            var thisLayer = this.createOrGetLayer(baseCoord.zoom);
-            thisLayer.coordinate = baseCoord.copy();
-            
-            var tileCoord = baseCoord.copy();
-    
-            // storing these locally might not be faster but it is clearer
-            // [JSLitmus tests were inconclusive]
-            var maxY = this.dimensions.y + (this.provider.tileHeight * sizeCorrection);
-            var maxX = this.dimensions.x + (this.provider.tileWidth * sizeCorrection);
-            var yStep = this.provider.tileHeight;
-            var xStep = this.provider.tileWidth;
-    
-            for (var y = baseCorner.y; y <= maxY; y += yStep) {
-                for (var x = baseCorner.x; x <= maxX; x += xStep) {
+            // make sure we have a container for tiles in the current layer
+            var thisLayer = this.createOrGetLayer(startCoord.zoom);
+
+            // use this coordinate for generating keys, parents and children:
+            var tileCoord = startCoord.copy();
+
+            for (tileCoord.column = startCoord.column; tileCoord.column <= endCoord.column; tileCoord.column += 1) {
+                for (tileCoord.row = startCoord.row; tileCoord.row <= endCoord.row; tileCoord.row += 1) {
                     var tileKey = tileCoord.toKey();
                     validTileKeys[tileKey] = true;
                     if (tileKey in this.tiles) {
@@ -1446,7 +1443,6 @@ if (!com) {
                         }
                         // if we didn't find a parent, look at the children:
                         if (!tileCovered) {
-                            // only mark it valid if we have it
                             var childCoord = tileCoord.zoomBy(1);
                             // mark everything valid whether or not we have it:
                             validTileKeys[childCoord.toKey()] = true;
@@ -1458,10 +1454,7 @@ if (!com) {
                             validTileKeys[childCoord.toKey()] = true;
                         }
                     }
-                    tileCoord.column += 1;
                 }
-                tileCoord.row += 1;
-                tileCoord.column = baseCoord.column;
             }
             
             // i from i to zoom-5 are layers that would be scaled too big,
@@ -1470,7 +1463,7 @@ if (!com) {
             for (var name in this.layers) {
                 if (this.layers.hasOwnProperty(name)) {
                     var zoom = parseInt(name,10);
-                    if (zoom >= baseCoord.zoom-5 && zoom < baseCoord.zoom+2) {
+                    if (zoom >= startCoord.zoom-5 && zoom < startCoord.zoom+2) {
                         continue;
                     }
                     var layer = this.layers[name];
@@ -1486,8 +1479,8 @@ if (!com) {
             var now = new Date().getTime();
         
             // layers we want to see, if they have tiles in validTileKeys
-            var minLayer = baseCoord.zoom-5;
-            var maxLayer = baseCoord.zoom+2;
+            var minLayer = startCoord.zoom-5;
+            var maxLayer = startCoord.zoom+2;
             for (var i = minLayer; i < maxLayer; i++) {
 
                 var layer = this.layers[i];
@@ -1497,13 +1490,13 @@ if (!com) {
                     continue;
                 }
 
-                var theCoord = null;
                 var scale = 1;
+                var theCoord = this.coordinate.copy();
 
-                if (layer.coordinate) {
+                if (layer.childNodes.length > 0) {
                     layer.style.display = 'block';
-                    theCoord = this.coordinate.zoomTo(layer.coordinate.zoom);
-                    scale = Math.pow(2, this.coordinate.zoom - layer.coordinate.zoom);
+                    scale = Math.pow(2, this.coordinate.zoom - i);
+                    theCoord = theCoord.zoomTo(i);
                 }
                 else {
                     layer.style.display = 'none';
@@ -1570,8 +1563,8 @@ if (!com) {
                     theLayer.appendChild(tile);
 
                     // position this tile (avoids a full draw() call):
-                    var theCoord = theMap.coordinate.zoomTo(theLayer.coordinate.zoom);
-                    var scale = Math.pow(2, theMap.coordinate.zoom - theLayer.coordinate.zoom);
+                    var theCoord = theMap.coordinate.zoomTo(tile.coord.zoom);
+                    var scale = Math.pow(2, theMap.coordinate.zoom - tile.coord.zoom);
                     var tx = ((theMap.dimensions.x/2) + (tile.coord.column - theCoord.column) * theMap.provider.tileWidth * scale);
                     var ty = ((theMap.dimensions.y/2) + (tile.coord.row - theCoord.row) * theMap.provider.tileHeight * scale);
                     tile.style.left = Math.round(tx) + 'px'; 
@@ -1667,16 +1660,16 @@ if (!com) {
         // requested tiles to current map center
         // NB:- requested tiles are *popped* from queue, so we do a descending sort
         getCenterDistanceCompare: function() {
-            var theCoordinate = this.coordinate.zoomTo(Math.round(this.coordinate.zoom));
+            var theCoord = this.coordinate.zoomTo(Math.round(this.coordinate.zoom));
             return function(r1, r2) {
                 if (r1 && r2) {
                     var c1 = r1.coord;
                     var c2 = r2.coord;
                     if (c1.zoom == c2.zoom) {
-                        var ds1 = Math.abs(theCoordinate.row - c1.row - 0.5) + 
-                                  Math.abs(theCoordinate.column - c1.column - 0.5);
-                        var ds2 = Math.abs(theCoordinate.row - c2.row - 0.5) + 
-                                  Math.abs(theCoordinate.column - c2.column - 0.5);
+                        var ds1 = Math.abs(theCoord.row - c1.row - 0.5) + 
+                                  Math.abs(theCoord.column - c1.column - 0.5);
+                        var ds2 = Math.abs(theCoord.row - c2.row - 0.5) + 
+                                  Math.abs(theCoord.column - c2.column - 0.5);
                         return ds1 < ds2 ? 1 : ds1 > ds2 ? -1 : 0;
                     }
                     else {
