@@ -1,0 +1,22 @@
+<html>
+<head>
+<title>Modest Maps JS</title>
+<script type="text/javascript" src="modestmaps.js"></script>
+<script type="text/javascript">
+    var map;
+    function initMap() {
+        var mm = com.modestmaps;
+        
+        var template = 'http://{S}tile.openstreetmap.org/{Z}/{X}/{Y}.png';
+        var subdomains = [ '', 'a.', 'b.', 'c.' ];
+        var provider = new mm.TemplatedMapProvider(template, subdomains);
+
+        map = new mm.Map(document.body, provider)
+        
+        map.setCenterZoom(new mm.Location(0, 0), 2);
+    }
+</script>
+</head>
+<body onload="initMap()" style="width:100%; height: 100%">
+</body>
+</html>

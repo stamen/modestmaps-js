@@ -99,7 +99,7 @@
         
                     var point = theHandler.getMousePoint(e);
                         
-                    theHandler.map.zoomByAbout(delta/10.0, point);
+                    theHandler.map.zoomByAbout(Math.min(0.5, Math.max(-0.5, delta/10.0)), point);
                         
                     return com.modestmaps.cancelEvent(e);
                 };
@@ -152,14 +152,17 @@ var map;
 
 function initMap() {
 
+    var mm = com.modestmaps;
+
     var container = document.getElementById('container');
 
-    map = new com.modestmaps.Map('map', 
-                                 new com.modestmaps.TemplatedMapProvider('http://tile.openstreetmap.org/{Z}/{X}/{Y}.png'), 
-                                 null,
-                                 [ new AnyZoomHandler() ]);
+    var template = 'http://{S}tile.openstreetmap.org/{Z}/{X}/{Y}.png';
+    var subdomains = [ '', 'a.', 'b.', 'c.' ];
+    var provider = new mm.TemplatedMapProvider(template, subdomains);
 
-    map.setCenterZoom(new com.modestmaps.Location(37.811530, -122.2666097), 14);
+    map = new mm.Map('map', provider, null, [ new AnyZoomHandler() ]);
+
+    map.setCenterZoom(new mm.Location(37.811530, -122.2666097), 14);
 
 }
 

@@ -8,6 +8,9 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment 
     the major version." -- http://semver.org/
 
+v0.13.3
+ - stubbed out tilePadding into Map.draw
+
 v0.13.2
  - removing magic numbers from Mercator projection for parity with Python version
 

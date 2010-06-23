@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v0.13.2
+ * Modest Maps JS v0.13.3
  * http://modestmaps.com/
  *
  * Copyright (c) 2010 Stamen Design, All Rights Reserved.
@@ -1382,6 +1382,12 @@ if (!com) {
             var startCoord = this.pointCoordinate(new MM.Point(0,0)).zoomTo(baseZoom).container();
             var endCoord = this.pointCoordinate(this.dimensions).zoomTo(baseZoom).container().right().down();
 
+            var tilePadding = 0;
+            if (tilePadding) {
+                startCoord = startCoord.left(tilePadding).up(tilePadding);
+                endCoord = endCoord.right(tilePadding).down(tilePadding);
+            }
+
             // tiles with invalid keys will be removed from visible layers
             // requests for tiles with invalid keys will be canceled
             // (this object maps from a tile key to a boolean)
@@ -1558,6 +1564,13 @@ if (!com) {
                     // add tile to its layer:
                     var theLayer = theMap.layers[tile.coord.zoom];
                     theLayer.appendChild(tile);
+
+                    //if (!theMap.lastTileReceived) {
+                    //    theMap.lastTileReceived = new Date().getTime();
+                    //}
+                    //var t = new Date().getTime();
+                    //console.log(tile.coord.toString() + ' ' + (t-theMap.lastTileReceived)); 
+                    //theMap.lastTileReceived = t;
 
                     // position this tile (avoids a full draw() call):
                     var theCoord = theMap.coordinate.zoomTo(tile.coord.zoom);
