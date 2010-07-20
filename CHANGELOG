@@ -8,6 +8,9 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment 
     the major version." -- http://semver.org/
 
+v0.13.4
+ - changed to img.style.width instead of img.width, for ipads (see examples/touch/test.html)
+
 v0.13.3
  - stubbed out tilePadding into Map.draw
 

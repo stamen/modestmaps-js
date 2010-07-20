@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v0.13.3
+ * Modest Maps JS v0.13.4
  * http://modestmaps.com/
  *
  * Copyright (c) 2010 Stamen Design, All Rights Reserved.
@@ -1521,8 +1521,10 @@ if (!com) {
                         var ty = center.y + (tile.coord.row - theCoord.row) * tileHeight;
                         tile.style.left = Math.round(tx) + 'px'; 
                         tile.style.top = Math.round(ty) + 'px'; 
-                        tile.width = Math.ceil(tileWidth);
-                        tile.height = Math.ceil(tileHeight);
+                        // using style here and not raw width/height for ipad/iphone scaling
+                        // see examples/touch/test.html
+                        tile.style.width = Math.ceil(tileWidth) + 'px';
+                        tile.style.height = Math.ceil(tileHeight) + 'px';
                         // log last-touched-time of currently cached tiles
                         this.recentTilesById[tile.id].lastTouchedTime = now;
                     }
@@ -1579,8 +1581,10 @@ if (!com) {
                     var ty = ((theMap.dimensions.y/2) + (tile.coord.row - theCoord.row) * theMap.provider.tileHeight * scale);
                     tile.style.left = Math.round(tx) + 'px'; 
                     tile.style.top = Math.round(ty) + 'px'; 
-                    tile.width = Math.ceil(theMap.provider.tileWidth * scale);
-                    tile.height = Math.ceil(theMap.provider.tileHeight * scale);
+                    // using style here and not raw width/height for ipad/iphone scaling
+                    // see examples/touch/test.html                    
+                    tile.style.width = Math.ceil(theMap.provider.tileWidth * scale) + 'px';
+                    tile.style.height = Math.ceil(theMap.provider.tileHeight * scale) + 'px';
 
                     // request a lazy redraw of all layers 
                     // this will remove tiles that were only visible
