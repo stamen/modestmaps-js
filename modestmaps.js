@@ -915,7 +915,7 @@ if (!com) {
                 };
             }
             return this._loadComplete;
-        },        
+        }        
     
     };
 
