@@ -8,10 +8,9 @@ var map;
 
 function initMap() {
 
-    var container = document.getElementById('container');
-
-    var template = 'http://{S}tile.openstreetmap.org/{Z}/{X}/{Y}.png';
-    var subdomains = [ 'a.', 'b.', 'c.', ''];
+    // http://blog.mapquest.com/2010/07/09/mapquest-opens-up/
+    var template = 'http://{S}.mqcdn.com/tiles/1.0.0/osm/{Z}/{X}/{Y}.png';
+    var subdomains = [ 'otile1', 'otile2', 'otile3', 'otile4'];
     var provider = new com.modestmaps.TemplatedMapProvider(template, subdomains);
 
     map = new com.modestmaps.Map('map', provider); 
@@ -67,16 +66,13 @@ function tanh(x) { return sinh(x) / cosh(x); }
 function animateStep(c0,w0,c1,w1,V,rho) {
 
     // see section 6 for user testing to derive these values (they can be tuned)
-    if (V === undefined) V = 0.9;
-    if (rho === undefined) rho = 1.42
+    if (V === undefined) V = 2.0;      // section 6 suggests 0.9
+    if (rho === undefined) rho = 1.42; // section 6 suggests 1.42
 
     // simple interpolation of positions will be fine:
     var u0 = 0,
         u1 = dist(c0,c1);
 
-    if (console && console.log) console.log('u0 = ' + u0);
-    if (console && console.log) console.log('u1 = ' + u1);
-    
     // i = 0 or 1
     function b(i) {
         var n = sq(w1) - sq(w0) + ((i ? -1 : 1) * Math.pow(rho,4) * sq(u1-u0));
@@ -93,10 +89,6 @@ function animateStep(c0,w0,c1,w1,V,rho) {
         r1 = r(b(1)),
         S = (r1-r0) / rho; // "distance"
     
-    if (console && console.log) console.log('r0 = ' + r0);
-    if (console && console.log) console.log('r1 = ' + r1);
-    if (console && console.log) console.log('S = ' + S);
-    
     function u(s) {
         var a = w0/sq(rho),
             b = a * cosh(r0) * tanh(rho*s + r0),
@@ -108,7 +100,19 @@ function animateStep(c0,w0,c1,w1,V,rho) {
         return w0 * cosh(r0) / cosh(rho*s + r0);
     }
 
-    if (console && console.log) console.log('max t = ' + (S / V));
+    // special case
+    if (Math.abs(u0-u1) < 0.000001) {
+        if (Math.abs(w0-w1) < 0.000001) return;
+    
+        var k = w1 < w0 ? -1 : 1;
+        S = Math.abs(Math.log(w1/w0)) / rho;
+        u = function(s) {
+            return u0;
+        }
+        w = function(s) {
+            return w0 * Math.exp(k * rho * s);
+        }
+    }
     
     var t0 = Date.now();
     var interval = setInterval(function() {
