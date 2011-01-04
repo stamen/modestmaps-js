@@ -8,6 +8,10 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment 
     the major version." -- http://semver.org/
 
+2011-01-03 note:
+ - broke modestmap.js file into src folder, now building with Makefile
+ - no functionality change to modestmaps.js (just whitespace changes)
+
 v0.13.4
  - changed to img.style.width instead of img.width, for ipads (see examples/touch/test.html)
 
