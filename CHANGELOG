@@ -8,6 +8,11 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment 
     the major version." -- http://semver.org/
 
+v0.13.5
+ - changed the order of initialization so that event handlers go last
+   (this is so that attributes like layerParent are in place for complex
+    event handlers like anyzoom.js... handlers can also use callbacks now)
+
 2011-01-03 note:
  - broke modestmap.js file into src folder, now building with Makefile
  - no functionality change to modestmaps.js (just whitespace changes)

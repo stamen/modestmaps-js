@@ -67,19 +67,6 @@
 
         this.dimensions = dimensions;
                                 
-        if (eventHandlers === undefined) {
-            this.eventHandlers = [];
-            this.eventHandlers.push(new MM.MouseHandler(this));
-        }
-        else {
-            this.eventHandlers = eventHandlers;
-            if (eventHandlers instanceof Array) {
-                for (var i = 0; i < eventHandlers.length; i++) {
-                    eventHandlers[i].init(this);
-                }
-            }
-        }
-        
         // TODO: is it sensible to do this (could be more than one map on a page)
         /*
         // add a style element so layer/tile styles can be class-based
@@ -118,6 +105,21 @@
         this.setProvider(provider);
         
         this.callbackManager = new MM.CallbackManager(this, [ 'zoomed', 'panned', 'centered', 'extentset', 'resized', 'drawn' ]);
+
+        // set up handlers last so that all required attributes/functions are in place if needed
+        if (eventHandlers === undefined) {
+            this.eventHandlers = [];
+            this.eventHandlers.push(new MM.MouseHandler(this));
+        }
+        else {
+            this.eventHandlers = eventHandlers;
+            if (eventHandlers instanceof Array) {
+                for (var i = 0; i < eventHandlers.length; i++) {
+                    eventHandlers[i].init(this);
+                }
+            }
+        }
+        
     };
     
     MM.Map.prototype = {

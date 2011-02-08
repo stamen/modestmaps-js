@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v0.13.4
+ * Modest Maps JS v0.13.5
  * http://modestmaps.com/
  *
  * Copyright (c) 2010 Stamen Design, All Rights Reserved.
@@ -111,6 +111,7 @@ if (!com) {
         return new MM.Point(px, py);
     };
     
+
     MM.Coordinate = function(row, column, zoom) {
         this.row = row;
         this.column = column;
@@ -981,19 +982,6 @@ if (!com) {
 
         this.dimensions = dimensions;
                                 
-        if (eventHandlers === undefined) {
-            this.eventHandlers = [];
-            this.eventHandlers.push(new MM.MouseHandler(this));
-        }
-        else {
-            this.eventHandlers = eventHandlers;
-            if (eventHandlers instanceof Array) {
-                for (var i = 0; i < eventHandlers.length; i++) {
-                    eventHandlers[i].init(this);
-                }
-            }
-        }
-        
         // TODO: is it sensible to do this (could be more than one map on a page)
         /*
         // add a style element so layer/tile styles can be class-based
@@ -1032,6 +1020,21 @@ if (!com) {
         this.setProvider(provider);
         
         this.callbackManager = new MM.CallbackManager(this, [ 'zoomed', 'panned', 'centered', 'extentset', 'resized', 'drawn' ]);
+
+        // set up handlers last so that all required attributes/functions are in place if needed
+        if (eventHandlers === undefined) {
+            this.eventHandlers = [];
+            this.eventHandlers.push(new MM.MouseHandler(this));
+        }
+        else {
+            this.eventHandlers = eventHandlers;
+            if (eventHandlers instanceof Array) {
+                for (var i = 0; i < eventHandlers.length; i++) {
+                    eventHandlers[i].init(this);
+                }
+            }
+        }
+        
     };
     
     MM.Map.prototype = {
