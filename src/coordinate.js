@@ -17,22 +17,10 @@
                        + this.zoom.toFixed(3) + ")";
         },
     
-        /* hopfully/somewhat optimized because firebug 
-           said we were spending a lot of time in toString() */
         toKey: function() {
-            var a = Math.floor(this.row);
-            var b = Math.floor(this.column);
-            var c = Math.floor(this.zoom);
-            a=a-b; a=a-c; a=a^(c >>> 13);
-            b=b-c; b=b-a; b=b^(a << 8); 
-            c=c-a; c=c-b; c=c^(b >>> 13);
-            a=a-b; a=a-c; a=a^(c >>> 12);
-            b=b-c; b=b-a; b=b^(a << 16);
-            c=c-a; c=c-b; c=c^(b >>> 5);
-            a=a-b; a=a-c; a=a^(c >>> 3);
-            b=b-c; b=b-a; b=b^(a << 10);
-            c=c-a; c=c-b; c=c^(b >>> 15);
-            return c;
+            /* there used to be a clever hash function here but there were collisions.
+               TODO: optimize, but test for collisions properly :) */
+            return [ Math.floor(this.zoom), Math.floor(this.column), Math.floor(this.row) ].join(',');
         },
     
         copy: function() {

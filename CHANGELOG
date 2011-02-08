@@ -8,6 +8,10 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment 
     the major version." -- http://semver.org/
 
+v0.14.0
+ - added map.enablePyramidLoading flag for pyramid loading (off by default)
+ - fixed Coordinate.prototype.toKey (back to string join to avoid collisions)
+
 v0.13.5
  - changed the order of initialization so that event handlers go last
    (this is so that attributes like layerParent are in place for complex

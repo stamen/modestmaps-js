@@ -14,6 +14,7 @@ function initMap() {
     var provider = new com.modestmaps.TemplatedMapProvider(template, subdomains);
 
     map = new com.modestmaps.Map('map', provider); 
+    map.enablePyramidLoading = true;
 
     map.setCenterZoom(new com.modestmaps.Location(37.811530, -122.2666097), 14);
 
@@ -117,6 +118,7 @@ function animateStep(c0,w0,c1,w1,V,rho) {
     var t0 = Date.now();
     var interval = setInterval(function() {
         var t1 = Date.now();
+        var frameInterval = t1;
         var t = (t1 - t0) / 1000.0;
         var s = V * t;
         if (s > S) {
@@ -126,7 +128,8 @@ function animateStep(c0,w0,c1,w1,V,rho) {
         var us = u(s);
         var pos = lerp2(c0,c1,(us-u0)/(u1-u0));
         applyPos(pos, w(s));
-    }, 40);
+        console.log(Date.now() - frameInterval);
+    }, 100);
 
 }
 

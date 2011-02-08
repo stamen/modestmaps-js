@@ -104,6 +104,8 @@
         
         this.setProvider(provider);
         
+        this.enablePyramidLoading = false;
+        
         this.callbackManager = new MM.CallbackManager(this, [ 'zoomed', 'panned', 'centered', 'extentset', 'resized', 'drawn' ]);
 
         // set up handlers last so that all required attributes/functions are in place if needed
@@ -499,35 +501,41 @@
                         }
                         // look for a parent tile in our image cache
                         var tileCovered = false;
-                        for (var pz = 1; pz <= 5; pz++) {
+                        var maxStepsOut = tileCoord.zoom;
+                        for (var pz = 1; pz <= maxStepsOut; pz++) {
                             var parentCoord = tileCoord.zoomBy(-pz).container();
                             var parentKey = parentCoord.toKey();
-
-                            // only mark it valid if we have it already
-                            if (parentKey in this.tiles) {
+                            
+                            if (this.enablePyramidLoading) {
+                                // mark all parent tiles valid
                                 validTileKeys[parentKey] = true;
                                 tileCovered = true;
-                                break;
+                                var parentLayer = this.createOrGetLayer(parentCoord.zoom);
+                                //parentLayer.coordinate = parentCoord.copy();
+                                if (parentKey in this.tiles) {
+                                    var parentTile = this.tiles[parentKey];
+                                    if (parentTile.parentNode != parentLayer) {
+                                        parentLayer.appendChild(parentTile);
+                                    }                            
+                                }
+                                else if (!this.requestManager.hasRequest(parentKey)) {
+                                    // force load of parent tiles we don't already have
+                                    var tileURL = this.provider.getTileUrl(parentCoord);
+                                    this.requestManager.requestTile(parentKey, parentCoord, tileURL);                            
+                                }
                             }
-                            
-                            /* pyramid load would look like this:
-                            validTileKeys[parentKey] = true;
-                            var parentLayer = this.createOrGetLayer(parentCoord.zoom);
-                            parentLayer.coordinate = parentCoord.copy();
-                            if (parentKey in this.tiles) {
-                                var parentTile = this.tiles[parentKey];
-                                if (parentTile.parentNode != parentLayer) {
-                                    parentLayer.appendChild(parentTile);
-                                }                            
+                            else {
+                                // only mark it valid if we have it already
+                                if (parentKey in this.tiles) {
+                                    validTileKeys[parentKey] = true;
+                                    tileCovered = true;
+                                    break;
+                                }
                             }
-                            else if (!this.requestManager.hasRequest(parentKey)) {
-                                var tileURL = this.provider.getTileUrl(tileCoord);
-                                this.requestManager.requestTile(parentKey, parentCoord, tileURL);                            
-                            }//*/
                             
                         }
                         // if we didn't find a parent, look at the children:
-                        if (!tileCovered) {
+                        /*if (!tileCovered) {
                             var childCoord = tileCoord.zoomBy(1);
                             // mark everything valid whether or not we have it:
                             validTileKeys[childCoord.toKey()] = true;
@@ -537,7 +545,7 @@
                             validTileKeys[childCoord.toKey()] = true;
                             childCoord.column -= 1;
                             validTileKeys[childCoord.toKey()] = true;
-                        }
+                        }*/
                     }
                 }
             }

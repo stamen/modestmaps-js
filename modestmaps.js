@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v0.13.5
+ * Modest Maps JS v0.14.0
  * http://modestmaps.com/
  *
  * Copyright (c) 2010 Stamen Design, All Rights Reserved.
@@ -130,22 +130,10 @@ if (!com) {
                        + this.zoom.toFixed(3) + ")";
         },
     
-        /* hopfully/somewhat optimized because firebug 
-           said we were spending a lot of time in toString() */
         toKey: function() {
-            var a = Math.floor(this.row);
-            var b = Math.floor(this.column);
-            var c = Math.floor(this.zoom);
-            a=a-b; a=a-c; a=a^(c >>> 13);
-            b=b-c; b=b-a; b=b^(a << 8); 
-            c=c-a; c=c-b; c=c^(b >>> 13);
-            a=a-b; a=a-c; a=a^(c >>> 12);
-            b=b-c; b=b-a; b=b^(a << 16);
-            c=c-a; c=c-b; c=c^(b >>> 5);
-            a=a-b; a=a-c; a=a^(c >>> 3);
-            b=b-c; b=b-a; b=b^(a << 10);
-            c=c-a; c=c-b; c=c^(b >>> 15);
-            return c;
+            /* there used to be a clever hash function here but there were collisions.
+               TODO: optimize, but test for collisions properly :) */
+            return [ Math.floor(this.zoom), Math.floor(this.column), Math.floor(this.row) ].join(',');
         },
     
         copy: function() {
@@ -1019,6 +1007,8 @@ if (!com) {
         
         this.setProvider(provider);
         
+        this.enablePyramidLoading = false;
+        
         this.callbackManager = new MM.CallbackManager(this, [ 'zoomed', 'panned', 'centered', 'extentset', 'resized', 'drawn' ]);
 
         // set up handlers last so that all required attributes/functions are in place if needed
@@ -1414,35 +1404,41 @@ if (!com) {
                         }
                         // look for a parent tile in our image cache
                         var tileCovered = false;
-                        for (var pz = 1; pz <= 5; pz++) {
+                        var maxStepsOut = tileCoord.zoom;
+                        for (var pz = 1; pz <= maxStepsOut; pz++) {
                             var parentCoord = tileCoord.zoomBy(-pz).container();
                             var parentKey = parentCoord.toKey();
-
-                            // only mark it valid if we have it already
-                            if (parentKey in this.tiles) {
+                            
+                            if (this.enablePyramidLoading) {
+                                // mark all parent tiles valid
                                 validTileKeys[parentKey] = true;
                                 tileCovered = true;
-                                break;
+                                var parentLayer = this.createOrGetLayer(parentCoord.zoom);
+                                //parentLayer.coordinate = parentCoord.copy();
+                                if (parentKey in this.tiles) {
+                                    var parentTile = this.tiles[parentKey];
+                                    if (parentTile.parentNode != parentLayer) {
+                                        parentLayer.appendChild(parentTile);
+                                    }                            
+                                }
+                                else if (!this.requestManager.hasRequest(parentKey)) {
+                                    // force load of parent tiles we don't already have
+                                    var tileURL = this.provider.getTileUrl(parentCoord);
+                                    this.requestManager.requestTile(parentKey, parentCoord, tileURL);                            
+                                }
                             }
-                            
-                            /* pyramid load would look like this:
-                            validTileKeys[parentKey] = true;
-                            var parentLayer = this.createOrGetLayer(parentCoord.zoom);
-                            parentLayer.coordinate = parentCoord.copy();
-                            if (parentKey in this.tiles) {
-                                var parentTile = this.tiles[parentKey];
-                                if (parentTile.parentNode != parentLayer) {
-                                    parentLayer.appendChild(parentTile);
-                                }                            
+                            else {
+                                // only mark it valid if we have it already
+                                if (parentKey in this.tiles) {
+                                    validTileKeys[parentKey] = true;
+                                    tileCovered = true;
+                                    break;
+                                }
                             }
-                            else if (!this.requestManager.hasRequest(parentKey)) {
-                                var tileURL = this.provider.getTileUrl(tileCoord);
-                                this.requestManager.requestTile(parentKey, parentCoord, tileURL);                            
-                            }//*/
                             
                         }
                         // if we didn't find a parent, look at the children:
-                        if (!tileCovered) {
+                        /*if (!tileCovered) {
                             var childCoord = tileCoord.zoomBy(1);
                             // mark everything valid whether or not we have it:
                             validTileKeys[childCoord.toKey()] = true;
@@ -1452,7 +1448,7 @@ if (!com) {
                             validTileKeys[childCoord.toKey()] = true;
                             childCoord.column -= 1;
                             validTileKeys[childCoord.toKey()] = true;
-                        }
+                        }*/
                     }
                 }
             }
