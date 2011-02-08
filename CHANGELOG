@@ -8,6 +8,10 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment 
     the major version." -- http://semver.org/
 
+v0.14.1
+ - reinstated display of children for missing tiles, except when if
+   map.enablePyramidLoading is set to true
+
 v0.14.0
  - added map.enablePyramidLoading flag for pyramid loading (off by default)
  - fixed Coordinate.prototype.toKey (back to string join to avoid collisions)

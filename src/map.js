@@ -509,7 +509,6 @@
                             if (this.enablePyramidLoading) {
                                 // mark all parent tiles valid
                                 validTileKeys[parentKey] = true;
-                                tileCovered = true;
                                 var parentLayer = this.createOrGetLayer(parentCoord.zoom);
                                 //parentLayer.coordinate = parentCoord.copy();
                                 if (parentKey in this.tiles) {
@@ -535,7 +534,7 @@
                             
                         }
                         // if we didn't find a parent, look at the children:
-                        /*if (!tileCovered) {
+                        if (!tileCovered && !this.enablePyramidLoading) {
                             var childCoord = tileCoord.zoomBy(1);
                             // mark everything valid whether or not we have it:
                             validTileKeys[childCoord.toKey()] = true;
@@ -545,7 +544,7 @@
                             validTileKeys[childCoord.toKey()] = true;
                             childCoord.column -= 1;
                             validTileKeys[childCoord.toKey()] = true;
-                        }*/
+                        }
                     }
                 }
             }
