@@ -8,6 +8,11 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment 
     the major version." -- http://semver.org/
 
+v0.14.2
+ - add setTimeout to processQueue to avoid stack overflow/recursion
+   bug in IE 7/8 (https://github.com/stamen/modestmaps-js/issues/12)
+   thanks @yhahn!
+
 v0.14.1
  - reinstated display of children for missing tiles, except when if
    map.enablePyramidLoading is set to true

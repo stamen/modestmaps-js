@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v0.14.1
+ * Modest Maps JS v0.14.2
  * http://modestmaps.com/
  *
  * Copyright (c) 2010 Stamen Design, All Rights Reserved.
@@ -894,7 +894,10 @@ if (!com) {
                     }
                     
                     // keep going in the same order
-                    theManager.processQueue();
+                    // use setTimeout() to avoid the IE recursion limit, see
+                    // http://cappuccino.org/discuss/2010/03/01/internet-explorer-global-variables-and-stack-overflows/
+                    // and https://github.com/stamen/modestmaps-js/issues/12
+                    setTimeout(theManager.processQueue, 0);
 
                 };
             }
@@ -902,6 +905,7 @@ if (!com) {
         }        
     
     };
+
     //////////////////////////// Map
 
     /* Instance of a map intended for drawing to a div.

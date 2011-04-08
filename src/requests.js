@@ -190,7 +190,10 @@
                     }
                     
                     // keep going in the same order
-                    theManager.processQueue();
+                    // use setTimeout() to avoid the IE recursion limit, see
+                    // http://cappuccino.org/discuss/2010/03/01/internet-explorer-global-variables-and-stack-overflows/
+                    // and https://github.com/stamen/modestmaps-js/issues/12
+                    setTimeout(theManager.processQueue, 0);
 
                 };
             }
