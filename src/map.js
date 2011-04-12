@@ -652,17 +652,6 @@
                     theMap.recentTilesById[tile.id] = record;
                     theMap.recentTiles.push(record);                        
 
-                    // add tile to its layer:
-                    var theLayer = theMap.layers[tile.coord.zoom];
-                    theLayer.appendChild(tile);
-
-                    //if (!theMap.lastTileReceived) {
-                    //    theMap.lastTileReceived = new Date().getTime();
-                    //}
-                    //var t = new Date().getTime();
-                    //console.log(tile.coord.toString() + ' ' + (t-theMap.lastTileReceived)); 
-                    //theMap.lastTileReceived = t;
-
                     // position this tile (avoids a full draw() call):
                     var theCoord = theMap.coordinate.zoomTo(tile.coord.zoom);
                     var scale = Math.pow(2, theMap.coordinate.zoom - tile.coord.zoom);
@@ -674,6 +663,15 @@
                     // see examples/touch/test.html                    
                     tile.style.width = Math.ceil(theMap.provider.tileWidth * scale) + 'px';
                     tile.style.height = Math.ceil(theMap.provider.tileHeight * scale) + 'px';
+
+                    // add tile to its layer
+                    var theLayer = theMap.layers[tile.coord.zoom];
+                    theLayer.appendChild(tile);                    
+
+                    // ensure the layer is visible if it's still the current layer
+                    if (Math.round(theMap.coordinate.zoom) == tile.coord.zoom) {
+                        theLayer.style.display = 'block';
+                    }
 
                     // request a lazy redraw of all layers 
                     // this will remove tiles that were only visible

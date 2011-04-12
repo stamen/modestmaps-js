@@ -112,6 +112,17 @@
                 }
             }
         },
+        
+        getProcessQueue: function() {
+            // let's only create this closure once...
+            if (!this._processQueue) {
+                var theManager = this;
+                this._processQueue = function() {
+                    theManager.processQueue();
+                }
+            }        
+            return this._processQueue;
+        },
 
         processQueue: function(sortFunc) {
             if (sortFunc && this.requestQueue.length > 8) {
@@ -193,7 +204,7 @@
                     // use setTimeout() to avoid the IE recursion limit, see
                     // http://cappuccino.org/discuss/2010/03/01/internet-explorer-global-variables-and-stack-overflows/
                     // and https://github.com/stamen/modestmaps-js/issues/12
-                    setTimeout(theManager.processQueue, 0);
+                    setTimeout(theManager.getProcessQueue(), 0);
 
                 };
             }

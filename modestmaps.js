@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v0.14.2
+ * Modest Maps JS v0.14.3
  * http://modestmaps.com/
  *
  * Copyright (c) 2010 Stamen Design, All Rights Reserved.
@@ -816,6 +816,17 @@ if (!com) {
                 }
             }
         },
+        
+        getProcessQueue: function() {
+            // let's only create this closure once...
+            if (!this._processQueue) {
+                var theManager = this;
+                this._processQueue = function() {
+                    theManager.processQueue();
+                }
+            }        
+            return this._processQueue;
+        },
 
         processQueue: function(sortFunc) {
             if (sortFunc && this.requestQueue.length > 8) {
@@ -897,7 +908,7 @@ if (!com) {
                     // use setTimeout() to avoid the IE recursion limit, see
                     // http://cappuccino.org/discuss/2010/03/01/internet-explorer-global-variables-and-stack-overflows/
                     // and https://github.com/stamen/modestmaps-js/issues/12
-                    setTimeout(theManager.processQueue, 0);
+                    setTimeout(theManager.getProcessQueue(), 0);
 
                 };
             }
@@ -1559,17 +1570,6 @@ if (!com) {
                     theMap.recentTilesById[tile.id] = record;
                     theMap.recentTiles.push(record);                        
 
-                    // add tile to its layer:
-                    var theLayer = theMap.layers[tile.coord.zoom];
-                    theLayer.appendChild(tile);
-
-                    //if (!theMap.lastTileReceived) {
-                    //    theMap.lastTileReceived = new Date().getTime();
-                    //}
-                    //var t = new Date().getTime();
-                    //console.log(tile.coord.toString() + ' ' + (t-theMap.lastTileReceived)); 
-                    //theMap.lastTileReceived = t;
-
                     // position this tile (avoids a full draw() call):
                     var theCoord = theMap.coordinate.zoomTo(tile.coord.zoom);
                     var scale = Math.pow(2, theMap.coordinate.zoom - tile.coord.zoom);
@@ -1581,6 +1581,15 @@ if (!com) {
                     // see examples/touch/test.html                    
                     tile.style.width = Math.ceil(theMap.provider.tileWidth * scale) + 'px';
                     tile.style.height = Math.ceil(theMap.provider.tileHeight * scale) + 'px';
+
+                    // add tile to its layer
+                    var theLayer = theMap.layers[tile.coord.zoom];
+                    theLayer.appendChild(tile);                    
+
+                    // ensure the layer is visible if it's still the current layer
+                    if (Math.round(theMap.coordinate.zoom) == tile.coord.zoom) {
+                        theLayer.style.display = 'block';
+                    }
 
                     // request a lazy redraw of all layers 
                     // this will remove tiles that were only visible
