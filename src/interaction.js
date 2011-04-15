@@ -130,8 +130,7 @@
     
         // interaction helper
     
-        getMousePoint: function(e)
-        {
+        getMousePoint: function(e) {
             // start with just the mouse (x, y)
             var point = new MM.Point(e.clientX, e.clientY);
             
