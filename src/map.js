@@ -170,17 +170,18 @@
             this.coordinate = this.coordinate.zoomBy(zoomOffset);
             this.draw();
             this.dispatchCallback('zoomed', zoomOffset);
+            return this;
         },
 
-        zoomIn:  function()  { this.zoomBy(1); },
-        zoomOut: function()  { this.zoomBy(-1); },
-        setZoom: function(z) { this.zoomBy(z - this.coordinate.zoom); },
+        zoomIn:  function()  { return this.zoomBy(1); },
+        zoomOut: function()  { return this.zoomBy(-1); },
+        setZoom: function(z) { return this.zoomBy(z - this.coordinate.zoom); },
                 
         zoomByAbout: function(zoomOffset, point) {
             var location = this.pointLocation(point);
             this.zoomBy(zoomOffset);
             var newPoint = this.locationPoint(location);
-            this.panBy(point.x - newPoint.x, point.y - newPoint.y);
+            return this.panBy(point.x - newPoint.x, point.y - newPoint.y);
         },
     
         // panning
@@ -190,23 +191,25 @@
             this.coordinate.row -= dy / this.provider.tileHeight;
             this.draw();
             this.dispatchCallback('panned', [dx, dy]);
+            return this;
         },
     
-        panLeft:  function() { this.panBy(100,0); },
-        panRight: function() { this.panBy(-100,0); },
-        panDown:  function() { this.panBy(0,-100); },
-        panUp:    function() { this.panBy(0,100); },
+        panLeft:  function() { return this.panBy(100,0); },
+        panRight: function() { return this.panBy(-100,0); },
+        panDown:  function() { return this.panBy(0,-100); },
+        panUp:    function() { return this.panBy(0,100); },
         
         // positioning
         
         setCenter: function(location) {
-            this.setCenterZoom(location, this.coordinate.zoom);
+            return this.setCenterZoom(location, this.coordinate.zoom);
         },
     
         setCenterZoom: function(location, zoom) {
             this.coordinate = this.provider.locationCoordinate(location).zoomTo(parseFloat(zoom) || 0);
             this.draw();
             this.dispatchCallback('centered', [location, zoom]);
+            return this;
         },
     
         setExtent: function(locations) {
@@ -266,6 +269,7 @@
             this.draw();
     
             this.dispatchCallback('extentset', locations);
+            return this;
         },
     
         // map dimensions
@@ -281,6 +285,7 @@
             this.parent.style.height = Math.round(this.dimensions.y) + 'px';        
             this.draw();
             this.dispatchCallback('resized', [ this.dimensions ]);
+            return this;
         },
         
         // projecting points on and off screen
@@ -383,6 +388,7 @@
             if (!firstProvider) {            
                 this.draw();
             }
+            return this;
         },
 
         // stats
