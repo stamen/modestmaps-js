@@ -2,12 +2,7 @@
     
     MM.RequestManager = function(parent) {
     
-        // add an invisible div so that image.onload will have a srcElement in IE6
-        // TODO: can we do this with a DOM fragment?
-        this.loadingBay = document.createElement('div');
-        this.loadingBay.id = parent.id+'-loading-bay';
-        this.loadingBay.style.display = 'none';
-        parent.appendChild(this.loadingBay);
+        this.loadingBay = document.createDocumentFragment();
 
         this.requestsById = {};
         this.openRequestCount = 0;
@@ -16,7 +11,7 @@
         this.requestQueue = [];    
         
         this.callbackManager = new MM.CallbackManager(this, [ 'requestcomplete' ]);
-    };
+    }
     
     MM.RequestManager.prototype = {
 
@@ -65,9 +60,9 @@
             }
             
             // then check the loadingBay...
-            var openRequests = this.loadingBay.getElementsByTagName('img');
-            for (var j = openRequests.length-1; j >= 0; j--) {
-                var img = openRequests[j];
+            var openRequests = this.loadingBay.childNodes;
+            for (var i = openRequests.length-1; i >= 0; i--) {
+                var img = openRequests[i];
                 if (!(img.id in validKeys)) {
                     this.loadingBay.removeChild(img);
                     this.openRequestCount--;
@@ -86,7 +81,7 @@
                         var request = this.requestsById[id];
                         // whether we've done the request or not...
                         delete this.requestsById[id];
-                        if (request !== null) {
+                        if (request != null) {
                             request = request.key = request.coord = request.url = null;
                         }
                     }
@@ -119,7 +114,7 @@
                 var theManager = this;
                 this._processQueue = function() {
                     theManager.processQueue();
-                };
+                }
             }        
             return this._processQueue;
         },
