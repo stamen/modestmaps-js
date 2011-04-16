@@ -11,8 +11,6 @@
  * See CHANGELOG and http://semver.org/ for more details.
  * 
  */
-
-// namespacing!
 if (!com) {
     var com = { };
     if (!com.modestmaps) {
@@ -1701,6 +1699,5 @@ if (!com) {
         
     };
     
-
 
 })(com.modestmaps);
