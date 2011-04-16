@@ -8,6 +8,9 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment 
     the major version." -- http://semver.org/
 
+v0.15.0
+ - added method chaining from @tmcw
+
 v0.14.3
  - improve redraw behavior by ensuring layer is visible in getTileComplete
  - use a closure in v0.14.2's setTimeout to ensure proper 'this'
