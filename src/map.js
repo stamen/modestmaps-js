@@ -257,8 +257,8 @@
         
             // additionally, make sure it's not outside the boundaries set by provider limits
             // this also catches Infinity stuff
-            initZoom = Math.min(initZoom, this.provider.outerLimits()[1].zoom)
-            initZoom = Math.max(initZoom, this.provider.outerLimits()[0].zoom)
+            initZoom = Math.min(initZoom, this.provider.outerLimits()[1].zoom);
+            initZoom = Math.max(initZoom, this.provider.outerLimits()[0].zoom);
         
             // coordinate of extent center
             var centerRow = (TL.row + BR.row) / 2;
@@ -401,7 +401,7 @@
                 'Tile Cache Size': this.tileCacheSize,
                 'Tiles On Screen': this.parent.getElementsByTagName('img').length
             };        
-        },//*/
+        },*/
         
         // limits
         
@@ -683,7 +683,7 @@
                     // this will remove tiles that were only visible
                     // to cover this tile while it loaded:
                     theMap.requestRedraw();                
-                }
+                };
             }
             return this._tileComplete;
         },

@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v0.15.0
+ * Modest Maps JS v0.15.1
  * http://modestmaps.com/
  *
  * Copyright (c) 2010 Stamen Design, All Rights Reserved.
@@ -82,8 +82,9 @@ if (!com) {
         else if (window.getComputedStyle)
             var y = document.defaultView.getComputedStyle(el,null).getPropertyValue(styleProp);
         return y;
-    }
-        
+    };
+    
+    
     //////////////////////////// Core
     
     MM.Point = function(x, y) {
@@ -494,7 +495,7 @@ if (!com) {
             }
             var base = template;
             if (subdomains && subdomains.length && base.indexOf("{S}") >= 0) {
-                var subdomain = parseInt(coordinate.zoom + coordinate.row + coordinate.column) % subdomains.length;
+                var subdomain = parseInt(coordinate.zoom + coordinate.row + coordinate.column, 10) % subdomains.length;
                 base = base.replace('{S}', subdomains[subdomain]);
             }
             return base.replace('{Z}', coordinate.zoom.toFixed(0)).replace('{X}', coordinate.column.toFixed(0)).replace('{Y}', coordinate.row.toFixed(0));
@@ -502,7 +503,8 @@ if (!com) {
     };
     
     MM.extend(MM.TemplatedMapProvider, MM.MapProvider);
-        //////////////////////////// Event Handlers
+    
+    //////////////////////////// Event Handlers
 
     // map is optional here, use init if you don't have a map yet
     MM.MouseHandler = function(map) { 
@@ -634,8 +636,7 @@ if (!com) {
     
         // interaction helper
     
-        getMousePoint: function(e)
-        {
+        getMousePoint: function(e) {
             // start with just the mouse (x, y)
             var point = new MM.Point(e.clientX, e.clientY);
             
@@ -663,7 +664,7 @@ if (!com) {
         for (var i = 0; i < events.length; i++) {
             this.callbacks[events[i]] = [];
         }
-    }
+    };
     
     MM.CallbackManager.prototype = {
     
@@ -702,7 +703,8 @@ if (!com) {
             }
         }
         
-    };    //////////////////////////// RequestManager is an image loading queue 
+    };
+    //////////////////////////// RequestManager is an image loading queue 
     
     MM.RequestManager = function(parent) {
     
@@ -715,7 +717,7 @@ if (!com) {
         this.requestQueue = [];    
         
         this.callbackManager = new MM.CallbackManager(this, [ 'requestcomplete' ]);
-    }
+    };
     
     MM.RequestManager.prototype = {
 
@@ -765,8 +767,8 @@ if (!com) {
             
             // then check the loadingBay...
             var openRequests = this.loadingBay.childNodes;
-            for (var i = openRequests.length-1; i >= 0; i--) {
-                var img = openRequests[i];
+            for (var j = openRequests.length-1; j >= 0; j--) {
+                var img = openRequests[j];
                 if (!(img.id in validKeys)) {
                     this.loadingBay.removeChild(img);
                     this.openRequestCount--;
@@ -785,7 +787,7 @@ if (!com) {
                         var request = this.requestsById[id];
                         // whether we've done the request or not...
                         delete this.requestsById[id];
-                        if (request != null) {
+                        if (request !== null) {
                             request = request.key = request.coord = request.url = null;
                         }
                     }
@@ -818,7 +820,7 @@ if (!com) {
                 var theManager = this;
                 this._processQueue = function() {
                     theManager.processQueue();
-                }
+                };
             }        
             return this._processQueue;
         },
@@ -1170,8 +1172,8 @@ if (!com) {
         
             // additionally, make sure it's not outside the boundaries set by provider limits
             // this also catches Infinity stuff
-            initZoom = Math.min(initZoom, this.provider.outerLimits()[1].zoom)
-            initZoom = Math.max(initZoom, this.provider.outerLimits()[0].zoom)
+            initZoom = Math.min(initZoom, this.provider.outerLimits()[1].zoom);
+            initZoom = Math.max(initZoom, this.provider.outerLimits()[0].zoom);
         
             // coordinate of extent center
             var centerRow = (TL.row + BR.row) / 2;
@@ -1314,7 +1316,7 @@ if (!com) {
                 'Tile Cache Size': this.tileCacheSize,
                 'Tiles On Screen': this.parent.getElementsByTagName('img').length
             };        
-        },//*/
+        },*/
         
         // limits
         
@@ -1596,7 +1598,7 @@ if (!com) {
                     // this will remove tiles that were only visible
                     // to cover this tile while it loaded:
                     theMap.requestRedraw();                
-                }
+                };
             }
             return this._tileComplete;
         },

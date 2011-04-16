@@ -8,7 +8,7 @@
         for (var i = 0; i < events.length; i++) {
             this.callbacks[events[i]] = [];
         }
-    }
+    };
     
     MM.CallbackManager.prototype = {
     
