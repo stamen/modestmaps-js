@@ -2,12 +2,7 @@
     
     MM.RequestManager = function(parent) {
     
-        // add an invisible div so that image.onload will have a srcElement in IE6
-        // TODO: can we do this with a DOM fragment?
-        this.loadingBay = document.createElement('div');
-        this.loadingBay.id = parent.id+'-loading-bay';
-        this.loadingBay.style.display = 'none';
-        parent.appendChild(this.loadingBay);
+        this.loadingBay = document.createDocumentFragment();
 
         this.requestsById = {};
         this.openRequestCount = 0;
@@ -65,7 +60,7 @@
             }
             
             // then check the loadingBay...
-            var openRequests = this.loadingBay.getElementsByTagName('img');
+            var openRequests = this.loadingBay.childNodes;
             for (var i = openRequests.length-1; i >= 0; i--) {
                 var img = openRequests[i];
                 if (!(img.id in validKeys)) {
