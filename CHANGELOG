@@ -8,6 +8,32 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment 
     the major version." -- http://semver.org/
 
+v0.14.3
+ - improve redraw behavior by ensuring layer is visible in getTileComplete
+ - use a closure in v0.14.2's setTimeout to ensure proper 'this'
+
+v0.14.2
+ - add setTimeout to processQueue to avoid stack overflow/recursion
+   bug in IE 7/8 (https://github.com/stamen/modestmaps-js/issues/12)
+   thanks @yhahn!
+
+v0.14.1
+ - reinstated display of children for missing tiles, except when if
+   map.enablePyramidLoading is set to true
+
+v0.14.0
+ - added map.enablePyramidLoading flag for pyramid loading (off by default)
+ - fixed Coordinate.prototype.toKey (back to string join to avoid collisions)
+
+v0.13.5
+ - changed the order of initialization so that event handlers go last
+   (this is so that attributes like layerParent are in place for complex
+    event handlers like anyzoom.js... handlers can also use callbacks now)
+
+2011-01-03 note:
+ - broke modestmap.js file into src folder, now building with Makefile
+ - no functionality change to modestmaps.js (just whitespace changes)
+
 v0.13.4
  - changed to img.style.width instead of img.width, for ipads (see examples/touch/test.html)
 
