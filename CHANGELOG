@@ -8,6 +8,9 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment 
     the major version." -- http://semver.org/
 
+v0.16.0
+ - added MapProvider.setZoomRange for @straup
+
 v0.15.2
  - misc syntax fixes and improve parseInt/radix correctness, from @tmcw
 

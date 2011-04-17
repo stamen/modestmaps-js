@@ -41,6 +41,13 @@
             return [ this.topLeftOuterLimit.copy(), 
                      this.bottomRightInnerLimit.copy() ];
         },
+
+        // use this to tell MapProvider  that tiles only exist between certain zoom levels.
+        // Map will respect thse zoom limits and not allow zooming outside this range
+        setZoomRange: function(minZoom, maxZoom) {
+            this.topLeftOuterLimit = this.topLeftOuterLimit.zoomTo(minZoom);
+            this.bottomRightInnerLimit = this.bottomRightInnerLimit.zoomTo(maxZoom);
+        },
     
         sourceCoordinate: function(coord) {
             var TL = this.topLeftOuterLimit.zoomTo(coord.zoom);
