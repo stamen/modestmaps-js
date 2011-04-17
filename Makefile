@@ -15,15 +15,18 @@ JS_FILES = \
 	src/map.js \
 	src/end.jsf
 
-modestmaps.min.js: modestmaps.js
-	rm -f modestmaps.min.js
-	java -jar tools/yuicompressor-2.4.2.jar modestmaps.js > modestmaps.min.js
+all: modestmaps.js modestmaps.min.js
 
-modestmaps.js: src/copyright.js $(JS_FILES)
-	cat src/copyright.js > modestmaps.js
-	perl -pi -e 's#N\.N\.N#$(VERSION)#' modestmaps.js
-	cat $(JS_FILES) >> modestmaps.js
+modestmaps.min.js: modestmaps.tmp.js
+	java -jar tools/yuicompressor-2.4.2.jar modestmaps.tmp.js > modestmaps.min.js
+
+modestmaps.js: modestmaps.tmp.js
+	cat modestmaps.tmp.js > modestmaps.js
+
+modestmaps.tmp.js: src/copyright.js $(JS_FILES)
+	cat src/copyright.js > modestmaps.tmp.js
+	perl -pi -e 's#N\.N\.N#$(VERSION)#' modestmaps.tmp.js
+	cat $(JS_FILES) >> modestmaps.tmp.js
 
 clean:
-	rm modestmaps.js
-	rm modestmaps.min.js
+	rm modestmaps.tmp.js
