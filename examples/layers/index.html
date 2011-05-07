@@ -7,14 +7,15 @@
     
         function initMap()
         {
-            var mm = com.modestmaps;
-            console.log(document.getElementById('map'));
+            var mm = com.modestmaps,
+              //bg = new mm.TemplatedMapProvider('http://acetate.geoiq.com/tiles/terrain/{Z}/{X}/{Y}.png');
+                bg = new mm.TilePaintingProvider('http://acetate.geoiq.com/tiles/terrain/{Z}/{X}/{Y}.png');
             
-            var map = new mm.Map('map', 
-                                 new mm.TemplatedMapProvider('http://acetate.geoiq.com/tiles/terrain/{Z}/{X}/{Y}.png'), 
-                                 new mm.Point(800, 390));
+            var map = new mm.Map('map',  bg, new mm.Point(800, 390));
         
             map.setCenterZoom(new mm.Location(37.811530, -122.2666097), 13);
+            
+            console.log(['provider:', bg]);
         }
 
     // -->

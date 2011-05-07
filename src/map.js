@@ -489,21 +489,29 @@
             // use this coordinate for generating keys, parents and children:
             var tileCoord = startCoord.copy();
 
-            for (tileCoord.column = startCoord.column; tileCoord.column <= endCoord.column; tileCoord.column += 1) {
-                for (tileCoord.row = startCoord.row; tileCoord.row <= endCoord.row; tileCoord.row += 1) {
+            for(tileCoord.column = startCoord.column; tileCoord.column <= endCoord.column; tileCoord.column += 1)
+            {
+                for(tileCoord.row = startCoord.row; tileCoord.row <= endCoord.row; tileCoord.row += 1)
+                {
                     var tileKey = tileCoord.toKey();
                     validTileKeys[tileKey] = true;
-                    if (tileKey in this.tiles) {
+
+                   /*
+                    * Check that the needed tile already exists someplace - queue it up if it doesn't.
+                    */
+                    if(tileKey in this.tiles)
+                    {
                         var tile = this.tiles[tileKey];
                         // ensure it's in the DOM:
                         if (tile.parentNode != thisLayer) {
                             thisLayer.appendChild(tile);
                         }
                     }
-                    else {
+                    else
+                    {
                         if (!this.requestManager.hasRequest(tileKey)) {
-                            var tileURL = this.provider.getTileUrl(tileCoord);
-                            this.requestManager.requestTile(tileKey, tileCoord, tileURL);
+                            var element = this.provider.getTileElement(tileCoord);
+                            this.addTileElement(tileKey, tileCoord, element);
                         }
                         // look for a parent tile in our image cache
                         var tileCovered = false;
@@ -525,8 +533,8 @@
                                 }
                                 else if (!this.requestManager.hasRequest(parentKey)) {
                                     // force load of parent tiles we don't already have
-                                    var tileURL = this.provider.getTileUrl(parentCoord);
-                                    this.requestManager.requestTile(parentKey, parentCoord, tileURL);                            
+                                    var element = this.provider.getTileElement(parentCoord);
+                                    this.addTileElement(parentKey, parentCoord, element);
                                 }
                             }
                             else {
@@ -579,7 +587,8 @@
             // layers we want to see, if they have tiles in validTileKeys
             var minLayer = startCoord.zoom-5;
             var maxLayer = startCoord.zoom+2;
-            for (var i = minLayer; i < maxLayer; i++) {
+            for(var i = minLayer; i < maxLayer; i++)
+            {
 
                 var layer = this.layers[i];
                 
@@ -641,11 +650,13 @@
         
         _tileComplete: null,
         
-        getTileComplete: function() {
-            if (!this._tileComplete) {
+        getTileComplete: function()
+        {
+            if (!this._tileComplete)
+            {
                 var theMap = this;
-                this._tileComplete = function(manager, tile) {
-                
+                this._tileComplete = function(manager, tile)
+                {
                     // cache the tile itself:
                     theMap.tiles[tile.id] = tile;
                     theMap.tileCacheSize++;
@@ -657,37 +668,64 @@
                     };
                     theMap.recentTilesById[tile.id] = record;
                     theMap.recentTiles.push(record);                        
-
-                    // position this tile (avoids a full draw() call):
-                    var theCoord = theMap.coordinate.zoomTo(tile.coord.zoom);
-                    var scale = Math.pow(2, theMap.coordinate.zoom - tile.coord.zoom);
-                    var tx = ((theMap.dimensions.x/2) + (tile.coord.column - theCoord.column) * theMap.provider.tileWidth * scale);
-                    var ty = ((theMap.dimensions.y/2) + (tile.coord.row - theCoord.row) * theMap.provider.tileHeight * scale);
-                    tile.style.left = Math.round(tx) + 'px'; 
-                    tile.style.top = Math.round(ty) + 'px'; 
-                    // using style here and not raw width/height for ipad/iphone scaling
-                    // see examples/touch/test.html                    
-                    tile.style.width = Math.ceil(theMap.provider.tileWidth * scale) + 'px';
-                    tile.style.height = Math.ceil(theMap.provider.tileHeight * scale) + 'px';
-
-                    // add tile to its layer
-                    var theLayer = theMap.layers[tile.coord.zoom];
-                    theLayer.appendChild(tile);                    
-
-                    // ensure the layer is visible if it's still the current layer
-                    if (Math.round(theMap.coordinate.zoom) == tile.coord.zoom) {
-                        theLayer.style.display = 'block';
-                    }
-
-                    // request a lazy redraw of all layers 
-                    // this will remove tiles that were only visible
-                    // to cover this tile while it loaded:
-                    theMap.requestRedraw();                
+                    
+                    theMap.positionTile(tile);
                 };
             }
             return this._tileComplete;
         },
         
+        addTileElement: function(key, coordinate, element)
+        {
+            // Expected in draw()
+            element.id = key;
+            element.coord = coordinate;
+        
+            // cache the tile itself:
+            this.tiles[key] = element;
+            this.tileCacheSize++;
+            
+            // also keep a record of when we last touched this tile:
+            var record = { 
+                id: key, 
+                lastTouchedTime: new Date().getTime() 
+            };
+            this.recentTilesById[key] = record;
+            this.recentTiles.push(record);                        
+            
+            this.positionTile(coordinate, element);
+        },
+        
+        positionTile: function(coordinate, element)
+        {
+            // position this tile (avoids a full draw() call):
+            var theCoord = this.coordinate.zoomTo(coordinate.zoom);
+            var scale = Math.pow(2, this.coordinate.zoom - coordinate.zoom);
+            var tx = ((this.dimensions.x/2) + (coordinate.column - theCoord.column) * this.provider.tileWidth * scale);
+            var ty = ((this.dimensions.y/2) + (coordinate.row - theCoord.row) * this.provider.tileHeight * scale);
+
+            element.style.left = Math.round(tx) + 'px'; 
+            element.style.top = Math.round(ty) + 'px'; 
+
+            // using style here and not raw width/height for ipad/iphone scaling
+            // see examples/touch/test.html                    
+            element.style.width = Math.ceil(this.provider.tileWidth * scale) + 'px';
+            element.style.height = Math.ceil(this.provider.tileHeight * scale) + 'px';
+
+            // add tile to its layer
+            var theLayer = this.layers[coordinate.zoom];
+            theLayer.appendChild(element);                    
+
+            // ensure the layer is visible if it's still the current layer
+            if (Math.round(this.coordinate.zoom) == coordinate.zoom) {
+                theLayer.style.display = 'block';
+            }
+
+            // request a lazy redraw of all layers 
+            // this will remove tiles that were only visible
+            // to cover this tile while it loaded:
+            this.requestRedraw();                
+        },
         
         _redrawTimer: undefined,
         
