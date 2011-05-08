@@ -117,9 +117,8 @@
             return img;
         },
         
-        releaseTileElement: function(coordinate)
+        releaseTileElement: function(element)
         {
-            console.log(['release tile element:', coordinate]);
         },
         
         locationCoordinate: function(location) {

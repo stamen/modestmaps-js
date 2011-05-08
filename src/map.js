@@ -89,7 +89,7 @@
         */
 
         this.requestManager = new MM.RequestManager(this.parent);    
-        this.requestManager.addCallback('requestcomplete', this.getTileComplete());
+        //this.requestManager.addCallback('requestcomplete', this.getTileComplete());
     
         this.layers = {};
 
@@ -364,6 +364,7 @@
                     if (this.layers.hasOwnProperty(name)) {
                         var layer = this.layers[name];
                         while(layer.firstChild) {
+                            this.provider.releaseTileElement(layer.firstChild);
                             layer.removeChild(layer.firstChild);
                         }
                     }
@@ -489,76 +490,15 @@
             // use this coordinate for generating keys, parents and children:
             var tileCoord = startCoord.copy();
 
-            for(tileCoord.column = startCoord.column; tileCoord.column <= endCoord.column; tileCoord.column += 1)
+            for(tileCoord.column = startCoord.column; tileCoord.column <= endCoord.column; tileCoord.column++)
             {
-                for(tileCoord.row = startCoord.row; tileCoord.row <= endCoord.row; tileCoord.row += 1)
+                for(tileCoord.row = startCoord.row; tileCoord.row <= endCoord.row; tileCoord.row++)
                 {
-                    var tileKey = tileCoord.toKey();
-                    validTileKeys[tileKey] = true;
-
-                   /*
-                    * Check that the needed tile already exists someplace - queue it up if it doesn't.
-                    */
-                    if(tileKey in this.tiles)
+                    var validKeys = this.inventoryVisibleTile(thisLayer, tileCoord);
+                    
+                    while(validKeys.length)
                     {
-                        var tile = this.tiles[tileKey];
-                        // ensure it's in the DOM:
-                        if (tile.parentNode != thisLayer) {
-                            thisLayer.appendChild(tile);
-                        }
-                    }
-                    else
-                    {
-                        if (!this.requestManager.hasRequest(tileKey)) {
-                            var element = this.provider.getTileElement(tileCoord);
-                            this.addTileElement(tileKey, tileCoord, element);
-                        }
-                        // look for a parent tile in our image cache
-                        var tileCovered = false;
-                        var maxStepsOut = tileCoord.zoom;
-                        for (var pz = 1; pz <= maxStepsOut; pz++) {
-                            var parentCoord = tileCoord.zoomBy(-pz).container();
-                            var parentKey = parentCoord.toKey();
-                            
-                            if (this.enablePyramidLoading) {
-                                // mark all parent tiles valid
-                                validTileKeys[parentKey] = true;
-                                var parentLayer = this.createOrGetLayer(parentCoord.zoom);
-                                //parentLayer.coordinate = parentCoord.copy();
-                                if (parentKey in this.tiles) {
-                                    var parentTile = this.tiles[parentKey];
-                                    if (parentTile.parentNode != parentLayer) {
-                                        parentLayer.appendChild(parentTile);
-                                    }                            
-                                }
-                                else if (!this.requestManager.hasRequest(parentKey)) {
-                                    // force load of parent tiles we don't already have
-                                    var element = this.provider.getTileElement(parentCoord);
-                                    this.addTileElement(parentKey, parentCoord, element);
-                                }
-                            }
-                            else {
-                                // only mark it valid if we have it already
-                                if (parentKey in this.tiles) {
-                                    validTileKeys[parentKey] = true;
-                                    tileCovered = true;
-                                    break;
-                                }
-                            }
-                            
-                        }
-                        // if we didn't find a parent, look at the children:
-                        if (!tileCovered && !this.enablePyramidLoading) {
-                            var childCoord = tileCoord.zoomBy(1);
-                            // mark everything valid whether or not we have it:
-                            validTileKeys[childCoord.toKey()] = true;
-                            childCoord.column += 1;
-                            validTileKeys[childCoord.toKey()] = true;
-                            childCoord.row += 1;
-                            validTileKeys[childCoord.toKey()] = true;
-                            childCoord.column -= 1;
-                            validTileKeys[childCoord.toKey()] = true;
-                        }
+                        validTileKeys[validKeys.pop()] = true;
                     }
                 }
             }
@@ -576,6 +516,7 @@
                     layer.style.display = 'none';
                     var visibleTiles = layer.getElementsByTagName('img');
                     for (var j = visibleTiles.length-1; j >= 0; j--) {
+                        this.provider.releaseTileElement(visibleTiles[j]);
                         layer.removeChild(visibleTiles[j]);
                     }                    
                 }
@@ -617,6 +558,7 @@
                 for (var j = visibleTiles.length-1; j >= 0; j--) {
                     var tile = visibleTiles[j];
                     if (!validTileKeys[tile.id]) {
+                        this.provider.releaseTileElement(tile);
                         layer.removeChild(tile);
                     }
                     else {
@@ -646,6 +588,98 @@
             this.checkCache();
 
             this.dispatchCallback('drawn');
+        },
+        
+       /**
+        * For a given tile coordinate in a given layer element, ensure that it's
+        * correctly represented in the DOM including potentially-overlapping
+        * parent and child tiles for pyramid loading.
+        *
+        * Return a list of valid (i.e. loadable?) tile keys.
+        */
+        inventoryVisibleTile: function(layer_element, tile_coord)
+        {
+            var tile_key = tile_coord.toKey(),
+                valid_tile_keys = [tile_key];
+
+           /*
+            * Check that the needed tile already exists someplace - add it to the DOM if it does.
+            */
+            if(tile_key in this.tiles)
+            {
+                var tile = this.tiles[tile_key];
+
+                // ensure it's in the DOM:
+                if(tile.parentNode != layer_element)
+                {
+                    layer_element.appendChild(tile);
+                }
+                
+                return valid_tile_keys;
+            }
+
+           /*
+            * Check that the needed tile has even been requested at all.
+            */
+            if(!this.requestManager.hasRequest(tile_key))
+            {
+                var element = this.provider.getTileElement(tile_coord);
+                this.addTileElement(tile_key, tile_coord, element);
+            }
+
+            // look for a parent tile in our image cache
+            var tileCovered = false;
+            var maxStepsOut = tile_coord.zoom;
+
+            for(var pz = 1; pz <= maxStepsOut; pz++)
+            {
+                var parent_coord = tile_coord.zoomBy(-pz).container();
+                var parent_key = parent_coord.toKey();
+                
+                if (this.enablePyramidLoading) {
+                    // mark all parent tiles valid
+                    valid_tile_keys.push(parent_key);
+                    var parentLayer = this.createOrGetLayer(parent_coord.zoom);
+
+                    //parentLayer.coordinate = parent_coord.copy();
+                    if (parent_key in this.tiles) {
+                        var parentTile = this.tiles[parent_key];
+                        if (parentTile.parentNode != parentLayer) {
+                            parentLayer.appendChild(parentTile);
+                        }                            
+                    }
+                    else if (!this.requestManager.hasRequest(parent_key)) {
+                        // force load of parent tiles we don't already have
+                        var element = this.provider.getTileElement(parent_coord);
+                        this.addTileElement(parent_key, parent_coord, element);
+                    }
+                }
+                else {
+                    // only mark it valid if we have it already
+                    if (parent_key in this.tiles) {
+                        valid_tile_keys.push(parent_key);
+                        tileCovered = true;
+                        break;
+                    }
+                }
+            }
+
+            // if we didn't find a parent, look at the children:
+            if(!tileCovered && !this.enablePyramidLoading)
+            {
+                var child_coord = tile_coord.zoomBy(1);
+
+                // mark everything valid whether or not we have it:
+                valid_tile_keys.push(child_coord.toKey());
+                child_coord.column += 1;
+                valid_tile_keys.push(child_coord.toKey());
+                child_coord.row += 1;
+                valid_tile_keys.push(child_coord.toKey());
+                child_coord.column -= 1;
+                valid_tile_keys.push(child_coord.toKey());
+            }
+            
+            return valid_tile_keys;
         },
         
         addTileElement: function(key, coordinate, element)
