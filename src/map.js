@@ -648,38 +648,11 @@
             this.dispatchCallback('drawn');
         },
         
-        _tileComplete: null,
-        
-        getTileComplete: function()
-        {
-            if (!this._tileComplete)
-            {
-                var theMap = this;
-                this._tileComplete = function(manager, tile)
-                {
-                    // cache the tile itself:
-                    theMap.tiles[tile.id] = tile;
-                    theMap.tileCacheSize++;
-                    
-                    // also keep a record of when we last touched this tile:
-                    var record = { 
-                        id: tile.id, 
-                        lastTouchedTime: new Date().getTime() 
-                    };
-                    theMap.recentTilesById[tile.id] = record;
-                    theMap.recentTiles.push(record);                        
-                    
-                    theMap.positionTile(tile);
-                };
-            }
-            return this._tileComplete;
-        },
-        
         addTileElement: function(key, coordinate, element)
         {
             // Expected in draw()
             element.id = key;
-            element.coord = coordinate;
+            element.coord = coordinate.copy();
         
             // cache the tile itself:
             this.tiles[key] = element;
