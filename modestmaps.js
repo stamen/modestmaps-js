@@ -1691,31 +1691,32 @@ if (!com) {
             this.recentTilesById[key] = record;
             this.recentTiles.push(record);                        
             
-            this.positionTile(coordinate, element);
+            this.positionTile(element);
         },
         
-        positionTile: function(coordinate, element)
+        positionTile: function(tile)
         {
             // position this tile (avoids a full draw() call):
-            var theCoord = this.coordinate.zoomTo(coordinate.zoom);
-            var scale = Math.pow(2, this.coordinate.zoom - coordinate.zoom);
-            var tx = ((this.dimensions.x/2) + (coordinate.column - theCoord.column) * this.provider.tileWidth * scale);
-            var ty = ((this.dimensions.y/2) + (coordinate.row - theCoord.row) * this.provider.tileHeight * scale);
+            var theCoord = this.coordinate.zoomTo(tile.coord.zoom);
+            var scale = Math.pow(2, this.coordinate.zoom - tile.coord.zoom);
+            var tx = ((this.dimensions.x/2) + (tile.coord.column - theCoord.column) * this.provider.tileWidth * scale);
+            var ty = ((this.dimensions.y/2) + (tile.coord.row - theCoord.row) * this.provider.tileHeight * scale);
 
-            element.style.left = Math.round(tx) + 'px'; 
-            element.style.top = Math.round(ty) + 'px'; 
+            tile.style.position = 'absolute';
+            tile.style.left = Math.round(tx) + 'px'; 
+            tile.style.top = Math.round(ty) + 'px'; 
 
             // using style here and not raw width/height for ipad/iphone scaling
             // see examples/touch/test.html                    
-            element.style.width = Math.ceil(this.provider.tileWidth * scale) + 'px';
-            element.style.height = Math.ceil(this.provider.tileHeight * scale) + 'px';
+            tile.style.width = Math.ceil(this.provider.tileWidth * scale) + 'px';
+            tile.style.height = Math.ceil(this.provider.tileHeight * scale) + 'px';
 
             // add tile to its layer
-            var theLayer = this.layers[coordinate.zoom];
-            theLayer.appendChild(element);                    
+            var theLayer = this.layers[tile.coord.zoom];
+            theLayer.appendChild(tile);                    
 
             // ensure the layer is visible if it's still the current layer
-            if (Math.round(this.coordinate.zoom) == coordinate.zoom) {
+            if (Math.round(this.coordinate.zoom) == tile.coord.zoom) {
                 theLayer.style.display = 'block';
             }
 
