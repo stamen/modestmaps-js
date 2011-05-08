@@ -347,7 +347,13 @@
             return this.coordinate.zoom;
         },
     
-        setProvider: function(newProvider) {
+        setProvider: function(newProvider)
+        {
+            if(newProvider.hasOwnProperty('getTileUrl'))
+            {
+                console.log(['set provider:', newProvider, 'has getTileUrl().']);
+                newProvider = new MM.TilePaintingProvider(newProvider, this.requestManager);
+            }
 
             var firstProvider = false;            
             if (this.provider === null) {
@@ -665,7 +671,7 @@
             var tileHeight = this.provider.tileHeight * scale;
             var center = new MM.Point(this.dimensions.x/2, this.dimensions.y/2);
 
-            var visibleTiles = layer.getElementsByTagName('img');
+            var visibleTiles = layer.getElementsByTagName('div');
 
             for (var j = visibleTiles.length-1; j >= 0; j--) {
                 var tile = visibleTiles[j];

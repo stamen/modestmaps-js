@@ -28,6 +28,16 @@
         getTileUrl: function(coordinate) {
             console && console.log("Abstract method not implemented by subclass.");
         },
+
+        getTileElement: function(coordinate)
+        {
+            console && console.log("Abstract method not implemented by subclass.");
+        },
+        
+        releaseTileElement: function(element)
+        {
+            console && console.log("Abstract method not implemented by subclass.");
+        },
         
         locationCoordinate: function(location) {
             return this.projection.locationCoordinate(location);
@@ -67,7 +77,8 @@
         }
     };
     
-    MM.TemplatedMapProvider = function(template, subdomains) {
+    MM.TemplatedMapProvider = function(template, subdomains)
+    {
         MM.MapProvider.call(this, function(coordinate) {
             coordinate = this.sourceCoordinate(coordinate);
             if (!coordinate) {
@@ -87,74 +98,45 @@
    /**
     * Possible new kind of provider that deals in elements.
     */
-    MM.TilePaintingProvider = function(template, requestManager)
+    MM.TilePaintingProvider = function(template_provider, request_manager)
     {
-        this.template = template;
-        this.requestManager = requestManager;
+        console.log(['painting provider', template_provider, request_manager]);
+
+        this.template_provider = template_provider;
+        this.request_manager = request_manager;
+
+        var divs = {};
+        
+        // this only seems to work as a closure - why?
+        function onLoaded(mgr, t)
+        {
+            if(t.id in divs)
+            {
+                divs[t.id].appendChild(t);
+                delete divs[t.id];
+            }
+        }
+        
+        this.request_manager.addCallback('requestcomplete', onLoaded);
+        this.divs = divs;
     }
     
-    MM.TilePaintingProvider.prototype = {
+    MM.extend(MM.TilePaintingProvider, MM.MapProvider);
     
-        // defaults to Google-y Mercator style maps
-        projection: new MM.MercatorProjection( 0, 
-                        MM.deriveTransformation(-Math.PI,  Math.PI, 0, 0, 
-                                                 Math.PI,  Math.PI, 1, 0, 
-                                                -Math.PI, -Math.PI, 0, 1) ),
-                    
-        tileWidth: 256,
-        tileHeight: 256,
+    MM.TilePaintingProvider.prototype.getTileElement = function(coord)
+    {
+        this.request_manager.requestTile(coord.toKey(), coord, this.template_provider.getTileUrl(coord));
         
-        // these are limits for available *tiles*
-        // panning limits will be different (since you can wrap around columns)
-        // but if you put Infinity in here it will screw up sourceCoordinate
-        topLeftOuterLimit: new MM.Coordinate(0,0,0),
-        bottomRightInnerLimit: new MM.Coordinate(1,1,0).zoomTo(18),
-        
-        getTileElement: function(coord)
+        if(coord.toKey() in this.divs)
         {
-            var img = document.createElement('img');
-            img.src = this.template.replace('{Z}', coord.zoom.toFixed(0)).replace('{X}', coord.column.toFixed(0)).replace('{Y}', coord.row.toFixed(0));
-            return img;
-        },
-        
-        releaseTileElement: function(element)
-        {
-        },
-        
-        locationCoordinate: function(location) {
-            return this.projection.locationCoordinate(location);
-        },
-    
-        coordinateLocation: function(location) {
-            return this.projection.coordinateLocation(location);
-        },
-        
-        outerLimits: function() {
-            return [ this.topLeftOuterLimit.copy(), 
-                     this.bottomRightInnerLimit.copy() ];
-        },
-
-        // use this to tell MapProvider  that tiles only exist between certain zoom levels.
-        // Map will respect thse zoom limits and not allow zooming outside this range
-        setZoomRange: function(minZoom, maxZoom) {
-            this.topLeftOuterLimit = this.topLeftOuterLimit.zoomTo(minZoom);
-            this.bottomRightInnerLimit = this.bottomRightInnerLimit.zoomTo(maxZoom);
-        },
-    
-        sourceCoordinate: function(coord) {
-            var TL = this.topLeftOuterLimit.zoomTo(coord.zoom);
-            var BR = this.bottomRightInnerLimit.zoomTo(coord.zoom);
-            var vSize = BR.row - TL.row;
-            if (coord.row < 0 | coord.row >= vSize) {
-                // it's too high or too low:
-                return null;
-            }
-            var hSize = BR.column - TL.column;
-            // assume infinite horizontal scrolling
-            var wrappedColumn = coord.column % hSize;
-            while (wrappedColumn < 0) {
-                wrappedColumn += hSize;
-            }
-            return new MM.Coordinate(coord.row, wrappedColumn, coord.zoom);
+            return this.divs[coord.toKey()];
         }
-    };
+        
+        var div = document.createElement('div');
+        this.divs[coord.toKey()] = div;
+        return div;
+    }
+    
+    MM.TilePaintingProvider.prototype.releaseTileElement = function(element)
+    {
+    }
