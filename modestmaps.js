@@ -1457,8 +1457,8 @@ if (!com) {
         
         // rendering    
         
-        draw: function() {
-    
+        draw: function()
+        {
             // make sure we're not too far in or out:
             this.coordinate = this.enforceLimits(this.coordinate);
 
@@ -1519,60 +1519,13 @@ if (!com) {
                 }
             }
         
-            // for tracking time of tile usage:
-            var now = new Date().getTime();
-        
             // layers we want to see, if they have tiles in validTileKeys
             var minLayer = startCoord.zoom-5;
             var maxLayer = startCoord.zoom+2;
-            for(var i = minLayer; i < maxLayer; i++)
+
+            for(var zoom = minLayer; zoom < maxLayer; zoom++)
             {
-
-                var layer = this.layers[i];
-                
-                if (!layer) {
-                    // no tiles for this layer yet
-                    continue;
-                }
-
-                var scale = 1;
-                var theCoord = this.coordinate.copy();
-
-                if (layer.childNodes.length > 0) {
-                    layer.style.display = 'block';
-                    scale = Math.pow(2, this.coordinate.zoom - i);
-                    theCoord = theCoord.zoomTo(i);
-                }
-                else {
-                    layer.style.display = 'none';
-                }
-                
-                var tileWidth = this.provider.tileWidth * scale;
-                var tileHeight = this.provider.tileHeight * scale;
-                var center = new MM.Point(this.dimensions.x/2, this.dimensions.y/2);
-
-                var visibleTiles = layer.getElementsByTagName('img');
-                for (var j = visibleTiles.length-1; j >= 0; j--) {
-                    var tile = visibleTiles[j];
-                    if (!validTileKeys[tile.id]) {
-                        this.provider.releaseTileElement(tile);
-                        layer.removeChild(tile);
-                    }
-                    else {
-                        // position tiles
-                        var tx = center.x + (tile.coord.column - theCoord.column) * tileWidth;
-                        var ty = center.y + (tile.coord.row - theCoord.row) * tileHeight;
-                        tile.style.left = Math.round(tx) + 'px'; 
-                        tile.style.top = Math.round(ty) + 'px'; 
-                        // using style here and not raw width/height for ipad/iphone scaling
-                        // see examples/touch/test.html
-                        tile.style.width = Math.ceil(tileWidth) + 'px';
-                        tile.style.height = Math.ceil(tileHeight) + 'px';
-                        // log last-touched-time of currently cached tiles
-                        this.recentTilesById[tile.id].lastTouchedTime = now;
-                    }
-                }
-                
+                this.adjustVisibleLayer(this.layers[zoom], zoom, validTileKeys);
             }
     
             // cancel requests that aren't visible:
@@ -1677,6 +1630,62 @@ if (!com) {
             }
             
             return valid_tile_keys;
+        },
+        
+       /**
+        * For a given layer, adjust visibility as a whole and discard individual
+        * tiles based on values in valid_tile_keys from inventoryVisibleTile().
+        */
+        adjustVisibleLayer: function(layer, zoom, valid_tile_keys)
+        {
+            // for tracking time of tile usage:
+            var now = new Date().getTime();
+        
+            if(!layer) {
+                // no tiles for this layer yet
+                return;
+            }
+
+            var scale = 1;
+            var theCoord = this.coordinate.copy();
+
+            if (layer.childNodes.length > 0) {
+                layer.style.display = 'block';
+                scale = Math.pow(2, this.coordinate.zoom - zoom);
+                theCoord = theCoord.zoomTo(zoom);
+            }
+            else {
+                layer.style.display = 'none';
+            }
+            
+            var tileWidth = this.provider.tileWidth * scale;
+            var tileHeight = this.provider.tileHeight * scale;
+            var center = new MM.Point(this.dimensions.x/2, this.dimensions.y/2);
+
+            var visibleTiles = layer.getElementsByTagName('img');
+
+            for (var j = visibleTiles.length-1; j >= 0; j--) {
+                var tile = visibleTiles[j];
+                if (!valid_tile_keys[tile.id]) {
+                    this.provider.releaseTileElement(tile);
+                    layer.removeChild(tile);
+                }
+                else {
+                    // position tiles
+                    var tx = center.x + (tile.coord.column - theCoord.column) * tileWidth;
+                    var ty = center.y + (tile.coord.row - theCoord.row) * tileHeight;
+                    tile.style.left = Math.round(tx) + 'px'; 
+                    tile.style.top = Math.round(ty) + 'px'; 
+
+                    // using style here and not raw width/height for ipad/iphone scaling
+                    // see examples/touch/test.html
+                    tile.style.width = Math.ceil(tileWidth) + 'px';
+                    tile.style.height = Math.ceil(tileHeight) + 'px';
+
+                    // log last-touched-time of currently cached tiles
+                    this.recentTilesById[tile.id].lastTouchedTime = now;
+                }
+            }
         },
         
         addTileElement: function(key, coordinate, element)
