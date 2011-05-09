@@ -13,11 +13,11 @@
         transformation: null,
         
         rawProject: function(point) {
-            alert("Abstract method not implemented by subclass.");
+            console && console.log("Abstract method not implemented by subclass.");
         },
             
         rawUnproject: function(point) {
-            alert("Abstract method not implemented by subclass.");
+            console && console.log("Abstract method not implemented by subclass.");
         },
     
         project: function(point) {

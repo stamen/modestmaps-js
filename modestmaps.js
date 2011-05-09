@@ -354,11 +354,11 @@ if (!com) {
         transformation: null,
         
         rawProject: function(point) {
-            alert("Abstract method not implemented by subclass.");
+            console && console.log("Abstract method not implemented by subclass.");
         },
             
         rawUnproject: function(point) {
-            alert("Abstract method not implemented by subclass.");
+            console && console.log("Abstract method not implemented by subclass.");
         },
     
         project: function(point) {
@@ -426,6 +426,7 @@ if (!com) {
     };
     
     MM.extend(MM.MercatorProjection, MM.Projection);
+
     
     //////////////////////////// Providers
     
@@ -453,7 +454,7 @@ if (!com) {
         bottomRightInnerLimit: new MM.Coordinate(1,1,0).zoomTo(18),
         
         getTileUrl: function(coordinate) {
-            alert("Abstract method not implemented by subclass.");
+            console && console.log("Abstract method not implemented by subclass.");
         },
         
         locationCoordinate: function(location) {
