@@ -26,7 +26,7 @@
         bottomRightInnerLimit: new MM.Coordinate(1,1,0).zoomTo(18),
         
         getTileUrl: function(coordinate) {
-            console && console.log("Abstract method not implemented by subclass.");
+            throw "Abstract method not implemented by subclass.";
         },
         
         locationCoordinate: function(location) {
