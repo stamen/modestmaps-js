@@ -8,6 +8,9 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment 
     the major version." -- http://semver.org/
 
+v0.16.1
+- Unimplemented abstract methods throw exceptions instead of calling `alert()`
+
 v0.16.0
  - added MapProvider.setZoomRange for @straup
 
