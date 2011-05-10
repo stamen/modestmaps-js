@@ -507,7 +507,8 @@ if (!com) {
     
     MM.TemplatedMapProvider = function(template, subdomains)
     {
-        MM.MapProvider.call(this, function(coordinate) {
+        var getTileUrl = function(coordinate)
+        {
             coordinate = this.sourceCoordinate(coordinate);
             if (!coordinate) {
                 return null;
@@ -518,7 +519,9 @@ if (!com) {
                 base = base.replace('{S}', subdomains[subdomain]);
             }
             return base.replace('{Z}', coordinate.zoom.toFixed(0)).replace('{X}', coordinate.column.toFixed(0)).replace('{Y}', coordinate.row.toFixed(0));
-        });
+        }
+    
+        MM.MapProvider.call(this, getTileUrl);
     };
     
     MM.extend(MM.TemplatedMapProvider, MM.MapProvider);
@@ -536,50 +539,54 @@ if (!com) {
         this.divs = {};
     }
     
-    MM.extend(MM.TilePaintingProvider, MM.MapProvider);
+    MM.TilePaintingProvider.prototype = {
     
-    MM.TilePaintingProvider.prototype.getOnTileLoaded = function(img)
-    {
-        if(!this._onTileLoaded)
+        getOnTileLoaded: function(img)
         {
-            var theProvider = this;
-            
-            this._onTileLoaded = function(img)
+            // only make this closure once.
+            if(!this._onTileLoaded)
             {
-                if(img.id in theProvider.divs)
+                var theProvider = this;
+                
+                this._onTileLoaded = function(img)
                 {
-                    img.style.width = '100%';
-                    img.style.height = '100%';
-                    theProvider.divs[img.id].appendChild(img);
-                    delete theProvider.divs[img.id];
+                    if(img.id in theProvider.divs)
+                    {
+                        img.style.width = '100%';
+                        img.style.height = '100%';
+                        theProvider.divs[img.id].appendChild(img);
+                        delete theProvider.divs[img.id];
+                    }
                 }
             }
-        }
-        
-        return this._onTileLoaded;
-    }
-
-    MM.TilePaintingProvider.prototype.getTileElement = function(coord)
-    {
-        this.request_manager.requestTile(coord.toKey(), coord, this.template_provider.getTileUrl(coord), this.getOnTileLoaded());
-        
-        if(coord.toKey() in this.divs)
+            
+            return this._onTileLoaded;
+        },
+    
+        getTileElement: function(coord)
         {
-            return this.divs[coord.toKey()];
-        }
+            this.request_manager.requestTile(coord.toKey(), coord, this.template_provider.getTileUrl(coord), this.getOnTileLoaded());
+            
+            if(coord.toKey() in this.divs)
+            {
+                return this.divs[coord.toKey()];
+            }
+            
+            var div = document.createElement('div');
+            this.divs[coord.toKey()] = div;
+            return div;
+        },
         
-        var div = document.createElement('div');
-        this.divs[coord.toKey()] = div;
-        return div;
+        releaseTileElement: function(coord)
+        {
+            if(coord.toKey() in this.divs)
+            {
+                delete this.divs[coord.toKey()];
+            }
+        }
     }
     
-    MM.TilePaintingProvider.prototype.releaseTileElement = function(coord)
-    {
-        if(coord.toKey() in this.divs)
-        {
-            delete this.divs[coord.toKey()];
-        }
-    }
+    MM.extend(MM.TilePaintingProvider, MM.MapProvider);
     //////////////////////////// Event Handlers
 
     // map is optional here, use init if you don't have a map yet
