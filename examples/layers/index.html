@@ -5,10 +5,45 @@
     <script type="text/javascript">
     // <!--
     
+        var MM = com.modestmaps;
+    
+       /**
+        * Possible new kind of provider that deals in elements.
+        */
+        var FakeProvider = function()
+        {
+            this.divs = {};
+        }
+        
+        MM.extend(FakeProvider, MM.MapProvider);
+        
+        FakeProvider.prototype.getTileElement = function(coord)
+        {
+            if(coord.toKey() in this.divs)
+            {
+                return this.divs[coord.toKey()];
+            }
+            
+            var div = document.createElement('div');
+            div.innerHTML = coord.toKey();
+            div.style.background = 'url(http://acetate.geoiq.com/tiles/terrain/{Z}/{X}/{Y}.png)'.replace('{Z}', coord.zoom.toFixed(0)).replace('{X}', coord.column.toFixed(0)).replace('{Y}', coord.row.toFixed(0));
+            this.divs[coord.toKey()] = div;
+            return div;
+        }
+        
+        FakeProvider.prototype.releaseTileElement = function(coord)
+        {
+            if(coord.toKey() in this.divs)
+            {
+                delete this.divs[coord.toKey()];
+            }
+        }
+    
         function initMap()
         {
             var mm = com.modestmaps,
-                bg = new mm.TemplatedMapProvider('http://acetate.geoiq.com/tiles/terrain/{Z}/{X}/{Y}.png');
+                bg = new FakeProvider();
+                //bg = new mm.TemplatedMapProvider('http://acetate.geoiq.com/tiles/terrain/{Z}/{X}/{Y}.png');
                 //bg = new mm.TilePaintingProvider('http://acetate.geoiq.com/tiles/terrain/{Z}/{X}/{Y}.png');
             
             var map = new mm.Map('map',  bg, new mm.Point(800, 390));
