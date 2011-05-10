@@ -533,27 +533,35 @@ if (!com) {
         this.template_provider = template_provider;
         this.request_manager = request_manager;
 
-        var divs = {};
-        
-        // this only seems to work as a closure - why?
-        function onLoaded(mgr, t)
-        {
-            if(t.id in divs)
-            {
-                divs[t.id].appendChild(t);
-                delete divs[t.id];
-            }
-        }
-        
-        this.request_manager.addCallback('requestcomplete', onLoaded);
-        this.divs = divs;
+        this.divs = {};
     }
     
     MM.extend(MM.TilePaintingProvider, MM.MapProvider);
     
+    MM.TilePaintingProvider.prototype.getOnTileLoaded = function(img)
+    {
+        if(!this._onTileLoaded)
+        {
+            var theProvider = this;
+            
+            this._onTileLoaded = function(img)
+            {
+                if(img.id in theProvider.divs)
+                {
+                    img.style.width = '100%';
+                    img.style.height = '100%';
+                    theProvider.divs[img.id].appendChild(img);
+                    delete theProvider.divs[img.id];
+                }
+            }
+        }
+        
+        return this._onTileLoaded;
+    }
+
     MM.TilePaintingProvider.prototype.getTileElement = function(coord)
     {
-        this.request_manager.requestTile(coord.toKey(), coord, this.template_provider.getTileUrl(coord));
+        this.request_manager.requestTile(coord.toKey(), coord, this.template_provider.getTileUrl(coord), this.getOnTileLoaded());
         
         if(coord.toKey() in this.divs)
         {
@@ -565,8 +573,12 @@ if (!com) {
         return div;
     }
     
-    MM.TilePaintingProvider.prototype.releaseTileElement = function(element)
+    MM.TilePaintingProvider.prototype.releaseTileElement = function(coord)
     {
+        if(coord.toKey() in this.divs)
+        {
+            delete this.divs[coord.toKey()];
+        }
     }
     //////////////////////////// Event Handlers
 
@@ -866,9 +878,10 @@ if (!com) {
 
         // TODO: remove dependency on coord (it's for sorting, maybe call it data?)
         // TODO: rename to requestImage once it's not tile specific
-        requestTile: function(key, coord, url) {
+        // callback is optional; used in getLoadComplete()
+        requestTile: function(key, coord, url, callback) {
             if (!(key in this.requestsById)) {
-                var request = { key: key, coord: coord.copy(), url: url };
+                var request = { key: key, coord: coord.copy(), url: url, callback: callback };
                 // if there's no url just make sure we don't request this image again
                 this.requestsById[key] = request;
                 if (url) {
@@ -943,6 +956,11 @@ if (!com) {
     
                     // unset these straight away so we don't call this twice
                     img.onload = img.onerror = null;
+                    
+                    // get the callback if one exists
+                    if('callback' in theManager.requestsById[img.id]) {
+                        var callback = theManager.requestsById[img.id].callback;
+                    }
     
                     // pull it back out of the (hidden) DOM 
                     // so that draw will add it correctly later
@@ -955,6 +973,10 @@ if (!com) {
                     // NB:- complete is also true onerror if we got a 404
                     if (img.complete || 
                         (img.readyState && img.readyState == 'complete')) {
+                        if(callback != undefined) {
+                            callback(img);
+                        }
+                        
                         theManager.dispatchCallback('requestcomplete', img);
                     }
                     else {
@@ -1349,7 +1371,7 @@ if (!com) {
                     if (this.layers.hasOwnProperty(name)) {
                         var layer = this.layers[name];
                         while(layer.firstChild) {
-                            this.provider.releaseTileElement(layer.firstChild);
+                            this.provider.releaseTileElement(layer.firstChild.coord);
                             layer.removeChild(layer.firstChild);
                         }
                     }
@@ -1501,7 +1523,7 @@ if (!com) {
                     layer.style.display = 'none';
                     var visibleTiles = layer.getElementsByTagName('img');
                     for (var j = visibleTiles.length-1; j >= 0; j--) {
-                        this.provider.releaseTileElement(visibleTiles[j]);
+                        this.provider.releaseTileElement(visibleTiles[j].coord);
                         layer.removeChild(visibleTiles[j]);
                     }                    
                 }
@@ -1655,7 +1677,7 @@ if (!com) {
             for (var j = visibleTiles.length-1; j >= 0; j--) {
                 var tile = visibleTiles[j];
                 if (!valid_tile_keys[tile.id]) {
-                    this.provider.releaseTileElement(tile);
+                    this.provider.releaseTileElement(tile.coord);
                     layer.removeChild(tile);
                 }
                 else {

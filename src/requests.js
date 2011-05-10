@@ -96,9 +96,10 @@
 
         // TODO: remove dependency on coord (it's for sorting, maybe call it data?)
         // TODO: rename to requestImage once it's not tile specific
-        requestTile: function(key, coord, url) {
+        // callback is optional; used in getLoadComplete()
+        requestTile: function(key, coord, url, callback) {
             if (!(key in this.requestsById)) {
-                var request = { key: key, coord: coord.copy(), url: url };
+                var request = { key: key, coord: coord.copy(), url: url, callback: callback };
                 // if there's no url just make sure we don't request this image again
                 this.requestsById[key] = request;
                 if (url) {
@@ -173,6 +174,11 @@
     
                     // unset these straight away so we don't call this twice
                     img.onload = img.onerror = null;
+                    
+                    // get the callback if one exists
+                    if('callback' in theManager.requestsById[img.id]) {
+                        var callback = theManager.requestsById[img.id].callback;
+                    }
     
                     // pull it back out of the (hidden) DOM 
                     // so that draw will add it correctly later
@@ -185,6 +191,10 @@
                     // NB:- complete is also true onerror if we got a 404
                     if (img.complete || 
                         (img.readyState && img.readyState == 'complete')) {
+                        if(callback != undefined) {
+                            callback(img);
+                        }
+                        
                         theManager.dispatchCallback('requestcomplete', img);
                     }
                     else {

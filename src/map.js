@@ -370,7 +370,7 @@
                     if (this.layers.hasOwnProperty(name)) {
                         var layer = this.layers[name];
                         while(layer.firstChild) {
-                            this.provider.releaseTileElement(layer.firstChild);
+                            this.provider.releaseTileElement(layer.firstChild.coord);
                             layer.removeChild(layer.firstChild);
                         }
                     }
@@ -522,7 +522,7 @@
                     layer.style.display = 'none';
                     var visibleTiles = layer.getElementsByTagName('img');
                     for (var j = visibleTiles.length-1; j >= 0; j--) {
-                        this.provider.releaseTileElement(visibleTiles[j]);
+                        this.provider.releaseTileElement(visibleTiles[j].coord);
                         layer.removeChild(visibleTiles[j]);
                     }                    
                 }
@@ -676,7 +676,7 @@
             for (var j = visibleTiles.length-1; j >= 0; j--) {
                 var tile = visibleTiles[j];
                 if (!valid_tile_keys[tile.id]) {
-                    this.provider.releaseTileElement(tile);
+                    this.provider.releaseTileElement(tile.coord);
                     layer.removeChild(tile);
                 }
                 else {

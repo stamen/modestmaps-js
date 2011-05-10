@@ -105,27 +105,35 @@
         this.template_provider = template_provider;
         this.request_manager = request_manager;
 
-        var divs = {};
-        
-        // this only seems to work as a closure - why?
-        function onLoaded(mgr, t)
-        {
-            if(t.id in divs)
-            {
-                divs[t.id].appendChild(t);
-                delete divs[t.id];
-            }
-        }
-        
-        this.request_manager.addCallback('requestcomplete', onLoaded);
-        this.divs = divs;
+        this.divs = {};
     }
     
     MM.extend(MM.TilePaintingProvider, MM.MapProvider);
     
+    MM.TilePaintingProvider.prototype.getOnTileLoaded = function(img)
+    {
+        if(!this._onTileLoaded)
+        {
+            var theProvider = this;
+            
+            this._onTileLoaded = function(img)
+            {
+                if(img.id in theProvider.divs)
+                {
+                    img.style.width = '100%';
+                    img.style.height = '100%';
+                    theProvider.divs[img.id].appendChild(img);
+                    delete theProvider.divs[img.id];
+                }
+            }
+        }
+        
+        return this._onTileLoaded;
+    }
+
     MM.TilePaintingProvider.prototype.getTileElement = function(coord)
     {
-        this.request_manager.requestTile(coord.toKey(), coord, this.template_provider.getTileUrl(coord));
+        this.request_manager.requestTile(coord.toKey(), coord, this.template_provider.getTileUrl(coord), this.getOnTileLoaded());
         
         if(coord.toKey() in this.divs)
         {
@@ -137,6 +145,10 @@
         return div;
     }
     
-    MM.TilePaintingProvider.prototype.releaseTileElement = function(element)
+    MM.TilePaintingProvider.prototype.releaseTileElement = function(coord)
     {
+        if(coord.toKey() in this.divs)
+        {
+            delete this.divs[coord.toKey()];
+        }
     }
