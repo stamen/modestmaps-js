@@ -670,16 +670,20 @@
             var tileWidth = this.provider.tileWidth * scale;
             var tileHeight = this.provider.tileHeight * scale;
             var center = new MM.Point(this.dimensions.x/2, this.dimensions.y/2);
+            
+            for(var i = layer.childNodes.length - 1; i >= 0; i--)
+            {
+                var tile = layer.childNodes[i];
 
-            var visibleTiles = layer.getElementsByTagName('div');
-
-            for (var j = visibleTiles.length-1; j >= 0; j--) {
-                var tile = visibleTiles[j];
-                if (!valid_tile_keys[tile.id]) {
+                if(tile.nodeType != 1 || !tile.hasOwnProperty('id')) {
+                    continue;
+                }
+                
+                if(!valid_tile_keys[tile.id]) {
                     this.provider.releaseTileElement(tile.coord);
                     layer.removeChild(tile);
-                }
-                else {
+                
+                } else {
                     // position tiles
                     var tx = center.x + (tile.coord.column - theCoord.column) * tileWidth;
                     var ty = center.y + (tile.coord.row - theCoord.row) * tileHeight;
