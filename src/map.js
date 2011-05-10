@@ -91,11 +91,11 @@
         this.requestManager = new MM.RequestManager(this.parent);    
         //this.requestManager.addCallback('requestcomplete', this.getTileComplete());
     
-        this.layers = {};
+        this.levels = {};
 
         this.layerParent = document.createElement('div');
-        this.layerParent.id = this.parent.id+'-layers';
-        // this text is also used in createOrGetLayer
+        this.layerParent.id = this.parent.id+'-levels';
+        // this text is also used in createOrGetLevel
         this.layerParent.style.cssText = 'position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; margin: 0; padding: 0; z-index: 0';
         
         this.parent.appendChild(this.layerParent);
@@ -132,7 +132,7 @@
         coordinate: null,
     
         tiles: null,
-        layers: null,
+        levels: null,
         layerParent: null,
     
         requestManager: null,
@@ -366,12 +366,12 @@
 
                 this.requestManager.clear();
                 
-                for (var name in this.layers) {
-                    if (this.layers.hasOwnProperty(name)) {
-                        var layer = this.layers[name];
-                        while(layer.firstChild) {
-                            this.provider.releaseTileElement(layer.firstChild.coord);
-                            layer.removeChild(layer.firstChild);
+                for (var name in this.levels) {
+                    if (this.levels.hasOwnProperty(name)) {
+                        var level = this.levels[name];
+                        while(level.firstChild) {
+                            this.provider.releaseTileElement(level.firstChild.coord);
+                            level.removeChild(level.firstChild);
                         }
                     }
                 }
@@ -485,13 +485,13 @@
                 endCoord = endCoord.right(tilePadding).down(tilePadding);
             }
 
-            // tiles with invalid keys will be removed from visible layers
+            // tiles with invalid keys will be removed from visible levels
             // requests for tiles with invalid keys will be canceled
             // (this object maps from a tile key to a boolean)
             var validTileKeys = { };
             
-            // make sure we have a container for tiles in the current layer
-            var thisLayer = this.createOrGetLayer(startCoord.zoom);
+            // make sure we have a container for tiles in the current level
+            var thisLevel = this.createOrGetLevel(startCoord.zoom);
 
             // use this coordinate for generating keys, parents and children:
             var tileCoord = startCoord.copy();
@@ -500,7 +500,7 @@
             {
                 for(tileCoord.row = startCoord.row; tileCoord.row <= endCoord.row; tileCoord.row++)
                 {
-                    var validKeys = this.inventoryVisibleTile(thisLayer, tileCoord);
+                    var validKeys = this.inventoryVisibleTile(thisLevel, tileCoord);
                     
                     while(validKeys.length)
                     {
@@ -509,32 +509,32 @@
                 }
             }
             
-            // i from i to zoom-5 are layers that would be scaled too big,
-            // i from zoom+2 to layers.length are layers that would be 
+            // i from i to zoom-5 are levels that would be scaled too big,
+            // i from zoom+2 to levels.length are levels that would be 
             // scaled too small (and tiles would be too numerous)                
-            for (var name in this.layers) {
-                if (this.layers.hasOwnProperty(name)) {
+            for (var name in this.levels) {
+                if (this.levels.hasOwnProperty(name)) {
                     var zoom = parseInt(name,10);
                     if (zoom >= startCoord.zoom-5 && zoom < startCoord.zoom+2) {
                         continue;
                     }
-                    var layer = this.layers[name];
-                    layer.style.display = 'none';
-                    var visibleTiles = layer.getElementsByTagName('img');
+                    var level = this.levels[name];
+                    level.style.display = 'none';
+                    var visibleTiles = level.getElementsByTagName('img');
                     for (var j = visibleTiles.length-1; j >= 0; j--) {
                         this.provider.releaseTileElement(visibleTiles[j].coord);
-                        layer.removeChild(visibleTiles[j]);
+                        level.removeChild(visibleTiles[j]);
                     }                    
                 }
             }
         
-            // layers we want to see, if they have tiles in validTileKeys
-            var minLayer = startCoord.zoom-5;
-            var maxLayer = startCoord.zoom+2;
+            // levels we want to see, if they have tiles in validTileKeys
+            var minLevel = startCoord.zoom-5;
+            var maxLevel = startCoord.zoom+2;
 
-            for(var zoom = minLayer; zoom < maxLayer; zoom++)
+            for(var zoom = minLevel; zoom < maxLevel; zoom++)
             {
-                this.adjustVisibleLayer(this.layers[zoom], zoom, validTileKeys);
+                this.adjustVisibleLevel(this.levels[zoom], zoom, validTileKeys);
             }
     
             // cancel requests that aren't visible:
@@ -550,7 +550,7 @@
         },
         
        /**
-        * For a given tile coordinate in a given layer element, ensure that it's
+        * For a given tile coordinate in a given level element, ensure that it's
         * correctly represented in the DOM including potentially-overlapping
         * parent and child tiles for pyramid loading.
         *
@@ -598,13 +598,13 @@
                 if (this.enablePyramidLoading) {
                     // mark all parent tiles valid
                     valid_tile_keys.push(parent_key);
-                    var parentLayer = this.createOrGetLayer(parent_coord.zoom);
+                    var parentLevel = this.createOrGetLevel(parent_coord.zoom);
 
-                    //parentLayer.coordinate = parent_coord.copy();
+                    //parentLevel.coordinate = parent_coord.copy();
                     if (parent_key in this.tiles) {
                         var parentTile = this.tiles[parent_key];
-                        if (parentTile.parentNode != parentLayer) {
-                            parentLayer.appendChild(parentTile);
+                        if (parentTile.parentNode != parentLevel) {
+                            parentLevel.appendChild(parentTile);
                         }                            
                     }
                     else if (!this.requestManager.hasRequest(parent_key)) {
@@ -642,38 +642,38 @@
         },
         
        /**
-        * For a given layer, adjust visibility as a whole and discard individual
+        * For a given level, adjust visibility as a whole and discard individual
         * tiles based on values in valid_tile_keys from inventoryVisibleTile().
         */
-        adjustVisibleLayer: function(layer, zoom, valid_tile_keys)
+        adjustVisibleLevel: function(level, zoom, valid_tile_keys)
         {
             // for tracking time of tile usage:
             var now = new Date().getTime();
         
-            if(!layer) {
-                // no tiles for this layer yet
+            if(!level) {
+                // no tiles for this level yet
                 return;
             }
 
             var scale = 1;
             var theCoord = this.coordinate.copy();
 
-            if (layer.childNodes.length > 0) {
-                layer.style.display = 'block';
+            if (level.childNodes.length > 0) {
+                level.style.display = 'block';
                 scale = Math.pow(2, this.coordinate.zoom - zoom);
                 theCoord = theCoord.zoomTo(zoom);
             }
             else {
-                layer.style.display = 'none';
+                level.style.display = 'none';
             }
             
             var tileWidth = this.provider.tileWidth * scale;
             var tileHeight = this.provider.tileHeight * scale;
             var center = new MM.Point(this.dimensions.x/2, this.dimensions.y/2);
             
-            for(var i = layer.childNodes.length - 1; i >= 0; i--)
+            for(var i = level.childNodes.length - 1; i >= 0; i--)
             {
-                var tile = layer.childNodes[i];
+                var tile = level.childNodes[i];
 
                 if(tile.nodeType != 1 || !tile.hasOwnProperty('id')) {
                     continue;
@@ -681,7 +681,7 @@
                 
                 if(!valid_tile_keys[tile.id]) {
                     this.provider.releaseTileElement(tile.coord);
-                    layer.removeChild(tile);
+                    level.removeChild(tile);
                 
                 } else {
                     // position tiles
@@ -739,16 +739,16 @@
             tile.style.width = Math.ceil(this.provider.tileWidth * scale) + 'px';
             tile.style.height = Math.ceil(this.provider.tileHeight * scale) + 'px';
 
-            // add tile to its layer
-            var theLayer = this.layers[tile.coord.zoom];
-            theLayer.appendChild(tile);                    
+            // add tile to its level
+            var theLevel = this.levels[tile.coord.zoom];
+            theLevel.appendChild(tile);                    
 
-            // ensure the layer is visible if it's still the current layer
+            // ensure the level is visible if it's still the current level
             if (Math.round(this.coordinate.zoom) == tile.coord.zoom) {
-                theLayer.style.display = 'block';
+                theLevel.style.display = 'block';
             }
 
-            // request a lazy redraw of all layers 
+            // request a lazy redraw of all levels 
             // this will remove tiles that were only visible
             // to cover this tile while it loaded:
             this.requestRedraw();                
@@ -781,18 +781,18 @@
             return this._redraw;
         },
         
-        createOrGetLayer: function(zoom) {
-            if (zoom in this.layers) {
-                return this.layers[zoom];
+        createOrGetLevel: function(zoom) {
+            if (zoom in this.levels) {
+                return this.levels[zoom];
             }
-            //console.log('creating layer ' + zoom);
-            var layer = document.createElement('div');
-            layer.id = this.parent.id+'-zoom-'+zoom;
-            layer.style.cssText = this.layerParent.style.cssText;
-            layer.style.zIndex = zoom;
-            this.layerParent.appendChild(layer);
-            this.layers[zoom] = layer;
-            return layer;
+            //console.log('creating level ' + zoom);
+            var level = document.createElement('div');
+            level.id = this.parent.id+'-zoom-'+zoom;
+            level.style.cssText = this.layerParent.style.cssText;
+            level.style.zIndex = zoom;
+            this.layerParent.appendChild(level);
+            this.levels[zoom] = level;
+            return level;
         },
         
         /* 
