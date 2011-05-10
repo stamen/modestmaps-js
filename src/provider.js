@@ -113,44 +113,25 @@
     
     MM.TilePaintingProvider.prototype = {
     
-        getOnTileLoaded: function(img)
-        {
-            // only make this closure once.
-            if(!this._onTileLoaded)
-            {
-                var theProvider = this;
-                
-                this._onTileLoaded = function(img)
-                {
-                    if(img.id in theProvider.divs)
-                    {
-                        img.style.width = '100%';
-                        img.style.height = '100%';
-                        theProvider.divs[img.id].appendChild(img);
-                        delete theProvider.divs[img.id];
-                    }
-                }
-            }
-            
-            return this._onTileLoaded;
-        },
-    
         getTileElement: function(coord)
         {
-            this.request_manager.requestTile(coord.toKey(), coord, this.template_provider.getTileUrl(coord), this.getOnTileLoaded());
-            
-            if(coord.toKey() in this.divs)
+            console.log(['get tile element', coord.toKey(), coord.toKey() in this.divs]);
+
+            if(!(coord.toKey() in this.divs))
             {
-                return this.divs[coord.toKey()];
+                var div = document.createElement('div');
+                this.divs[coord.toKey()] = div;
             }
             
-            var div = document.createElement('div');
-            this.divs[coord.toKey()] = div;
-            return div;
+            this.request_manager.requestImage(coord.toKey(), coord, this.template_provider.getTileUrl(coord), this.divs[coord.toKey()]);
+            
+            return this.divs[coord.toKey()];
         },
         
         releaseTileElement: function(coord)
         {
+            console.log(['release tile element', coord.toKey(), coord.toKey() in this.divs]);
+
             if(coord.toKey() in this.divs)
             {
                 delete this.divs[coord.toKey()];

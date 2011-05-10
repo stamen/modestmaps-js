@@ -47,8 +47,8 @@
         function initMap()
         {
             var mm = com.modestmaps,
-                bg = new FakeProvider();
-                //bg = new mm.TemplatedMapProvider('http://acetate.geoiq.com/tiles/terrain/{Z}/{X}/{Y}.png');
+                //bg = new FakeProvider();
+                bg = new mm.TemplatedMapProvider('http://acetate.geoiq.com/tiles/terrain/{Z}/{X}/{Y}.png');
                 //bg = new mm.TilePaintingProvider('http://acetate.geoiq.com/tiles/terrain/{Z}/{X}/{Y}.png');
             
             var map = new mm.Map('map',  bg, new mm.Point(800, 390));

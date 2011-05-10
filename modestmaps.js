@@ -541,44 +541,25 @@ if (!com) {
     
     MM.TilePaintingProvider.prototype = {
     
-        getOnTileLoaded: function(img)
-        {
-            // only make this closure once.
-            if(!this._onTileLoaded)
-            {
-                var theProvider = this;
-                
-                this._onTileLoaded = function(img)
-                {
-                    if(img.id in theProvider.divs)
-                    {
-                        img.style.width = '100%';
-                        img.style.height = '100%';
-                        theProvider.divs[img.id].appendChild(img);
-                        delete theProvider.divs[img.id];
-                    }
-                }
-            }
-            
-            return this._onTileLoaded;
-        },
-    
         getTileElement: function(coord)
         {
-            this.request_manager.requestTile(coord.toKey(), coord, this.template_provider.getTileUrl(coord), this.getOnTileLoaded());
-            
-            if(coord.toKey() in this.divs)
+            console.log(['get tile element', coord.toKey(), coord.toKey() in this.divs]);
+
+            if(!(coord.toKey() in this.divs))
             {
-                return this.divs[coord.toKey()];
+                var div = document.createElement('div');
+                this.divs[coord.toKey()] = div;
             }
             
-            var div = document.createElement('div');
-            this.divs[coord.toKey()] = div;
-            return div;
+            this.request_manager.requestImage(coord.toKey(), coord, this.template_provider.getTileUrl(coord), this.divs[coord.toKey()]);
+            
+            return this.divs[coord.toKey()];
         },
         
         releaseTileElement: function(coord)
         {
+            console.log(['release tile element', coord.toKey(), coord.toKey() in this.divs]);
+
             if(coord.toKey() in this.divs)
             {
                 delete this.divs[coord.toKey()];
@@ -885,10 +866,22 @@ if (!com) {
 
         // TODO: remove dependency on coord (it's for sorting, maybe call it data?)
         // TODO: rename to requestImage once it's not tile specific
-        // callback is optional; used in getLoadComplete()
-        requestTile: function(key, coord, url, callback) {
+        requestTile: function(key, coord, url) {
             if (!(key in this.requestsById)) {
-                var request = { key: key, coord: coord.copy(), url: url, callback: callback };
+                var request = { key: key, coord: coord.copy(), url: url };
+                // if there's no url just make sure we don't request this image again
+                this.requestsById[key] = request;
+                if (url) {
+                    this.requestQueue.push(request);
+                    //console.log(this.requestQueue.length + ' pending requests');
+                }
+            }
+        },
+        
+        requestImage: function(key, coord, url, parent)
+        {
+            if (!(key in this.requestsById)) {
+                var request = { key: key, coord: coord.copy(), url: url, parent: parent };
                 // if there's no url just make sure we don't request this image again
                 this.requestsById[key] = request;
                 if (url) {
@@ -965,8 +958,8 @@ if (!com) {
                     img.onload = img.onerror = null;
                     
                     // get the callback if one exists
-                    if('callback' in theManager.requestsById[img.id]) {
-                        var callback = theManager.requestsById[img.id].callback;
+                    if('parent' in theManager.requestsById[img.id]) {
+                        var parent = theManager.requestsById[img.id].parent;
                     }
     
                     // pull it back out of the (hidden) DOM 
@@ -980,8 +973,8 @@ if (!com) {
                     // NB:- complete is also true onerror if we got a 404
                     if (img.complete || 
                         (img.readyState && img.readyState == 'complete')) {
-                        if(callback != undefined) {
-                            callback(img);
+                        if(parent != undefined) {
+                            parent.appendChild(img);
                         }
                         
                         theManager.dispatchCallback('requestcomplete', img);
@@ -1528,10 +1521,12 @@ if (!com) {
                     }
                     var level = this.levels[name];
                     level.style.display = 'none';
-                    var visibleTiles = level.getElementsByTagName('img');
-                    for (var j = visibleTiles.length-1; j >= 0; j--) {
-                        this.provider.releaseTileElement(visibleTiles[j].coord);
-                        level.removeChild(visibleTiles[j]);
+                    var visibleTiles = this.tileElementsInLevel(level);
+                    while(visibleTiles.length)
+                    {
+                        this.provider.releaseTileElement(visibleTiles[0].coord);
+                        level.removeChild(visibleTiles[0]);
+                        visibleTiles.shift();
                     }                    
                 }
             }
@@ -1649,6 +1644,21 @@ if (!com) {
             return valid_tile_keys;
         },
         
+        tileElementsInLevel: function(level)
+        {
+            var tiles = [];
+            
+            for(var tile = level.firstChild; tile; tile = tile.nextSibling)
+            {
+                if(tile.nodeType == 1 && tile.hasOwnProperty('id'))
+                {
+                    tiles.push(tile);
+                }
+            }
+            
+            return tiles;
+        },
+        
        /**
         * For a given level, adjust visibility as a whole and discard individual
         * tiles based on values in valid_tile_keys from inventoryVisibleTile().
@@ -1678,15 +1688,12 @@ if (!com) {
             var tileWidth = this.provider.tileWidth * scale;
             var tileHeight = this.provider.tileHeight * scale;
             var center = new MM.Point(this.dimensions.x/2, this.dimensions.y/2);
+            var tiles = this.tileElementsInLevel(level);
             
-            for(var i = level.childNodes.length - 1; i >= 0; i--)
+            while(tiles.length)
             {
-                var tile = level.childNodes[i];
+                var tile = tiles.pop();
 
-                if(tile.nodeType != 1 || !tile.hasOwnProperty('id')) {
-                    continue;
-                }
-                
                 if(!valid_tile_keys[tile.id]) {
                     this.provider.releaseTileElement(tile.coord);
                     level.removeChild(tile);

@@ -96,10 +96,22 @@
 
         // TODO: remove dependency on coord (it's for sorting, maybe call it data?)
         // TODO: rename to requestImage once it's not tile specific
-        // callback is optional; used in getLoadComplete()
-        requestTile: function(key, coord, url, callback) {
+        requestTile: function(key, coord, url) {
             if (!(key in this.requestsById)) {
-                var request = { key: key, coord: coord.copy(), url: url, callback: callback };
+                var request = { key: key, coord: coord.copy(), url: url };
+                // if there's no url just make sure we don't request this image again
+                this.requestsById[key] = request;
+                if (url) {
+                    this.requestQueue.push(request);
+                    //console.log(this.requestQueue.length + ' pending requests');
+                }
+            }
+        },
+        
+        requestImage: function(key, coord, url, parent)
+        {
+            if (!(key in this.requestsById)) {
+                var request = { key: key, coord: coord.copy(), url: url, parent: parent };
                 // if there's no url just make sure we don't request this image again
                 this.requestsById[key] = request;
                 if (url) {
@@ -176,8 +188,8 @@
                     img.onload = img.onerror = null;
                     
                     // get the callback if one exists
-                    if('callback' in theManager.requestsById[img.id]) {
-                        var callback = theManager.requestsById[img.id].callback;
+                    if('parent' in theManager.requestsById[img.id]) {
+                        var parent = theManager.requestsById[img.id].parent;
                     }
     
                     // pull it back out of the (hidden) DOM 
@@ -191,8 +203,8 @@
                     // NB:- complete is also true onerror if we got a 404
                     if (img.complete || 
                         (img.readyState && img.readyState == 'complete')) {
-                        if(callback != undefined) {
-                            callback(img);
+                        if(parent != undefined) {
+                            parent.appendChild(img);
                         }
                         
                         theManager.dispatchCallback('requestcomplete', img);

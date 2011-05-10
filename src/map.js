@@ -520,10 +520,12 @@
                     }
                     var level = this.levels[name];
                     level.style.display = 'none';
-                    var visibleTiles = level.getElementsByTagName('img');
-                    for (var j = visibleTiles.length-1; j >= 0; j--) {
-                        this.provider.releaseTileElement(visibleTiles[j].coord);
-                        level.removeChild(visibleTiles[j]);
+                    var visibleTiles = this.tileElementsInLevel(level);
+                    while(visibleTiles.length)
+                    {
+                        this.provider.releaseTileElement(visibleTiles[0].coord);
+                        level.removeChild(visibleTiles[0]);
+                        visibleTiles.shift();
                     }                    
                 }
             }
@@ -641,6 +643,21 @@
             return valid_tile_keys;
         },
         
+        tileElementsInLevel: function(level)
+        {
+            var tiles = [];
+            
+            for(var tile = level.firstChild; tile; tile = tile.nextSibling)
+            {
+                if(tile.nodeType == 1 && tile.hasOwnProperty('id'))
+                {
+                    tiles.push(tile);
+                }
+            }
+            
+            return tiles;
+        },
+        
        /**
         * For a given level, adjust visibility as a whole and discard individual
         * tiles based on values in valid_tile_keys from inventoryVisibleTile().
@@ -670,15 +687,12 @@
             var tileWidth = this.provider.tileWidth * scale;
             var tileHeight = this.provider.tileHeight * scale;
             var center = new MM.Point(this.dimensions.x/2, this.dimensions.y/2);
+            var tiles = this.tileElementsInLevel(level);
             
-            for(var i = level.childNodes.length - 1; i >= 0; i--)
+            while(tiles.length)
             {
-                var tile = level.childNodes[i];
+                var tile = tiles.pop();
 
-                if(tile.nodeType != 1 || !tile.hasOwnProperty('id')) {
-                    continue;
-                }
-                
                 if(!valid_tile_keys[tile.id]) {
                     this.provider.releaseTileElement(tile.coord);
                     level.removeChild(tile);
