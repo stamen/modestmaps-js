@@ -10,6 +10,7 @@ JS_FILES = \
 	src/interaction.js \
 	src/callbacks.js \
 	src/requests.js \
+	src/layer.js \
 	src/map.js \
 	src/end.js
 

@@ -531,8 +531,6 @@ if (!com) {
     */
     MM.TilePaintingProvider = function(template_provider, request_manager)
     {
-        console.log(['painting provider', template_provider, request_manager]);
-
         this.template_provider = template_provider;
         this.request_manager = request_manager;
 
@@ -543,8 +541,6 @@ if (!com) {
     
         getTileElement: function(coord)
         {
-            console.log(['get tile element', coord.toKey(), coord.toKey() in this.divs]);
-
             if(!(coord.toKey() in this.divs))
             {
                 var div = document.createElement('div');
@@ -558,8 +554,6 @@ if (!com) {
         
         releaseTileElement: function(coord)
         {
-            console.log(['release tile element', coord.toKey(), coord.toKey() in this.divs]);
-
             if(coord.toKey() in this.divs)
             {
                 delete this.divs[coord.toKey()];
@@ -1000,6 +994,22 @@ if (!com) {
     
     };
 
+    //////////////////////////// Layer
+
+    MM.Layer = function(map, provider)
+    {
+        this.parent = document.createElement('div');
+        this.parent.style.cssText = 'position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; margin: 0; padding: 0; z-index: 0';
+
+        map.parent.appendChild(this.parent);
+    }
+    
+    MM.Layer.prototype = {
+    
+        parent: null
+    
+    };
+
     //////////////////////////// Map
 
     /* Instance of a map intended for drawing to a div.
@@ -1091,6 +1101,8 @@ if (!com) {
 
         this.requestManager = new MM.RequestManager(this.parent);    
         //this.requestManager.addCallback('requestcomplete', this.getTileComplete());
+        
+        var layer = new MM.Layer(this, provider);
     
         this.levels = {};
 
@@ -1352,7 +1364,6 @@ if (!com) {
         {
             if(newProvider.hasOwnProperty('getTileUrl'))
             {
-                console.log(['set provider:', newProvider, 'has getTileUrl().']);
                 newProvider = new MM.TilePaintingProvider(newProvider, this.requestManager);
             }
 
@@ -1650,7 +1661,7 @@ if (!com) {
             
             for(var tile = level.firstChild; tile; tile = tile.nextSibling)
             {
-                if(tile.nodeType == 1 && tile.hasOwnProperty('id'))
+                if(tile.nodeType == 1)
                 {
                     tiles.push(tile);
                 }

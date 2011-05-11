@@ -90,6 +90,8 @@
 
         this.requestManager = new MM.RequestManager(this.parent);    
         //this.requestManager.addCallback('requestcomplete', this.getTileComplete());
+        
+        var layer = new MM.Layer(this, provider);
     
         this.levels = {};
 
@@ -351,7 +353,6 @@
         {
             if(newProvider.hasOwnProperty('getTileUrl'))
             {
-                console.log(['set provider:', newProvider, 'has getTileUrl().']);
                 newProvider = new MM.TilePaintingProvider(newProvider, this.requestManager);
             }
 
@@ -649,7 +650,7 @@
             
             for(var tile = level.firstChild; tile; tile = tile.nextSibling)
             {
-                if(tile.nodeType == 1 && tile.hasOwnProperty('id'))
+                if(tile.nodeType == 1)
                 {
                     tiles.push(tile);
                 }

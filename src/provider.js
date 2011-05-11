@@ -103,8 +103,6 @@
     */
     MM.TilePaintingProvider = function(template_provider, request_manager)
     {
-        console.log(['painting provider', template_provider, request_manager]);
-
         this.template_provider = template_provider;
         this.request_manager = request_manager;
 
@@ -115,8 +113,6 @@
     
         getTileElement: function(coord)
         {
-            console.log(['get tile element', coord.toKey(), coord.toKey() in this.divs]);
-
             if(!(coord.toKey() in this.divs))
             {
                 var div = document.createElement('div');
@@ -130,8 +126,6 @@
         
         releaseTileElement: function(coord)
         {
-            console.log(['release tile element', coord.toKey(), coord.toKey() in this.divs]);
-
             if(coord.toKey() in this.divs)
             {
                 delete this.divs[coord.toKey()];
