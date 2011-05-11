@@ -11,8 +11,11 @@
         this.map = map;
         this.tiles = {};
         this.levels = {};
+
+        this.tileCacheSize = 0;
+        this.maxTileCacheSize = 64;
         this.requestManager = new MM.RequestManager(this.parent);    
-        
+
         if(provider.hasOwnProperty('getTileUrl'))
         {
             provider = new MM.TilePaintingProvider(provider, this.requestManager);
@@ -27,9 +30,14 @@
     
         map: null,
         parent: null,
-        provider: null,
         tiles: null,
+        levels: null,
+
         requestManager: null,
+        tileCacheSize: null,
+        maxTileCacheSize: null,
+
+        provider: null,
         recentTiles: null,
         recentTilesById: null,
         

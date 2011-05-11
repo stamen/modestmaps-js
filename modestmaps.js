@@ -1006,8 +1006,11 @@ if (!com) {
         this.map = map;
         this.tiles = {};
         this.levels = {};
+
+        this.tileCacheSize = 0;
+        this.maxTileCacheSize = 64;
         this.requestManager = new MM.RequestManager(this.parent);    
-        
+
         if(provider.hasOwnProperty('getTileUrl'))
         {
             provider = new MM.TilePaintingProvider(provider, this.requestManager);
@@ -1022,9 +1025,14 @@ if (!com) {
     
         map: null,
         parent: null,
-        provider: null,
         tiles: null,
+        levels: null,
+
         requestManager: null,
+        tileCacheSize: null,
+        maxTileCacheSize: null,
+
+        provider: null,
         recentTiles: null,
         recentTilesById: null,
         
@@ -1456,8 +1464,8 @@ if (!com) {
             Otherwise, each handler will be called with init(map)
 
     */    
-    MM.Map = function(parent, provider, dimensions, eventHandlers) {
-    
+    MM.Map = function(parent, provider, dimensions, eventHandlers)
+    {
         if (typeof parent == 'string') {
             parent = document.getElementById(parent);
         }
@@ -1474,37 +1482,7 @@ if (!com) {
             this.parent.style.position = 'relative';
         }
 
-        // if you don't specify dimensions we assume you want to fill the parent
-        // unless the parent has no w/h, in which case we'll still use a default
-        if (!dimensions) {
-            var w = this.parent.offsetWidth;
-            var h = this.parent.offsetHeight;
-            if (!w) {
-                w = 640;
-                this.parent.style.width = w+'px';
-            }
-            if (!h) {
-                h = 480;
-                this.parent.style.height = h+'px';
-            }        
-            dimensions = new MM.Point(w, h);
-            // FIXME: listeners like this will stop the map being removed cleanly?
-            // when does removeEvent get called?
-            var theMap = this;
-            MM.addEvent(window, 'resize', function(event) {
-                // don't call setSize here because it sets parent.style.width/height
-                // and setting the height breaks percentages and default styles
-                theMap.dimensions = new MM.Point(theMap.parent.offsetWidth, theMap.parent.offsetHeight);
-                theMap.draw();
-                theMap.dispatchCallback('resized', [ theMap.dimensions ]);
-            });
-        }
-        else {
-            this.parent.style.width = Math.round(dimensions.x)+'px';
-            this.parent.style.height = Math.round(dimensions.y)+'px';
-        }
-
-        this.dimensions = dimensions;
+        this.setupDimensions(dimensions);
                                 
         // TODO: is it sensible to do this (could be more than one map on a page)
         /*
@@ -1534,17 +1512,9 @@ if (!com) {
     
         this.levels = {};
         this.layers = [layer];
+        this.provider = layer.provider;
 
-        this.layerParent = document.createElement('div');
-        this.layerParent.id = this.parent.id+'-levels';
-        // this text is also used in createOrGetLevel
-        this.layerParent.style.cssText = 'position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; margin: 0; padding: 0; z-index: 0';
-        
-        this.parent.appendChild(this.layerParent);
-    
         this.coordinate = new MM.Coordinate(0.5,0.5,0);
-        
-        this.setProvider(provider);
         
         this.enablePyramidLoading = false;
         
@@ -1573,24 +1543,53 @@ if (!com) {
         dimensions: null,
         coordinate: null,
     
-        tiles: null,
         levels: null,
         layers: null,
-        layerParent: null,
     
         requestManager: null,
     
-        tileCacheSize: null,
-        
-        maxTileCacheSize: null,
-        recentTiles: null,
-        recentTilesById: null,
-
         callbackManager: null,        
         eventHandlers: null,
     
         toString: function() {
             return 'Map(#' + this.parent.id + ')';
+        },
+        
+        // setup
+        
+        setupDimensions: function(dimensions)
+        {
+            // if you don't specify dimensions we assume you want to fill the parent
+            // unless the parent has no w/h, in which case we'll still use a default
+            if (!dimensions) {
+                var w = this.parent.offsetWidth;
+                var h = this.parent.offsetHeight;
+                if (!w) {
+                    w = 640;
+                    this.parent.style.width = w+'px';
+                }
+                if (!h) {
+                    h = 480;
+                    this.parent.style.height = h+'px';
+                }        
+                dimensions = new MM.Point(w, h);
+                // FIXME: listeners like this will stop the map being removed cleanly?
+                // when does removeEvent get called?
+                var theMap = this;
+                MM.addEvent(window, 'resize', function(event) {
+                    // don't call setSize here because it sets parent.style.width/height
+                    // and setting the height breaks percentages and default styles
+                    theMap.dimensions = new MM.Point(theMap.parent.offsetWidth, theMap.parent.offsetHeight);
+                    theMap.draw();
+                    theMap.dispatchCallback('resized', [ theMap.dimensions ]);
+                });
+            }
+            else {
+                this.parent.style.width = Math.round(dimensions.x)+'px';
+                this.parent.style.height = Math.round(dimensions.y)+'px';
+            }
+    
+            this.dimensions = dimensions;
         },
         
         // callbacks...
@@ -1818,16 +1817,6 @@ if (!com) {
                     }
                 }
             }
-
-            // first provider or not we'll init/reset some values...
-
-            this.tiles = {};
-        
-            this.tileCacheSize = 0;
-            
-            this.maxTileCacheSize = 64;
-            this.recentTiles = [];
-            this.recentTilesById = {};            
 
             // for later: check geometry of old provider and set a new coordinate center 
             // if needed (now? or when?)
