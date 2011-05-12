@@ -84,111 +84,118 @@ if (!com) {
         return y;
     };
     
-    
-    //////////////////////////// Core
-    
+    // Point
     MM.Point = function(x, y) {
         this.x = parseFloat(x);
         this.y = parseFloat(y);
     };
-    
+
     MM.Point.prototype = {
         x: 0,
         y: 0,
         toString: function() {
             return "(" + this.x.toFixed(3) + ", " + this.y.toFixed(3) + ")";
-        }  
+        }
     };
-    
+
+    // Get the euclidean distance between two points
     MM.Point.distance = function(p1, p2) {
         var dx = (p2.x - p1.x);
         var dy = (p2.y - p1.y);
         return Math.sqrt(dx*dx + dy*dy);
     };
-    
+
+    // Get a point between two other points, biased by `t`.
     MM.Point.interpolate = function(p1, p2, t) {
         var px = p1.x + (p2.x - p1.x) * t;
         var py = p1.y + (p2.y - p1.y) * t;
         return new MM.Point(px, py);
     };
-    
-
+    // Coordinate
+    // ----------
+    // An object representing a tile position, at as specified zoom level.
+    // This is not necessarily a precise tile - `row`, `column`, and
+    // `zoom` can be floating-point numbers, and the `container()` function
+    // can be used to find the actual tile that contains the point.
     MM.Coordinate = function(row, column, zoom) {
         this.row = row;
         this.column = column;
         this.zoom = zoom;
     };
-    
+
     MM.Coordinate.prototype = {
-    
+
         row: 0,
         column: 0,
         zoom: 0,
-    
+
         toString: function() {
             return "(" + this.row.toFixed(3) + ", "
                        + this.column.toFixed(3) + " @"
                        + this.zoom.toFixed(3) + ")";
         },
-    
+        // Quickly generate a string representation of this coordinate to
+        // index it in hashes.
         toKey: function() {
             /* there used to be a clever hash function here but there were collisions.
                TODO: optimize, but test for collisions properly :) */
             return [ Math.floor(this.zoom), Math.floor(this.column), Math.floor(this.row) ].join(',');
         },
-    
+        // Clone this object.
         copy: function() {
             return new MM.Coordinate(this.row, this.column, this.zoom);
         },
-    
+        // Get the actual, rounded-number tile that contains this point.
         container: function() {
             // using floor here (not parseInt, ~~) because we want -0.56 --> -1
             return new MM.Coordinate(Math.floor(this.row), 
                                      Math.floor(this.column), 
                                      Math.floor(this.zoom));
         },
-    
+        // Recalculate this Coordinate at a different zoom level and return the
+        // new object.
         zoomTo: function(destination) {
             var power = Math.pow(2, destination - this.zoom);
             return new MM.Coordinate(this.row * power,
                                      this.column * power,
                                      destination);
         },
-        
+        // Recalculate this Coordinate at a different relative zoom level and return the
+        // new object.
         zoomBy: function(distance) {
             var power = Math.pow(2, distance);
             return new MM.Coordinate(this.row * power,
                                      this.column * power,
                                      this.zoom + distance);
         },
-    
+        // Move this coordinate up by `dist` coordinates
         up: function(dist) {
             if (dist === undefined) dist = 1;
             return new MM.Coordinate(this.row - dist, this.column, this.zoom);
         },
-    
+        // Move this coordinate right by `dist` coordinates
         right: function(dist) {
             if (dist === undefined) dist = 1;
             return new MM.Coordinate(this.row, this.column + dist, this.zoom);
         },
-    
+        // Move this coordinate down by `dist` coordinates
         down: function(dist) {
             if (dist === undefined) dist = 1;
             return new MM.Coordinate(this.row + dist, this.column, this.zoom);
         },
-    
+        // Move this coordinate left by `dist` coordinates
         left: function(dist) {
             if (dist === undefined) dist = 1;
             return new MM.Coordinate(this.row, this.column - dist, this.zoom);
         }
-    };    
-    //////////////////////////// Geo
-    
+    };
+    // Location
+    // --------
     MM.Location = function(lat, lon) {
         this.lat = parseFloat(lat);
         this.lon = parseFloat(lon);
     };
-    
+
     MM.Location.prototype = {
         lat: 0,
         lon: 0,
@@ -197,21 +204,20 @@ if (!com) {
         }
     };
 
-    /** 
-     * returns approximate distance between start and end locations
-     *
-     * default unit is meters
-     *
-     * you can specify different units by optionally providing the 
-     * earth's radius in the units you desire
-     * 
-     * Default is 6,378,000 metres, suggested values are:
-     *  + 3963.1 statute miles
-     *  + 3443.9 nautical miles
-     *  + 6378 km
-     * 
-     * see http://jan.ucc.nau.edu/~cvm/latlon_formula.html 
-     */
+    // returns approximate distance between start and end locations
+    //
+    // default unit is meters
+    //
+    // you can specify different units by optionally providing the
+    // earth's radius in the units you desire
+    //
+    // Default is 6,378,000 metres, suggested values are:
+    //
+    // * 3963.1 statute miles
+    // * 3443.9 nautical miles
+    // * 6378 km
+    //
+    // see [Formula and code for calculating distance based on two lat/lon locations](http://jan.ucc.nau.edu/~cvm/latlon_formula.html)
     MM.Location.distance = function(l1, l2, r) {
         if (!r) {
             // default to meters
@@ -227,21 +233,22 @@ if (!com) {
             e = Math.sin(a1)*Math.sin(a2);
         return Math.acos(c + d + e) * r;
     };
-    
-    // interpolates along a great circle, f between 0 and 1
-    // FIXME: could be heavily optimized (lots of trig calls to cache)
-    // FIXME: could be inmproved for calculating a full path
+
+    // Interpolates along a great circle, f between 0 and 1
+    //
+    // * FIXME: could be heavily optimized (lots of trig calls to cache)
+    // * FIXME: could be inmproved for calculating a full path
     MM.Location.interpolate = function(l1, l2, f) {
         var deg2rad = Math.PI / 180.0,
             lat1 = l1.lat * deg2rad,
             lon1 = l1.lon * deg2rad,
             lat2 = l2.lat * deg2rad,
             lon2 = l2.lon * deg2rad;
-                        
+
         var d = 2 * Math.asin(Math.sqrt(Math.pow(Math.sin((lat1-lat2)/2),2) + Math.cos(lat1)*Math.cos(lat2)*Math.pow(Math.sin((lon1-lon2)/2),2)));
         var bearing = Math.atan2(Math.sin(lon1-lon2)*Math.cos(lat2), Math.cos(lat1)*Math.sin(lat2)-Math.sin(lat1)*Math.cos(lat2)*Math.cos(lon1-lon2))  / -(Math.PI/180);
         bearing = bearing < 0 ? 360 + bearing : bearing;
-    
+
         var A = Math.sin((1-f)*d)/Math.sin(d);
         var B = Math.sin(f*d)/Math.sin(d);
         var x = A*Math.cos(lat1)*Math.cos(lon1) + B*Math.cos(lat2)*Math.cos(lon2);
@@ -250,9 +257,10 @@ if (!com) {
 
         var latN = Math.atan2(z,Math.sqrt(Math.pow(x,2)+Math.pow(y,2)));
         var lonN = Math.atan2(y,x);
-        
+
         return new MM.Location(latN/deg2rad, lonN/deg2rad);
     };
+
     /////////////////////////////////
     
     MM.Transformation = function(ax, bx, cx, ay, by, cy) {
@@ -339,7 +347,10 @@ if (!com) {
     };
     
 
+    // Projection
+    // ----------
 
+    // An abstract class / interface for projections
     MM.Projection = function(zoom, transformation) {
         if (!transformation) {
             transformation = new MM.Transformation(1, 0, 0, 0, 1, 0);
@@ -347,20 +358,20 @@ if (!com) {
         this.zoom = zoom;
         this.transformation = transformation;
     };
-    
+
     MM.Projection.prototype = {
-    
+
         zoom: 0,
         transformation: null,
-        
+
         rawProject: function(point) {
             throw "Abstract method not implemented by subclass.";
         },
-            
+
         rawUnproject: function(point) {
             throw "Abstract method not implemented by subclass.";
         },
-    
+
         project: function(point) {
             point = this.rawProject(point);
             if(this.transformation) {
@@ -368,7 +379,7 @@ if (!com) {
             }
             return point;
         },
-        
+
         unproject: function(point) {
             if(this.transformation) {
                 point = this.transformation.untransform(point);
@@ -376,14 +387,14 @@ if (!com) {
             point = this.rawUnproject(point);
             return point;
         },
-            
+
         locationCoordinate: function(location) {
-            var point = new MM.Point(Math.PI * location.lon / 180.0, 
+            var point = new MM.Point(Math.PI * location.lon / 180.0,
                                      Math.PI * location.lat / 180.0);
             point = this.project(point);
             return new MM.Coordinate(point.y, point.x, this.zoom);
         },
-    
+
         coordinateLocation: function(coordinate) {
             coordinate = coordinate.zoomTo(this.zoom);
             var point = new MM.Point(coordinate.column, coordinate.row);
@@ -392,11 +403,13 @@ if (!com) {
                                    180.0 * point.x / Math.PI);
         }
     };
-    
+
+    // A projection for equilateral maps, based on longitude and latitude
     MM.LinearProjection = function(zoom, transformation) {
         MM.Projection.call(this, zoom, transformation);
     };
-    
+
+    // The Linear projection doesn't reproject points
     MM.LinearProjection.prototype = {
         rawProject: function(point) {
             return new MM.Point(point.x, point.y);
@@ -405,39 +418,39 @@ if (!com) {
             return new MM.Point(point.x, point.y);
         }
     };
-    
+
     MM.extend(MM.LinearProjection, MM.Projection);
-    
+
     MM.MercatorProjection = function(zoom, transformation) {
         // super!
         MM.Projection.call(this, zoom, transformation);
     };
-    
+
+    // Project lon/lat points into meters required for Mercator
     MM.MercatorProjection.prototype = {
         rawProject: function(point) {
             return new MM.Point(point.x,
                          Math.log(Math.tan(0.25 * Math.PI + 0.5 * point.y)));
         },
-    
+
         rawUnproject: function(point) {
             return new MM.Point(point.x,
                     2 * Math.atan(Math.pow(Math.E, point.y)) - 0.5 * Math.PI);
         }
     };
-    
+
     MM.extend(MM.MercatorProjection, MM.Projection);
 
-    
-    //////////////////////////// Providers
-    
+    // Providers
+    // ---------
+    // Providers provide tile URLs and possibly elements for layers.
     MM.MapProvider = function(getTileUrl) {
         if (getTileUrl) {
             this.getTileUrl = getTileUrl;
         }
     };
-    
+
     MM.MapProvider.prototype = {
-    
         // defaults to Google-y Mercator style maps
         projection: new MM.MercatorProjection( 0, 
                         MM.deriveTransformation(-Math.PI,  Math.PI, 0, 0, 
@@ -466,7 +479,7 @@ if (!com) {
         },
         
         outerLimits: function() {
-            return [ this.topLeftOuterLimit.copy(), 
+            return [ this.topLeftOuterLimit.copy(),
                      this.bottomRightInnerLimit.copy() ];
         },
 
@@ -494,7 +507,8 @@ if (!com) {
             return new MM.Coordinate(coord.row, wrappedColumn, coord.zoom);
         }
     };
-    
+
+    // A simple tileprovider builder that supports `XYZ`-style tiles.
     MM.TemplatedMapProvider = function(template, subdomains) {
         MM.MapProvider.call(this, function(coordinate) {
             coordinate = this.sourceCoordinate(coordinate);
@@ -509,163 +523,167 @@ if (!com) {
             return base.replace('{Z}', coordinate.zoom.toFixed(0)).replace('{X}', coordinate.column.toFixed(0)).replace('{Y}', coordinate.row.toFixed(0));
         });
     };
-    
+
     MM.extend(MM.TemplatedMapProvider, MM.MapProvider);
-    
-    //////////////////////////// Event Handlers
+    // Event Handlers
+    // --------------
 
     // map is optional here, use init if you don't have a map yet
-    MM.MouseHandler = function(map) { 
+    MM.MouseHandler = function(map) {
         if (map !== undefined) {
             this.init(map);
         }
     };
-    
+
     MM.MouseHandler.prototype = {
-    
+
+        // Initialize a MouseHandler on a map by adding its events.
         init: function(map) {
             this.map = map;
             MM.addEvent(map.parent, 'dblclick', this.getDoubleClick());
             MM.addEvent(map.parent, 'mousedown', this.getMouseDown());
-            MM.addEvent(map.parent, 'mousewheel', this.getMouseWheel());            
+            MM.addEvent(map.parent, 'mousewheel', this.getMouseWheel());
         },
-        
+
         mouseDownHandler: null,
-    
+
         getMouseDown: function() {
+            // Ensure that this handler is attached once.
             if (!this.mouseDownHandler) {
                 var theHandler = this;
                 this.mouseDownHandler = function(e) {
-        
+
                     MM.addEvent(document, 'mouseup', theHandler.getMouseUp());
                     MM.addEvent(document, 'mousemove', theHandler.getMouseMove());
-                            
+
                     theHandler.prevMouse = new MM.Point(e.clientX, e.clientY);
-                    
                     theHandler.map.parent.style.cursor = 'move';
-                
+
                     return MM.cancelEvent(e);
                 };
             }
             return this.mouseDownHandler;
         },
-        
+
         mouseMoveHandler: null,
-        
+
         getMouseMove: function() {
+            // Ensure that this handler is attached once.
             if (!this.mouseMoveHandler) {
                 var theHandler = this;
                 this.mouseMoveHandler = function(e) {
-        
+
                     if (theHandler.prevMouse) {
                         theHandler.map.panBy(e.clientX - theHandler.prevMouse.x, e.clientY - theHandler.prevMouse.y);
                         theHandler.prevMouse.x = e.clientX;
                         theHandler.prevMouse.y = e.clientY;
                     }
-                
+
                     return MM.cancelEvent(e);
                 };
             }
             return this.mouseMoveHandler;
         },
-    
+
         mouseUpHandler: null,
-    
+
         getMouseUp: function() {
+            // Ensure that this handler is attached once.
             if (!this.mouseUpHandler) {
                 var theHandler = this;
                 this.mouseUpHandler = function(e) {
-        
+
                     MM.removeEvent(document, 'mouseup', theHandler.getMouseUp());
                     MM.removeEvent(document, 'mousemove', theHandler.getMouseMove());
-            
+
                     theHandler.prevMouse = null;
-    
-                    theHandler.map.parent.style.cursor = '';                
-            
+                    theHandler.map.parent.style.cursor = '';
+
                     return MM.cancelEvent(e);
                 };
             }
             return this.mouseUpHandler;
         },
-        
+
         mouseWheelHandler: null,
-    
+
         getMouseWheel: function() {
+            // Ensure that this handler is attached once.
             if (!this.mouseWheelHandler) {
                 var theHandler = this;
                 var prevTime = new Date().getTime();
                 this.mouseWheelHandler = function(e) {
-        
+
                     var delta = 0;
-                    
                     if (e.wheelDelta) {
                         delta = e.wheelDelta;
-                    }
-                    else if (e.detail) {
+                    } else if (e.detail) {
                         delta = -e.detail;
                     }
-        
+
                     // limit mousewheeling to once every 200ms
                     var timeSince = new Date().getTime() - prevTime;
-        
+
                     if (Math.abs(delta) > 0 && (timeSince > 200)) {
-                        
                         var point = theHandler.getMousePoint(e);
-                        
                         theHandler.map.zoomByAbout(delta > 0 ? 1 : -1, point);
-                        
+
                         prevTime = new Date().getTime();
                     }
-                    
+
+                    // Cancel the event so that the page doesn't scroll
                     return MM.cancelEvent(e);
                 };
             }
             return this.mouseWheelHandler;
         },
-    
+
         doubleClickHandler: null,
-    
+
         getDoubleClick: function() {
+            // Ensure that this handler is attached once.
             if (!this.doubleClickHandler) {
                 var theHandler = this;
                 this.doubleClickHandler = function(e) {
-        
+                    // Get the point on the map that was double-clicked
                     var point = theHandler.getMousePoint(e);
-                    
+
                     // use shift-double-click to zoom out
-                    theHandler.map.zoomByAbout(e.shiftKey ? -1 : 1, point);    
-                    
+                    theHandler.map.zoomByAbout(e.shiftKey ? -1 : 1, point);
+
                     return MM.cancelEvent(e);
                 };
             }
             return this.doubleClickHandler;
         },
-    
-        // interaction helper
-    
+
+        // Get an `MM.Point` object of the mouse's point within the map
+        // from a basic browser event.
         getMousePoint: function(e) {
             // start with just the mouse (x, y)
             var point = new MM.Point(e.clientX, e.clientY);
-            
+
             // correct for scrolled document
             point.x += document.body.scrollLeft + document.documentElement.scrollLeft;
             point.y += document.body.scrollTop + document.documentElement.scrollTop;
-    
+
             // correct for nested offsets in DOM
             for(var node = this.map.parent; node; node = node.offsetParent) {
                 point.x -= node.offsetLeft;
                 point.y -= node.offsetTop;
             }
-            
+
             return point;
         }
-    
+
     };
+    // CallbackManager
+    // ---------------
+    // A general-purpose event binding manager used by `Map`
+    // and `RequestManager`
 
-
-    ////////////////////////// Callback stuff... used by Map and RequestManager
-
+    // Construct a new CallbackManager, with an list of
+    // supported events.
     MM.CallbackManager = function(owner, events) {
         this.owner = owner;
         this.callbacks = {};
@@ -673,18 +691,28 @@ if (!com) {
             this.callbacks[events[i]] = [];
         }
     };
-    
+
+    // CallbackManager does simple event management for modestmaps
     MM.CallbackManager.prototype = {
-    
+        // The element on which callbacks will be triggered.
         owner: null,
+
+        // An object of callbacks in the form
+        //
+        //     { event: function }
         callbacks: null,
-    
+
+        // Add a callback to this object - where the `event` is a string of
+        // the event name and `callback` is a function.
         addCallback: function(event, callback) {
             if (typeof(callback) == 'function' && this.callbacks[event]) {
                 this.callbacks[event].push(callback);
             }
         },
-    
+
+        // Remove a callback. The given function needs to be equal (`===`) to
+        // the callback added in `addCallback`, so named functions should be
+        // used as callbacks.
         removeCallback: function(event, callback) {
             if (typeof(callback) == 'function' && this.callbacks[event]) {
                 var cbs = this.callbacks[event],
@@ -697,7 +725,9 @@ if (!com) {
                 }
             }
         },
-        
+
+        // Trigger a callback, passing it an object or string from the second
+        // argument.
         dispatchCallback: function(event, message) {
             if(this.callbacks[event]) {
                 for (var i = 0; i < this.callbacks[event].length; i += 1) {
@@ -710,7 +740,6 @@ if (!com) {
                 }
             }
         }
-        
     };
     //////////////////////////// RequestManager is an image loading queue 
     
@@ -922,37 +951,32 @@ if (!com) {
     
     };
 
-    //////////////////////////// Map
+    // Map
 
-    /* Instance of a map intended for drawing to a div.
-    
-        parent (required DOM element)
-            Can also be an ID of a DOM element
-    
-        provider (required MapProvider)
-            Provides tile URLs and map projections
-            
-        dimensions (optional Point)
-            Size of map to create
-            
-        eventHandlers (optional Array)
-            If empty or null MouseHandler will be used
-            Otherwise, each handler will be called with init(map)
-
-    */    
+    // Instance of a map intended for drawing to a div.
+    //
+    //  * `parent` (required DOM element)
+    //      Can also be an ID of a DOM element
+    //  * `provider` (required MapProvider)
+    //      Provides tile URLs and map projections
+    //  * `dimensions` (optional Point)
+    //      Size of map to create
+    //  * `eventHandlers` (optional Array)
+    //      If empty or null MouseHandler will be used
+    //      Otherwise, each handler will be called with init(map)
     MM.Map = function(parent, provider, dimensions, eventHandlers) {
-    
+
         if (typeof parent == 'string') {
             parent = document.getElementById(parent);
         }
         this.parent = parent;
-    
+
         // we're no longer adding width and height to parent.style but we still
         // need to enforce padding, overflow and position otherwise everything screws up
         // TODO: maybe console.warn if the current values are bad?
         this.parent.style.padding = '0';
         this.parent.style.overflow = 'hidden';
-        
+
         var position = MM.getStyle(this.parent, 'position');
         if (position != "relative" && position != "absolute") {
             this.parent.style.position = 'relative';
@@ -970,7 +994,7 @@ if (!com) {
             if (!h) {
                 h = 480;
                 this.parent.style.height = h+'px';
-            }        
+            }
             dimensions = new MM.Point(w, h);
             // FIXME: listeners like this will stop the map being removed cleanly?
             // when does removeEvent get called?
@@ -989,7 +1013,7 @@ if (!com) {
         }
 
         this.dimensions = dimensions;
-                                
+
         // TODO: is it sensible to do this (could be more than one map on a page)
         /*
         // add a style element so layer/tile styles can be class-based
@@ -1013,22 +1037,22 @@ if (!com) {
 
         this.requestManager = new MM.RequestManager(this.parent);    
         this.requestManager.addCallback('requestcomplete', this.getTileComplete());
-    
+
         this.layers = {};
 
         this.layerParent = document.createElement('div');
         this.layerParent.id = this.parent.id+'-layers';
         // this text is also used in createOrGetLayer
         this.layerParent.style.cssText = 'position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; margin: 0; padding: 0; z-index: 0';
-        
+
         this.parent.appendChild(this.layerParent);
-    
+
         this.coordinate = new MM.Coordinate(0.5,0.5,0);
-        
+
         this.setProvider(provider);
-        
+
         this.enablePyramidLoading = false;
-        
+
         this.callbackManager = new MM.CallbackManager(this, [ 'zoomed', 'panned', 'centered', 'extentset', 'resized', 'drawn' ]);
 
         // set up handlers last so that all required attributes/functions are in place if needed
@@ -1099,16 +1123,16 @@ if (!com) {
         zoomIn:  function()  { return this.zoomBy(1); },
         zoomOut: function()  { return this.zoomBy(-1); },
         setZoom: function(z) { return this.zoomBy(z - this.coordinate.zoom); },
-                
+
         zoomByAbout: function(zoomOffset, point) {
             var location = this.pointLocation(point);
             this.zoomBy(zoomOffset);
             var newPoint = this.locationPoint(location);
             return this.panBy(point.x - newPoint.x, point.y - newPoint.y);
         },
-    
+
         // panning
-        
+
         panBy: function(dx, dy) {
             this.coordinate.column -= dx / this.provider.tileWidth;
             this.coordinate.row -= dy / this.provider.tileHeight;
@@ -1116,27 +1140,26 @@ if (!com) {
             this.dispatchCallback('panned', [dx, dy]);
             return this;
         },
-    
+
         panLeft:  function() { return this.panBy(100,0); },
         panRight: function() { return this.panBy(-100,0); },
         panDown:  function() { return this.panBy(0,-100); },
         panUp:    function() { return this.panBy(0,100); },
-        
+
         // positioning
-        
         setCenter: function(location) {
             return this.setCenterZoom(location, this.coordinate.zoom);
         },
-    
+
         setCenterZoom: function(location, zoom) {
             this.coordinate = this.provider.locationCoordinate(location).zoomTo(parseFloat(zoom) || 0);
             this.draw();
             this.dispatchCallback('centered', [location, zoom]);
             return this;
         },
-    
+
         setExtent: function(locations) {
-    
+
             var TL, BR;
             for (var i = 0; i < locations.length; i++) {
                 var coordinate = this.provider.locationCoordinate(locations[i]);
@@ -1212,7 +1235,6 @@ if (!com) {
         },
         
         // projecting points on and off screen
-        
         coordinatePoint: function(coord)
         {
             /* Return an x, y point on the map image for a given coordinate. */
@@ -1229,27 +1251,27 @@ if (!com) {
             return point;
         },
     
+        // Get a `MM.Coordinate` from an `MM.Point` - returns a new tile-like object
+        // from a screen point.
         pointCoordinate: function(point)
         {
-            /* Return a coordinate on the map image for a given x, y point. */
-            
             // new point coordinate reflecting distance from map center, in tile widths
             var coord = this.coordinate.copy();
             coord.column += (point.x - this.dimensions.x/2) / this.provider.tileWidth;
             coord.row += (point.y - this.dimensions.y/2) / this.provider.tileHeight;
-            
+
             return coord;
         },
-    
+
+        // Return an x, y point on the map image for a given geographical location.
         locationPoint: function(location)
         {
-            /* Return an x, y point on the map image for a given geographical location. */
             return this.coordinatePoint(this.provider.locationCoordinate(location));
         },
-        
+
+        // Return a geographical location on the map image for a given x, y point.
         pointLocation: function(point)
         {
-            /* Return a geographical location on the map image for a given x, y point. */
             return this.provider.coordinateLocation(this.pointCoordinate(point));
         },
         
@@ -1439,7 +1461,7 @@ if (!com) {
                                 // mark all parent tiles valid
                                 validTileKeys[parentKey] = true;
                                 var parentLayer = this.createOrGetLayer(parentCoord.zoom);
-                                //parentLayer.coordinate = parentCoord.copy();
+                                /* parentLayer.coordinate = parentCoord.copy(); */
                                 if (parentKey in this.tiles) {
                                     var parentTile = this.tiles[parentKey];
                                     if (parentTile.parentNode != parentLayer) {
@@ -1652,11 +1674,9 @@ if (!com) {
             this.layers[zoom] = layer;
             return layer;
         },
-        
-        /* 
-         * keeps cache below max size
-         * (called every time we receive a new tile and add it to the cache)
-         */
+
+        // keeps cache below max size
+        // (called every time we receive a new tile and add it to the cache)
         checkCache: function() {
             var numTilesOnScreen = this.parent.getElementsByTagName('img').length;
             var maxTiles = Math.max(numTilesOnScreen, this.maxTileCacheSize);
@@ -1664,15 +1684,15 @@ if (!com) {
                 // sort from newest (highest) to oldest (lowest)
                 this.recentTiles.sort(function(t1, t2) {
                     return t2.lastTouchedTime < t1.lastTouchedTime ? -1 : t2.lastTouchedTime > t1.lastTouchedTime ? 1 : 0;
-                });            
+                });
             }
             while (this.tileCacheSize > maxTiles) {
                 // delete the oldest record
                 var tileRecord = this.recentTiles.pop();
                 var now = new Date().getTime();
                 delete this.recentTilesById[tileRecord.id];
-                //window.console.log('removing ' + tileRecord.id + 
-                //                   ' last seen ' + (now-tileRecord.lastTouchedTime) + 'ms ago');
+                /*window.console.log('removing ' + tileRecord.id +
+                                   ' last seen ' + (now-tileRecord.lastTouchedTime) + 'ms ago'); */
                 // now actually remove it from the cache...
                 var tile = this.tiles[tileRecord.id];
                 if (tile.parentNode) {
@@ -1685,8 +1705,8 @@ if (!com) {
                 }
             }
         },
-        
-        // compares manhattan distance from center of 
+
+        // Compares manhattan distance from center of
         // requested tiles to current map center
         // NB:- requested tiles are *popped* from queue, so we do a descending sort
         getCenterDistanceCompare: function() {
@@ -1696,9 +1716,9 @@ if (!com) {
                     var c1 = r1.coord;
                     var c2 = r2.coord;
                     if (c1.zoom == c2.zoom) {
-                        var ds1 = Math.abs(theCoord.row - c1.row - 0.5) + 
+                        var ds1 = Math.abs(theCoord.row - c1.row - 0.5) +
                                   Math.abs(theCoord.column - c1.column - 0.5);
-                        var ds2 = Math.abs(theCoord.row - c2.row - 0.5) + 
+                        var ds2 = Math.abs(theCoord.row - c2.row - 0.5) +
                                   Math.abs(theCoord.column - c2.column - 0.5);
                         return ds1 < ds2 ? 1 : ds1 > ds2 ? -1 : 0;
                     }
@@ -1709,7 +1729,7 @@ if (!com) {
                 return r1 ? 1 : r2 ? -1 : 0;
             };
         }
-        
+
     };
     
 

@@ -1,15 +1,14 @@
 
-    
-    //////////////////////////// Providers
-    
+    // Providers
+    // ---------
+    // Providers provide tile URLs and possibly elements for layers.
     MM.MapProvider = function(getTileUrl) {
         if (getTileUrl) {
             this.getTileUrl = getTileUrl;
         }
     };
-    
+
     MM.MapProvider.prototype = {
-    
         // defaults to Google-y Mercator style maps
         projection: new MM.MercatorProjection( 0, 
                         MM.deriveTransformation(-Math.PI,  Math.PI, 0, 0, 
@@ -38,7 +37,7 @@
         },
         
         outerLimits: function() {
-            return [ this.topLeftOuterLimit.copy(), 
+            return [ this.topLeftOuterLimit.copy(),
                      this.bottomRightInnerLimit.copy() ];
         },
 
@@ -66,7 +65,8 @@
             return new MM.Coordinate(coord.row, wrappedColumn, coord.zoom);
         }
     };
-    
+
+    // A simple tileprovider builder that supports `XYZ`-style tiles.
     MM.TemplatedMapProvider = function(template, subdomains) {
         MM.MapProvider.call(this, function(coordinate) {
             coordinate = this.sourceCoordinate(coordinate);
@@ -81,6 +81,5 @@
             return base.replace('{Z}', coordinate.zoom.toFixed(0)).replace('{X}', coordinate.column.toFixed(0)).replace('{Y}', coordinate.row.toFixed(0));
         });
     };
-    
+
     MM.extend(MM.TemplatedMapProvider, MM.MapProvider);
-    

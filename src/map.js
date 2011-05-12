@@ -1,35 +1,30 @@
 
-    //////////////////////////// Map
+    // Map
 
-    /* Instance of a map intended for drawing to a div.
-    
-        parent (required DOM element)
-            Can also be an ID of a DOM element
-    
-        provider (required MapProvider)
-            Provides tile URLs and map projections
-            
-        dimensions (optional Point)
-            Size of map to create
-            
-        eventHandlers (optional Array)
-            If empty or null MouseHandler will be used
-            Otherwise, each handler will be called with init(map)
-
-    */    
+    // Instance of a map intended for drawing to a div.
+    //
+    //  * `parent` (required DOM element)
+    //      Can also be an ID of a DOM element
+    //  * `provider` (required MapProvider)
+    //      Provides tile URLs and map projections
+    //  * `dimensions` (optional Point)
+    //      Size of map to create
+    //  * `eventHandlers` (optional Array)
+    //      If empty or null MouseHandler will be used
+    //      Otherwise, each handler will be called with init(map)
     MM.Map = function(parent, provider, dimensions, eventHandlers) {
-    
+
         if (typeof parent == 'string') {
             parent = document.getElementById(parent);
         }
         this.parent = parent;
-    
+
         // we're no longer adding width and height to parent.style but we still
         // need to enforce padding, overflow and position otherwise everything screws up
         // TODO: maybe console.warn if the current values are bad?
         this.parent.style.padding = '0';
         this.parent.style.overflow = 'hidden';
-        
+
         var position = MM.getStyle(this.parent, 'position');
         if (position != "relative" && position != "absolute") {
             this.parent.style.position = 'relative';
@@ -47,7 +42,7 @@
             if (!h) {
                 h = 480;
                 this.parent.style.height = h+'px';
-            }        
+            }
             dimensions = new MM.Point(w, h);
             // FIXME: listeners like this will stop the map being removed cleanly?
             // when does removeEvent get called?
@@ -66,7 +61,7 @@
         }
 
         this.dimensions = dimensions;
-                                
+
         // TODO: is it sensible to do this (could be more than one map on a page)
         /*
         // add a style element so layer/tile styles can be class-based
@@ -90,22 +85,22 @@
 
         this.requestManager = new MM.RequestManager(this.parent);    
         this.requestManager.addCallback('requestcomplete', this.getTileComplete());
-    
+
         this.layers = {};
 
         this.layerParent = document.createElement('div');
         this.layerParent.id = this.parent.id+'-layers';
         // this text is also used in createOrGetLayer
         this.layerParent.style.cssText = 'position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; margin: 0; padding: 0; z-index: 0';
-        
+
         this.parent.appendChild(this.layerParent);
-    
+
         this.coordinate = new MM.Coordinate(0.5,0.5,0);
-        
+
         this.setProvider(provider);
-        
+
         this.enablePyramidLoading = false;
-        
+
         this.callbackManager = new MM.CallbackManager(this, [ 'zoomed', 'panned', 'centered', 'extentset', 'resized', 'drawn' ]);
 
         // set up handlers last so that all required attributes/functions are in place if needed
@@ -176,16 +171,16 @@
         zoomIn:  function()  { return this.zoomBy(1); },
         zoomOut: function()  { return this.zoomBy(-1); },
         setZoom: function(z) { return this.zoomBy(z - this.coordinate.zoom); },
-                
+
         zoomByAbout: function(zoomOffset, point) {
             var location = this.pointLocation(point);
             this.zoomBy(zoomOffset);
             var newPoint = this.locationPoint(location);
             return this.panBy(point.x - newPoint.x, point.y - newPoint.y);
         },
-    
+
         // panning
-        
+
         panBy: function(dx, dy) {
             this.coordinate.column -= dx / this.provider.tileWidth;
             this.coordinate.row -= dy / this.provider.tileHeight;
@@ -193,27 +188,26 @@
             this.dispatchCallback('panned', [dx, dy]);
             return this;
         },
-    
+
         panLeft:  function() { return this.panBy(100,0); },
         panRight: function() { return this.panBy(-100,0); },
         panDown:  function() { return this.panBy(0,-100); },
         panUp:    function() { return this.panBy(0,100); },
-        
+
         // positioning
-        
         setCenter: function(location) {
             return this.setCenterZoom(location, this.coordinate.zoom);
         },
-    
+
         setCenterZoom: function(location, zoom) {
             this.coordinate = this.provider.locationCoordinate(location).zoomTo(parseFloat(zoom) || 0);
             this.draw();
             this.dispatchCallback('centered', [location, zoom]);
             return this;
         },
-    
+
         setExtent: function(locations) {
-    
+
             var TL, BR;
             for (var i = 0; i < locations.length; i++) {
                 var coordinate = this.provider.locationCoordinate(locations[i]);
@@ -289,7 +283,6 @@
         },
         
         // projecting points on and off screen
-        
         coordinatePoint: function(coord)
         {
             /* Return an x, y point on the map image for a given coordinate. */
@@ -306,27 +299,27 @@
             return point;
         },
     
+        // Get a `MM.Coordinate` from an `MM.Point` - returns a new tile-like object
+        // from a screen point.
         pointCoordinate: function(point)
         {
-            /* Return a coordinate on the map image for a given x, y point. */
-            
             // new point coordinate reflecting distance from map center, in tile widths
             var coord = this.coordinate.copy();
             coord.column += (point.x - this.dimensions.x/2) / this.provider.tileWidth;
             coord.row += (point.y - this.dimensions.y/2) / this.provider.tileHeight;
-            
+
             return coord;
         },
-    
+
+        // Return an x, y point on the map image for a given geographical location.
         locationPoint: function(location)
         {
-            /* Return an x, y point on the map image for a given geographical location. */
             return this.coordinatePoint(this.provider.locationCoordinate(location));
         },
-        
+
+        // Return a geographical location on the map image for a given x, y point.
         pointLocation: function(point)
         {
-            /* Return a geographical location on the map image for a given x, y point. */
             return this.provider.coordinateLocation(this.pointCoordinate(point));
         },
         
@@ -516,7 +509,7 @@
                                 // mark all parent tiles valid
                                 validTileKeys[parentKey] = true;
                                 var parentLayer = this.createOrGetLayer(parentCoord.zoom);
-                                //parentLayer.coordinate = parentCoord.copy();
+                                /* parentLayer.coordinate = parentCoord.copy(); */
                                 if (parentKey in this.tiles) {
                                     var parentTile = this.tiles[parentKey];
                                     if (parentTile.parentNode != parentLayer) {
@@ -729,11 +722,9 @@
             this.layers[zoom] = layer;
             return layer;
         },
-        
-        /* 
-         * keeps cache below max size
-         * (called every time we receive a new tile and add it to the cache)
-         */
+
+        // keeps cache below max size
+        // (called every time we receive a new tile and add it to the cache)
         checkCache: function() {
             var numTilesOnScreen = this.parent.getElementsByTagName('img').length;
             var maxTiles = Math.max(numTilesOnScreen, this.maxTileCacheSize);
@@ -741,15 +732,15 @@
                 // sort from newest (highest) to oldest (lowest)
                 this.recentTiles.sort(function(t1, t2) {
                     return t2.lastTouchedTime < t1.lastTouchedTime ? -1 : t2.lastTouchedTime > t1.lastTouchedTime ? 1 : 0;
-                });            
+                });
             }
             while (this.tileCacheSize > maxTiles) {
                 // delete the oldest record
                 var tileRecord = this.recentTiles.pop();
                 var now = new Date().getTime();
                 delete this.recentTilesById[tileRecord.id];
-                //window.console.log('removing ' + tileRecord.id + 
-                //                   ' last seen ' + (now-tileRecord.lastTouchedTime) + 'ms ago');
+                /*window.console.log('removing ' + tileRecord.id +
+                                   ' last seen ' + (now-tileRecord.lastTouchedTime) + 'ms ago'); */
                 // now actually remove it from the cache...
                 var tile = this.tiles[tileRecord.id];
                 if (tile.parentNode) {
@@ -762,8 +753,8 @@
                 }
             }
         },
-        
-        // compares manhattan distance from center of 
+
+        // Compares manhattan distance from center of
         // requested tiles to current map center
         // NB:- requested tiles are *popped* from queue, so we do a descending sort
         getCenterDistanceCompare: function() {
@@ -773,9 +764,9 @@
                     var c1 = r1.coord;
                     var c2 = r2.coord;
                     if (c1.zoom == c2.zoom) {
-                        var ds1 = Math.abs(theCoord.row - c1.row - 0.5) + 
+                        var ds1 = Math.abs(theCoord.row - c1.row - 0.5) +
                                   Math.abs(theCoord.column - c1.column - 0.5);
-                        var ds2 = Math.abs(theCoord.row - c2.row - 0.5) + 
+                        var ds2 = Math.abs(theCoord.row - c2.row - 0.5) +
                                   Math.abs(theCoord.column - c2.column - 0.5);
                         return ds1 < ds2 ? 1 : ds1 > ds2 ? -1 : 0;
                     }
@@ -786,7 +777,7 @@
                 return r1 ? 1 : r2 ? -1 : 0;
             };
         }
-        
+
     };
     
 
