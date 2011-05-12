@@ -1,18 +1,17 @@
-    //////////////////////////// RequestManager is an image loading queue 
-    
+    // RequestManager is an image loading queue 
     MM.RequestManager = function(parent) {
-    
+
         this.loadingBay = document.createDocumentFragment();
 
         this.requestsById = {};
         this.openRequestCount = 0;
-        
+
         this.maxOpenRequests = 4;
         this.requestQueue = [];    
-        
+
         this.callbackManager = new MM.CallbackManager(this, [ 'requestcomplete' ]);
     };
-    
+
     MM.RequestManager.prototype = {
 
         // DOM element, hidden, for making sure images dispatch complete events
@@ -115,7 +114,7 @@
                 this._processQueue = function() {
                     theManager.processQueue();
                 };
-            }        
+            }
             return this._processQueue;
         },
 
@@ -204,6 +203,6 @@
                 };
             }
             return this._loadComplete;
-        }        
+        }
     
     };
