@@ -105,31 +105,24 @@
     {
         this.template_provider = template_provider;
         this.request_manager = request_manager;
-
-        this.divs = {};
     }
     
     MM.TilePaintingProvider.prototype = {
     
         getTileElement: function(coord)
         {
-            if(!(coord.toKey() in this.divs))
-            {
-                var div = document.createElement('div');
-                this.divs[coord.toKey()] = div;
-            }
+            console.log(['provider.getTileElement', coord.toKey()]);
+
+            var div = document.createElement('div');
+
+            this.request_manager.requestImage(coord.toKey(), coord, this.template_provider.getTileUrl(coord), div);
             
-            this.request_manager.requestImage(coord.toKey(), coord, this.template_provider.getTileUrl(coord), this.divs[coord.toKey()]);
-            
-            return this.divs[coord.toKey()];
+            return div;
         },
         
         releaseTileElement: function(coord)
         {
-            if(coord.toKey() in this.divs)
-            {
-                delete this.divs[coord.toKey()];
-            }
+            console.log(['provider.releaseTileElement', coord.toKey()]);
         }
     }
     

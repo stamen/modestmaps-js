@@ -95,6 +95,7 @@
                     while(visibleTiles.length)
                     {
                         this.provider.releaseTileElement(visibleTiles[0].coord);
+                        this.requestManager.clearRequest(visibleTiles[0].coord.toKey());
                         level.removeChild(visibleTiles[0]);
                         visibleTiles.shift();
                     }                    
@@ -264,6 +265,7 @@
 
                 if(!valid_tile_keys[tile.id]) {
                     this.provider.releaseTileElement(tile.coord);
+                    this.requestManager.clearRequest(tile.coord.toKey());
                     level.removeChild(tile);
                 
                 } else {

@@ -49,6 +49,24 @@
             this.clearExcept({});
         },
         
+        clearRequest: function(id)
+        {
+            if(id in this.requestsById)
+            {
+                delete this.requestsById[id];
+            }
+            
+            for(var i = 0; i < this.requestQueue.length; i++)
+            {
+                var request = this.requestQueue[i];
+
+                if(request && request.key == id)
+                {
+                    this.requestQueue[i] = null;
+                }
+            }
+        },
+        
         clearExcept: function(validKeys) {
 
             // clear things from the queue first...
@@ -110,6 +128,7 @@
         
         requestImage: function(key, coord, url, parent)
         {
+            console.log(['requests.requestImage', key, 'in by id:', key in this.requestsById]);
             if (!(key in this.requestsById)) {
                 var request = { key: key, coord: coord.copy(), url: url, parent: parent };
                 // if there's no url just make sure we don't request this image again
@@ -183,6 +202,7 @@
     
                     // srcElement for IE, target for FF, Safari etc.
                     var img = e.srcElement || e.target;
+                    console.log(['requests.getLoadComplete', img.id, 'in by id:', img.id in theManager.requestsById]);
     
                     // unset these straight away so we don't call this twice
                     img.onload = img.onerror = null;

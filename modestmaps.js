@@ -533,31 +533,24 @@ if (!com) {
     {
         this.template_provider = template_provider;
         this.request_manager = request_manager;
-
-        this.divs = {};
     }
     
     MM.TilePaintingProvider.prototype = {
     
         getTileElement: function(coord)
         {
-            if(!(coord.toKey() in this.divs))
-            {
-                var div = document.createElement('div');
-                this.divs[coord.toKey()] = div;
-            }
+            console.log(['provider.getTileElement', coord.toKey()]);
+
+            var div = document.createElement('div');
+
+            this.request_manager.requestImage(coord.toKey(), coord, this.template_provider.getTileUrl(coord), div);
             
-            this.request_manager.requestImage(coord.toKey(), coord, this.template_provider.getTileUrl(coord), this.divs[coord.toKey()]);
-            
-            return this.divs[coord.toKey()];
+            return div;
         },
         
         releaseTileElement: function(coord)
         {
-            if(coord.toKey() in this.divs)
-            {
-                delete this.divs[coord.toKey()];
-            }
+            console.log(['provider.releaseTileElement', coord.toKey()]);
         }
     }
     
@@ -813,6 +806,24 @@ if (!com) {
             this.clearExcept({});
         },
         
+        clearRequest: function(id)
+        {
+            if(id in this.requestsById)
+            {
+                delete this.requestsById[id];
+            }
+            
+            for(var i = 0; i < this.requestQueue.length; i++)
+            {
+                var request = this.requestQueue[i];
+
+                if(request && request.key == id)
+                {
+                    this.requestQueue[i] = null;
+                }
+            }
+        },
+        
         clearExcept: function(validKeys) {
 
             // clear things from the queue first...
@@ -874,6 +885,7 @@ if (!com) {
         
         requestImage: function(key, coord, url, parent)
         {
+            console.log(['requests.requestImage', key, 'in by id:', key in this.requestsById]);
             if (!(key in this.requestsById)) {
                 var request = { key: key, coord: coord.copy(), url: url, parent: parent };
                 // if there's no url just make sure we don't request this image again
@@ -947,6 +959,7 @@ if (!com) {
     
                     // srcElement for IE, target for FF, Safari etc.
                     var img = e.srcElement || e.target;
+                    console.log(['requests.getLoadComplete', img.id, 'in by id:', img.id in theManager.requestsById]);
     
                     // unset these straight away so we don't call this twice
                     img.onload = img.onerror = null;
@@ -1090,6 +1103,7 @@ if (!com) {
                     while(visibleTiles.length)
                     {
                         this.provider.releaseTileElement(visibleTiles[0].coord);
+                        this.requestManager.clearRequest(visibleTiles[0].coord.toKey());
                         level.removeChild(visibleTiles[0]);
                         visibleTiles.shift();
                     }                    
@@ -1259,6 +1273,7 @@ if (!com) {
 
                 if(!valid_tile_keys[tile.id]) {
                     this.provider.releaseTileElement(tile.coord);
+                    this.requestManager.clearRequest(tile.coord.toKey());
                     level.removeChild(tile);
                 
                 } else {
