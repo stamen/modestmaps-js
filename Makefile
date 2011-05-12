@@ -26,3 +26,6 @@ modestmaps.js: $(JS_FILES) Makefile
 clean:
 	rm modestmaps.js
 	rm modestmaps.min.js
+
+tests:
+	expresso test/*.test.js
