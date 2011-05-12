@@ -7,6 +7,7 @@
           Transformation: MM.Transformation,
           Location: MM.Location,
           MapProvider: MM.MapProvider,
+          TemplatedMapProvider: MM.TemplatedMapProvider,
           Coordinate: MM.Coordinate
       };
     }

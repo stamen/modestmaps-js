@@ -265,9 +265,9 @@
             this.dispatchCallback('extentset', locations);
             return this;
         },
-    
-        // map dimensions
-        
+
+        // Resize the map's container `<div>`, redrawing the map and triggering
+        // `resized` to make sure that the map's presentation is still correct.
         setSize: function(dimensionsOrX, orY) {
             if (dimensionsOrX.hasOwnProperty('x') && dimensionsOrX.hasOwnProperty('y')) {
                 this.dimensions = dimensionsOrX;
@@ -276,21 +276,20 @@
                 this.dimensions = new MM.Point(dimensionsOrX, orY);
             }
             this.parent.style.width = Math.round(this.dimensions.x) + 'px';
-            this.parent.style.height = Math.round(this.dimensions.y) + 'px';        
+            this.parent.style.height = Math.round(this.dimensions.y) + 'px';
             this.draw();
             this.dispatchCallback('resized', [ this.dimensions ]);
             return this;
         },
-        
+
         // projecting points on and off screen
         coordinatePoint: function(coord)
         {
-            /* Return an x, y point on the map image for a given coordinate. */
-            
+            // Return an x, y point on the map image for a given coordinate.
             if(coord.zoom != this.coordinate.zoom) {
                 coord = coord.zoomTo(this.coordinate.zoom);
             }
-            
+
             // distance from the center of the map
             var point = new MM.Point(this.dimensions.x/2, this.dimensions.y/2);
             point.x += this.provider.tileWidth * (coord.column - this.coordinate.column);
@@ -298,7 +297,7 @@
             
             return point;
         },
-    
+
         // Get a `MM.Coordinate` from an `MM.Point` - returns a new tile-like object
         // from a screen point.
         pointCoordinate: function(point)
@@ -331,21 +330,25 @@
             extent.push(this.pointLocation(this.dimensions));
             return extent;
         },
-        
+
+        // Get the current centerpoint of the map, returning a `Location`
         getCenter: function() {
             return this.provider.coordinateLocation(this.coordinate);
         },
-        
+
+        // Get the current zoom level of the map, returning a number
         getZoom: function() {
             return this.coordinate.zoom;
         },
-    
+
+        // Replace the existing provider or set a provider on the map, clearing
+        // out existing tiles and requests.
         setProvider: function(newProvider) {
 
-            var firstProvider = false;            
+            var firstProvider = false;
             if (this.provider === null) {
                 firstProvider = true;
-            }        
+            }
         
             // if we already have a provider the we'll need to
             // clear the DOM, cancel requests and redraw
@@ -396,12 +399,12 @@
             };        
         },*/
         
-        // limits
-        
+        // Prevent the user from navigating the map outside the `outerLimits`
+        // of the map's provider.
         enforceLimits: function(coord) {
             coord = coord.copy();
             var limits = this.provider.outerLimits();
-            if (limits) {                
+            if (limits) {
                 var minZoom = limits[0].zoom;
                 var maxZoom = limits[1].zoom;
                 if (coord.zoom < minZoom) {
@@ -450,8 +453,7 @@
             return coord;
         },
         
-        // rendering    
-        
+        // Redraw the tiles on the map, reusing existing tiles.
         draw: function() {
     
             // make sure we're not too far in or out:
@@ -475,7 +477,7 @@
             // requests for tiles with invalid keys will be canceled
             // (this object maps from a tile key to a boolean)
             var validTileKeys = { };
-            
+
             // make sure we have a container for tiles in the current layer
             var thisLayer = this.createOrGetLayer(startCoord.zoom);
 
@@ -777,7 +779,4 @@
                 return r1 ? 1 : r2 ? -1 : 0;
             };
         }
-
     };
-    
-

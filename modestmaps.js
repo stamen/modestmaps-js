@@ -21,8 +21,7 @@ if (!com) {
 }
 
 (function(MM) {
-    //////////////////////////// Make inheritance bearable
-    
+    // Make inheritance bearable: clone one level of properties
     MM.extend = function(child, parent) {
         for (var property in parent.prototype) {
             if (typeof child.prototype[property] == "undefined") {
@@ -31,11 +30,10 @@ if (!com) {
         }
         return child;
     };
-    
-    /////////////////////////// Eeeeeeeeeeeeeeeeeeeeeevents
-    
+
+    // Events
+    // Cancel an event: prevent it from bubbling
     MM.cancelEvent = function(e) {
-        //console.log('cancel: ' + e);
         // there's more than one way to skin this cat
         e.cancelBubble = true;
         e.cancel = true;
@@ -44,9 +42,8 @@ if (!com) {
         if (e.preventDefault) { e.preventDefault(); }
         return false;
     };
-    
+
     // see http://ejohn.org/apps/jselect/event.html for the originals
-    
     MM.addEvent = function(obj, type, fn) {
         if (obj.attachEvent) {
             obj['e'+type+fn] = fn;
@@ -60,7 +57,7 @@ if (!com) {
             }
         }
     };
-    
+
     MM.removeEvent = function( obj, type, fn ) {
         if ( obj.detachEvent ) {
             obj.detachEvent('on'+type, obj[type+fn]);
@@ -73,9 +70,8 @@ if (!com) {
             }
         }
     };
-    
-    /////////////////////////////
-        
+
+    // Cross-browser function to get current element style property
     MM.getStyle = function(el,styleProp) {
         if (el.currentStyle)
             var y = el.currentStyle[styleProp];
@@ -83,7 +79,6 @@ if (!com) {
             var y = document.defaultView.getComputedStyle(el,null).getPropertyValue(styleProp);
         return y;
     };
-    
     // Point
     MM.Point = function(x, y) {
         this.x = parseFloat(x);
@@ -260,9 +255,8 @@ if (!com) {
 
         return new MM.Location(latN/deg2rad, lonN/deg2rad);
     };
-
-    /////////////////////////////////
-    
+    // Transformation
+    // --------------
     MM.Transformation = function(ax, bx, cx, ay, by, cy) {
         this.ax = ax;
         this.bx = bx;
@@ -273,57 +267,55 @@ if (!com) {
     };
 
     MM.Transformation.prototype = {
-    
-        ax: 0, 
-        bx: 0, 
-        cx: 0, 
-        ay: 0, 
-        by: 0, 
+
+        ax: 0,
+        bx: 0,
+        cx: 0,
+        ay: 0,
+        by: 0,
         cy: 0,
-        
+
         transform: function(point) {
             return new MM.Point(this.ax*point.x + this.bx*point.y + this.cx,
                                 this.ay*point.x + this.by*point.y + this.cy);
         },
-                             
+
         untransform: function(point) {
-            return new MM.Point((point.x*this.by - point.y*this.bx 
-                               - this.cx*this.by + this.cy*this.bx) 
+            return new MM.Point((point.x*this.by - point.y*this.bx
+                               - this.cx*this.by + this.cy*this.bx)
                               / (this.ax*this.by - this.ay*this.bx),
                                 (point.x*this.ay - point.y*this.ax
                                - this.cx*this.ay + this.cy*this.ax)
                               / (this.bx*this.ay - this.by*this.ax));
         }
-        
+
     };
 
-    
-    MM.deriveTransformation = function(a1x, a1y, a2x, a2y, 
-                                       b1x, b1y, b2x, b2y, 
+
+    // Generates a transform based on three pairs of points,
+    // a1 -> a2, b1 -> b2, c1 -> c2.
+    MM.deriveTransformation = function(a1x, a1y, a2x, a2y,
+                                       b1x, b1y, b2x, b2y,
                                        c1x, c1y, c2x, c2y) {
-        // Generates a transform based on three pairs of points, 
-        // a1 -> a2, b1 -> b2, c1 -> c2.
-        var x = MM.linearSolution(a1x, a1y, a2x, 
-                                  b1x, b1y, b2x, 
+        var x = MM.linearSolution(a1x, a1y, a2x,
+                                  b1x, b1y, b2x,
                                   c1x, c1y, c2x);
-        var y = MM.linearSolution(a1x, a1y, a2y, 
-                                  b1x, b1y, b2y, 
+        var y = MM.linearSolution(a1x, a1y, a2y,
+                                  b1x, b1y, b2y,
                                   c1x, c1y, c2y);
         return new MM.Transformation(x[0], x[1], x[2], y[0], y[1], y[2]);
     };
-    
+
+    // Solves a system of linear equations.
+    //
+    //     t1 = (a * r1) + (b + s1) + c
+    //     t2 = (a * r2) + (b + s2) + c
+    //     t3 = (a * r3) + (b + s3) + c
+    //
+    // r1 - t3 are the known values.
+    // a, b, c are the unknowns to be solved.
+    // returns the a, b, c coefficients.
     MM.linearSolution = function(r1, s1, t1, r2, s2, t2, r3, s3, t3) {
-        /* Solves a system of linear equations.
-
-          t1 = (a * r1) + (b + s1) + c
-          t2 = (a * r2) + (b + s2) + c
-          t3 = (a * r3) + (b + s3) + c
-
-        r1 - t3 are the known values.
-        a, b, c are the unknowns to be solved.
-        returns the a, b, c coefficients.
-        */
-
         // make them all floats
         r1 = parseFloat(r1);
         s1 = parseFloat(s1);
@@ -342,11 +334,8 @@ if (!com) {
               / (((s2 - s3) * (r1 - r2)) - ((s1 - s2) * (r2 - r3)));
 
         var c = t1 - (r1 * a) - (s1 * b);
-    
         return [ a, b, c ];
     };
-    
-
     // Projection
     // ----------
 
@@ -741,21 +730,20 @@ if (!com) {
             }
         }
     };
-    //////////////////////////// RequestManager is an image loading queue 
-    
+    // RequestManager is an image loading queue 
     MM.RequestManager = function(parent) {
-    
+
         this.loadingBay = document.createDocumentFragment();
 
         this.requestsById = {};
         this.openRequestCount = 0;
-        
+
         this.maxOpenRequests = 4;
         this.requestQueue = [];    
-        
+
         this.callbackManager = new MM.CallbackManager(this, [ 'requestcomplete' ]);
     };
-    
+
     MM.RequestManager.prototype = {
 
         // DOM element, hidden, for making sure images dispatch complete events
@@ -858,7 +846,7 @@ if (!com) {
                 this._processQueue = function() {
                     theManager.processQueue();
                 };
-            }        
+            }
             return this._processQueue;
         },
 
@@ -947,7 +935,7 @@ if (!com) {
                 };
             }
             return this._loadComplete;
-        }        
+        }
     
     };
 
@@ -1217,9 +1205,9 @@ if (!com) {
             this.dispatchCallback('extentset', locations);
             return this;
         },
-    
-        // map dimensions
-        
+
+        // Resize the map's container `<div>`, redrawing the map and triggering
+        // `resized` to make sure that the map's presentation is still correct.
         setSize: function(dimensionsOrX, orY) {
             if (dimensionsOrX.hasOwnProperty('x') && dimensionsOrX.hasOwnProperty('y')) {
                 this.dimensions = dimensionsOrX;
@@ -1228,21 +1216,20 @@ if (!com) {
                 this.dimensions = new MM.Point(dimensionsOrX, orY);
             }
             this.parent.style.width = Math.round(this.dimensions.x) + 'px';
-            this.parent.style.height = Math.round(this.dimensions.y) + 'px';        
+            this.parent.style.height = Math.round(this.dimensions.y) + 'px';
             this.draw();
             this.dispatchCallback('resized', [ this.dimensions ]);
             return this;
         },
-        
+
         // projecting points on and off screen
         coordinatePoint: function(coord)
         {
-            /* Return an x, y point on the map image for a given coordinate. */
-            
+            // Return an x, y point on the map image for a given coordinate.
             if(coord.zoom != this.coordinate.zoom) {
                 coord = coord.zoomTo(this.coordinate.zoom);
             }
-            
+
             // distance from the center of the map
             var point = new MM.Point(this.dimensions.x/2, this.dimensions.y/2);
             point.x += this.provider.tileWidth * (coord.column - this.coordinate.column);
@@ -1250,7 +1237,7 @@ if (!com) {
             
             return point;
         },
-    
+
         // Get a `MM.Coordinate` from an `MM.Point` - returns a new tile-like object
         // from a screen point.
         pointCoordinate: function(point)
@@ -1283,21 +1270,25 @@ if (!com) {
             extent.push(this.pointLocation(this.dimensions));
             return extent;
         },
-        
+
+        // Get the current centerpoint of the map, returning a `Location`
         getCenter: function() {
             return this.provider.coordinateLocation(this.coordinate);
         },
-        
+
+        // Get the current zoom level of the map, returning a number
         getZoom: function() {
             return this.coordinate.zoom;
         },
-    
+
+        // Replace the existing provider or set a provider on the map, clearing
+        // out existing tiles and requests.
         setProvider: function(newProvider) {
 
-            var firstProvider = false;            
+            var firstProvider = false;
             if (this.provider === null) {
                 firstProvider = true;
-            }        
+            }
         
             // if we already have a provider the we'll need to
             // clear the DOM, cancel requests and redraw
@@ -1348,12 +1339,12 @@ if (!com) {
             };        
         },*/
         
-        // limits
-        
+        // Prevent the user from navigating the map outside the `outerLimits`
+        // of the map's provider.
         enforceLimits: function(coord) {
             coord = coord.copy();
             var limits = this.provider.outerLimits();
-            if (limits) {                
+            if (limits) {
                 var minZoom = limits[0].zoom;
                 var maxZoom = limits[1].zoom;
                 if (coord.zoom < minZoom) {
@@ -1402,8 +1393,7 @@ if (!com) {
             return coord;
         },
         
-        // rendering    
-        
+        // Redraw the tiles on the map, reusing existing tiles.
         draw: function() {
     
             // make sure we're not too far in or out:
@@ -1427,7 +1417,7 @@ if (!com) {
             // requests for tiles with invalid keys will be canceled
             // (this object maps from a tile key to a boolean)
             var validTileKeys = { };
-            
+
             // make sure we have a container for tiles in the current layer
             var thisLayer = this.createOrGetLayer(startCoord.zoom);
 
@@ -1729,10 +1719,7 @@ if (!com) {
                 return r1 ? 1 : r2 ? -1 : 0;
             };
         }
-
     };
-    
-
     if (typeof module !== 'undefined' && module.exports) {
       module.exports = {
           Point: MM.Point,
@@ -1742,6 +1729,7 @@ if (!com) {
           Transformation: MM.Transformation,
           Location: MM.Location,
           MapProvider: MM.MapProvider,
+          TemplatedMapProvider: MM.TemplatedMapProvider,
           Coordinate: MM.Coordinate
       };
     }
