@@ -14,11 +14,12 @@
 
         this.tileCacheSize = 0;
         this.maxTileCacheSize = 64;
-        this.requestManager = new MM.RequestManager(this.parent);    
+        this.requestManager = new MM.RequestManager(this.parent);
+        this.requestManager.addCallback('requestcomplete', this.getTileComplete());
 
         if(provider.hasOwnProperty('getTileUrl'))
         {
-            provider = new MM.TilePaintingProvider(provider, this.requestManager);
+            provider = new MM.TilePaintingProvider(provider);
         }
 
         this.provider = provider;
@@ -40,6 +41,61 @@
         provider: null,
         recentTiles: null,
         recentTilesById: null,
+        
+        _tileComplete: null,
+        
+        getTileComplete: function()
+        {
+            if(!this._tileComplete)
+            {
+                var theLayer = this;
+
+                this._tileComplete = function(manager, tile)
+                {
+                    // cache the tile itself:
+                    theLayer.tiles[tile.id] = tile;
+                    theLayer.tileCacheSize++;
+                    
+                    // also keep a record of when we last touched this tile:
+                    var record = { 
+                        id: tile.id, 
+                        lastTouchedTime: new Date().getTime() 
+                    };
+
+                    theLayer.recentTilesById[tile.id] = record;
+                    theLayer.recentTiles.push(record);                        
+
+                    // position this tile (avoids a full draw() call):
+                    var theCoord = theLayer.map.coordinate.zoomTo(tile.coord.zoom);
+                    var scale = Math.pow(2, theLayer.map.coordinate.zoom - tile.coord.zoom);
+                    var tx = ((theLayer.map.dimensions.x/2) + (tile.coord.column - theCoord.column) * theLayer.provider.tileWidth * scale);
+                    var ty = ((theLayer.map.dimensions.y/2) + (tile.coord.row - theCoord.row) * theLayer.provider.tileHeight * scale);
+                    tile.style.left = Math.round(tx) + 'px'; 
+                    tile.style.top = Math.round(ty) + 'px'; 
+
+                    // using style here and not raw width/height for ipad/iphone scaling
+                    // see examples/touch/test.html                    
+                    tile.style.width = Math.ceil(theLayer.provider.tileWidth * scale) + 'px';
+                    tile.style.height = Math.ceil(theLayer.provider.tileHeight * scale) + 'px';
+
+                    // add tile to its level
+                    var theLevel = theLayer.levels[tile.coord.zoom];
+                    theLevel.appendChild(tile);                    
+
+                    // ensure the level is visible if it's still the current level
+                    if (Math.round(theLayer.map.coordinate.zoom) == tile.coord.zoom) {
+                        theLevel.style.display = 'block';
+                    }
+                    
+                    // request a lazy redraw of all levels 
+                    // this will remove tiles that were only visible
+                    // to cover this tile while it loaded:
+                    theLayer.requestRedraw();
+                };
+            }
+            
+            return this._tileComplete;
+        },
         
         draw: function()
         {
@@ -94,7 +150,7 @@
 
                     while(visibleTiles.length)
                     {
-                        this.provider.releaseTileElement(visibleTiles[0].coord);
+                        this.provider.releaseTile(visibleTiles[0].coord);
                         this.requestManager.clearRequest(visibleTiles[0].coord.toKey());
                         level.removeChild(visibleTiles[0]);
                         visibleTiles.shift();
@@ -154,8 +210,14 @@
             */
             if(!this.requestManager.hasRequest(tile_key))
             {
-                var element = this.provider.getTileElement(tile_coord);
-                this.addTileElement(tile_key, tile_coord, element);
+                var tile = this.provider.getTile(tile_coord);
+                
+                if(typeof tile == 'string') {
+                    this.addTileImage(tile_key, tile_coord, tile);
+                
+                } else {
+                    this.addTileElement(tile_key, tile_coord, tile);
+                }
             }
 
             // look for a parent tile in our image cache
@@ -181,8 +243,14 @@
                     }
                     else if (!this.requestManager.hasRequest(parent_key)) {
                         // force load of parent tiles we don't already have
-                        var element = this.provider.getTileElement(parent_coord);
-                        this.addTileElement(parent_key, parent_coord, element);
+                        var tile = this.provider.getTile(parent_coord);
+
+                        if(typeof tile == 'string') {
+                            this.addTileImage(parent_key, parent_coord, tile);
+                        
+                        } else {
+                            this.addTileElement(parent_key, parent_coord, tile);
+                        }
                     }
                 }
                 else {
@@ -264,7 +332,7 @@
                 var tile = tiles.pop();
 
                 if(!valid_tile_keys[tile.id]) {
-                    this.provider.releaseTileElement(tile.coord);
+                    this.provider.releaseTile(tile.coord);
                     this.requestManager.clearRequest(tile.coord.toKey());
                     level.removeChild(tile);
                 
@@ -301,6 +369,11 @@
             this.parent.appendChild(level);
             this.levels[zoom] = level;
             return level;
+        },
+        
+        addTileImage: function(key, coord, url)
+        {
+            this.requestManager.requestTile(key, coord, url);
         },
         
         addTileElement: function(key, coordinate, element)

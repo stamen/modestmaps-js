@@ -126,20 +126,6 @@
             }
         },
         
-        requestImage: function(key, coord, url, parent)
-        {
-            console.log(['requests.requestImage', key, 'in by id:', key in this.requestsById]);
-            if (!(key in this.requestsById)) {
-                var request = { key: key, coord: coord.copy(), url: url, parent: parent };
-                // if there's no url just make sure we don't request this image again
-                this.requestsById[key] = request;
-                if (url) {
-                    this.requestQueue.push(request);
-                    //console.log(this.requestQueue.length + ' pending requests');
-                }
-            }
-        },
-        
         getProcessQueue: function() {
             // let's only create this closure once...
             if (!this._processQueue) {
@@ -202,16 +188,10 @@
     
                     // srcElement for IE, target for FF, Safari etc.
                     var img = e.srcElement || e.target;
-                    console.log(['requests.getLoadComplete', img.id, 'in by id:', img.id in theManager.requestsById]);
     
                     // unset these straight away so we don't call this twice
                     img.onload = img.onerror = null;
                     
-                    // get the callback if one exists
-                    if('parent' in theManager.requestsById[img.id]) {
-                        var parent = theManager.requestsById[img.id].parent;
-                    }
-    
                     // pull it back out of the (hidden) DOM 
                     // so that draw will add it correctly later
                     theManager.loadingBay.removeChild(img);
@@ -223,10 +203,6 @@
                     // NB:- complete is also true onerror if we got a 404
                     if (img.complete || 
                         (img.readyState && img.readyState == 'complete')) {
-                        if(parent != undefined) {
-                            parent.appendChild(img);
-                        }
-                        
                         theManager.dispatchCallback('requestcomplete', img);
                     }
                     else {

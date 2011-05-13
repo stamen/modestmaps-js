@@ -29,12 +29,12 @@
             console && console.log("Abstract method not implemented by subclass.");
         },
 
-        getTileElement: function(coordinate)
+        getTile: function(coordinate)
         {
             console && console.log("Abstract method not implemented by subclass.");
         },
         
-        releaseTileElement: function(element)
+        releaseTile: function(element)
         {
             console && console.log("Abstract method not implemented by subclass.");
         },
@@ -101,28 +101,20 @@
    /**
     * Possible new kind of provider that deals in elements.
     */
-    MM.TilePaintingProvider = function(template_provider, request_manager)
+    MM.TilePaintingProvider = function(template_provider)
     {
         this.template_provider = template_provider;
-        this.request_manager = request_manager;
     }
     
     MM.TilePaintingProvider.prototype = {
     
-        getTileElement: function(coord)
+        getTile: function(coord)
         {
-            console.log(['provider.getTileElement', coord.toKey()]);
-
-            var div = document.createElement('div');
-
-            this.request_manager.requestImage(coord.toKey(), coord, this.template_provider.getTileUrl(coord), div);
-            
-            return div;
+            return this.template_provider.getTileUrl(coord);
         },
         
-        releaseTileElement: function(coord)
+        releaseTile: function(coord)
         {
-            console.log(['provider.releaseTileElement', coord.toKey()]);
         }
     }
     

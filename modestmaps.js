@@ -457,12 +457,12 @@ if (!com) {
             console && console.log("Abstract method not implemented by subclass.");
         },
 
-        getTileElement: function(coordinate)
+        getTile: function(coordinate)
         {
             console && console.log("Abstract method not implemented by subclass.");
         },
         
-        releaseTileElement: function(element)
+        releaseTile: function(element)
         {
             console && console.log("Abstract method not implemented by subclass.");
         },
@@ -529,28 +529,20 @@ if (!com) {
    /**
     * Possible new kind of provider that deals in elements.
     */
-    MM.TilePaintingProvider = function(template_provider, request_manager)
+    MM.TilePaintingProvider = function(template_provider)
     {
         this.template_provider = template_provider;
-        this.request_manager = request_manager;
     }
     
     MM.TilePaintingProvider.prototype = {
     
-        getTileElement: function(coord)
+        getTile: function(coord)
         {
-            console.log(['provider.getTileElement', coord.toKey()]);
-
-            var div = document.createElement('div');
-
-            this.request_manager.requestImage(coord.toKey(), coord, this.template_provider.getTileUrl(coord), div);
-            
-            return div;
+            return this.template_provider.getTileUrl(coord);
         },
         
-        releaseTileElement: function(coord)
+        releaseTile: function(coord)
         {
-            console.log(['provider.releaseTileElement', coord.toKey()]);
         }
     }
     
@@ -883,20 +875,6 @@ if (!com) {
             }
         },
         
-        requestImage: function(key, coord, url, parent)
-        {
-            console.log(['requests.requestImage', key, 'in by id:', key in this.requestsById]);
-            if (!(key in this.requestsById)) {
-                var request = { key: key, coord: coord.copy(), url: url, parent: parent };
-                // if there's no url just make sure we don't request this image again
-                this.requestsById[key] = request;
-                if (url) {
-                    this.requestQueue.push(request);
-                    //console.log(this.requestQueue.length + ' pending requests');
-                }
-            }
-        },
-        
         getProcessQueue: function() {
             // let's only create this closure once...
             if (!this._processQueue) {
@@ -959,16 +937,10 @@ if (!com) {
     
                     // srcElement for IE, target for FF, Safari etc.
                     var img = e.srcElement || e.target;
-                    console.log(['requests.getLoadComplete', img.id, 'in by id:', img.id in theManager.requestsById]);
     
                     // unset these straight away so we don't call this twice
                     img.onload = img.onerror = null;
                     
-                    // get the callback if one exists
-                    if('parent' in theManager.requestsById[img.id]) {
-                        var parent = theManager.requestsById[img.id].parent;
-                    }
-    
                     // pull it back out of the (hidden) DOM 
                     // so that draw will add it correctly later
                     theManager.loadingBay.removeChild(img);
@@ -980,10 +952,6 @@ if (!com) {
                     // NB:- complete is also true onerror if we got a 404
                     if (img.complete || 
                         (img.readyState && img.readyState == 'complete')) {
-                        if(parent != undefined) {
-                            parent.appendChild(img);
-                        }
-                        
                         theManager.dispatchCallback('requestcomplete', img);
                     }
                     else {
@@ -1022,11 +990,12 @@ if (!com) {
 
         this.tileCacheSize = 0;
         this.maxTileCacheSize = 64;
-        this.requestManager = new MM.RequestManager(this.parent);    
+        this.requestManager = new MM.RequestManager(this.parent);
+        this.requestManager.addCallback('requestcomplete', this.getTileComplete());
 
         if(provider.hasOwnProperty('getTileUrl'))
         {
-            provider = new MM.TilePaintingProvider(provider, this.requestManager);
+            provider = new MM.TilePaintingProvider(provider);
         }
 
         this.provider = provider;
@@ -1048,6 +1017,61 @@ if (!com) {
         provider: null,
         recentTiles: null,
         recentTilesById: null,
+        
+        _tileComplete: null,
+        
+        getTileComplete: function()
+        {
+            if(!this._tileComplete)
+            {
+                var theLayer = this;
+
+                this._tileComplete = function(manager, tile)
+                {
+                    // cache the tile itself:
+                    theLayer.tiles[tile.id] = tile;
+                    theLayer.tileCacheSize++;
+                    
+                    // also keep a record of when we last touched this tile:
+                    var record = { 
+                        id: tile.id, 
+                        lastTouchedTime: new Date().getTime() 
+                    };
+
+                    theLayer.recentTilesById[tile.id] = record;
+                    theLayer.recentTiles.push(record);                        
+
+                    // position this tile (avoids a full draw() call):
+                    var theCoord = theLayer.map.coordinate.zoomTo(tile.coord.zoom);
+                    var scale = Math.pow(2, theLayer.map.coordinate.zoom - tile.coord.zoom);
+                    var tx = ((theLayer.map.dimensions.x/2) + (tile.coord.column - theCoord.column) * theLayer.provider.tileWidth * scale);
+                    var ty = ((theLayer.map.dimensions.y/2) + (tile.coord.row - theCoord.row) * theLayer.provider.tileHeight * scale);
+                    tile.style.left = Math.round(tx) + 'px'; 
+                    tile.style.top = Math.round(ty) + 'px'; 
+
+                    // using style here and not raw width/height for ipad/iphone scaling
+                    // see examples/touch/test.html                    
+                    tile.style.width = Math.ceil(theLayer.provider.tileWidth * scale) + 'px';
+                    tile.style.height = Math.ceil(theLayer.provider.tileHeight * scale) + 'px';
+
+                    // add tile to its level
+                    var theLevel = theLayer.levels[tile.coord.zoom];
+                    theLevel.appendChild(tile);                    
+
+                    // ensure the level is visible if it's still the current level
+                    if (Math.round(theLayer.map.coordinate.zoom) == tile.coord.zoom) {
+                        theLevel.style.display = 'block';
+                    }
+                    
+                    // request a lazy redraw of all levels 
+                    // this will remove tiles that were only visible
+                    // to cover this tile while it loaded:
+                    theLayer.requestRedraw();
+                };
+            }
+            
+            return this._tileComplete;
+        },
         
         draw: function()
         {
@@ -1102,7 +1126,7 @@ if (!com) {
 
                     while(visibleTiles.length)
                     {
-                        this.provider.releaseTileElement(visibleTiles[0].coord);
+                        this.provider.releaseTile(visibleTiles[0].coord);
                         this.requestManager.clearRequest(visibleTiles[0].coord.toKey());
                         level.removeChild(visibleTiles[0]);
                         visibleTiles.shift();
@@ -1162,8 +1186,14 @@ if (!com) {
             */
             if(!this.requestManager.hasRequest(tile_key))
             {
-                var element = this.provider.getTileElement(tile_coord);
-                this.addTileElement(tile_key, tile_coord, element);
+                var tile = this.provider.getTile(tile_coord);
+                
+                if(typeof tile == 'string') {
+                    this.addTileImage(tile_key, tile_coord, tile);
+                
+                } else {
+                    this.addTileElement(tile_key, tile_coord, tile);
+                }
             }
 
             // look for a parent tile in our image cache
@@ -1189,8 +1219,14 @@ if (!com) {
                     }
                     else if (!this.requestManager.hasRequest(parent_key)) {
                         // force load of parent tiles we don't already have
-                        var element = this.provider.getTileElement(parent_coord);
-                        this.addTileElement(parent_key, parent_coord, element);
+                        var tile = this.provider.getTile(parent_coord);
+
+                        if(typeof tile == 'string') {
+                            this.addTileImage(parent_key, parent_coord, tile);
+                        
+                        } else {
+                            this.addTileElement(parent_key, parent_coord, tile);
+                        }
                     }
                 }
                 else {
@@ -1272,7 +1308,7 @@ if (!com) {
                 var tile = tiles.pop();
 
                 if(!valid_tile_keys[tile.id]) {
-                    this.provider.releaseTileElement(tile.coord);
+                    this.provider.releaseTile(tile.coord);
                     this.requestManager.clearRequest(tile.coord.toKey());
                     level.removeChild(tile);
                 
@@ -1309,6 +1345,11 @@ if (!com) {
             this.parent.appendChild(level);
             this.levels[zoom] = level;
             return level;
+        },
+        
+        addTileImage: function(key, coord, url)
+        {
+            this.requestManager.requestTile(key, coord, url);
         },
         
         addTileElement: function(key, coordinate, element)
