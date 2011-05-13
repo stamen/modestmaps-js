@@ -283,8 +283,7 @@
         },
 
         // projecting points on and off screen
-        coordinatePoint: function(coord)
-        {
+        coordinatePoint: function(coord) {
             // Return an x, y point on the map image for a given coordinate.
             if(coord.zoom != this.coordinate.zoom) {
                 coord = coord.zoomTo(this.coordinate.zoom);
@@ -300,8 +299,7 @@
 
         // Get a `MM.Coordinate` from an `MM.Point` - returns a new tile-like object
         // from a screen point.
-        pointCoordinate: function(point)
-        {
+        pointCoordinate: function(point) {
             // new point coordinate reflecting distance from map center, in tile widths
             var coord = this.coordinate.copy();
             coord.column += (point.x - this.dimensions.x/2) / this.provider.tileWidth;
@@ -311,14 +309,12 @@
         },
 
         // Return an x, y point on the map image for a given geographical location.
-        locationPoint: function(location)
-        {
+        locationPoint: function(location) {
             return this.coordinatePoint(this.provider.locationCoordinate(location));
         },
 
         // Return a geographical location on the map image for a given x, y point.
-        pointLocation: function(point)
-        {
+        pointLocation: function(point) {
             return this.provider.coordinateLocation(this.pointCoordinate(point));
         },
         
