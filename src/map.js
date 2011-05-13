@@ -79,11 +79,11 @@
         } else { // the world
             css.appendChild(document.createTextNode(def));
         }
-        //document.getElementsByTagName('head')[0].appendChild(ss1);        
-        this.parent.appendChild(css);        
+        document.getElementsByTagName('head')[0].appendChild(ss1);
+        this.parent.appendChild(css);
         */
 
-        this.requestManager = new MM.RequestManager(this.parent);    
+        this.requestManager = new MM.RequestManager(this.parent);
         this.requestManager.addCallback('requestcomplete', this.getTileComplete());
 
         this.layers = {};
