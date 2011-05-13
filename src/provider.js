@@ -78,7 +78,9 @@
                 var subdomain = parseInt(coordinate.zoom + coordinate.row + coordinate.column, 10) % subdomains.length;
                 base = base.replace('{S}', subdomains[subdomain]);
             }
-            return base.replace('{Z}', coordinate.zoom.toFixed(0)).replace('{X}', coordinate.column.toFixed(0)).replace('{Y}', coordinate.row.toFixed(0));
+            return base.replace('{Z}', coordinate.zoom.toFixed(0))
+                .replace('{X}', coordinate.column.toFixed(0))
+                .replace('{Y}', coordinate.row.toFixed(0));
         });
     };
 
