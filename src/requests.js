@@ -73,7 +73,7 @@
             }
         },
         
-        // Clear everything in the queue except for certain keys, speciied
+        // Clear everything in the queue except for certain keys, specified
         // by an object of the form
         //
         //     { key: throwawayvalue }

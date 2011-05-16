@@ -476,12 +476,12 @@ if (!com) {
 
         getTile: function(coordinate)
         {
-            console && console.log("Abstract method not implemented by subclass.");
+            throw "Abstract method not implemented by subclass.";
         },
         
         releaseTile: function(element)
         {
-            console && console.log("Abstract method not implemented by subclass.");
+            throw "Abstract method not implemented by subclass.";
         },
         
         locationCoordinate: function(location) {
@@ -859,7 +859,7 @@ if (!com) {
             }
         },
         
-        // Clear everything in the queue except for certain keys, speciied
+        // Clear everything in the queue except for certain keys, specified
         // by an object of the form
         //
         //     { key: throwawayvalue }
@@ -1521,8 +1521,6 @@ if (!com) {
      
         setProvider: function(newProvider)
         {
-            console.log(['okay...']);
-        
             if(newProvider.hasOwnProperty('getTileUrl'))
             {
                 newProvider = new MM.TilePaintingProvider(newProvider);
@@ -1541,7 +1539,6 @@ if (!com) {
                     if(this.levels.hasOwnProperty(name))
                     {
                         var level = this.levels[name];
-                        console.log(['level', name, level.firstChild]);
 
                         while(level.firstChild)
                         {
@@ -1569,8 +1566,6 @@ if (!com) {
             {
                 this.draw();
             }
-            
-            console.log(['yes']);
         },
 
         // compares manhattan distance from center of 

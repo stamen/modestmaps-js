@@ -30,12 +30,12 @@
 
         getTile: function(coordinate)
         {
-            console && console.log("Abstract method not implemented by subclass.");
+            throw "Abstract method not implemented by subclass.";
         },
         
         releaseTile: function(element)
         {
-            console && console.log("Abstract method not implemented by subclass.");
+            throw "Abstract method not implemented by subclass.";
         },
         
         locationCoordinate: function(location) {

@@ -488,8 +488,6 @@
      
         setProvider: function(newProvider)
         {
-            console.log(['okay...']);
-        
             if(newProvider.hasOwnProperty('getTileUrl'))
             {
                 newProvider = new MM.TilePaintingProvider(newProvider);
@@ -508,7 +506,6 @@
                     if(this.levels.hasOwnProperty(name))
                     {
                         var level = this.levels[name];
-                        console.log(['level', name, level.firstChild]);
 
                         while(level.firstChild)
                         {
@@ -536,8 +533,6 @@
             {
                 this.draw();
             }
-            
-            console.log(['yes']);
         },
 
         // compares manhattan distance from center of 
