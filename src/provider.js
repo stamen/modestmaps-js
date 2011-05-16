@@ -1,15 +1,14 @@
 
-    
-    //////////////////////////// Providers
-    
+    // Providers
+    // ---------
+    // Providers provide tile URLs and possibly elements for layers.
     MM.MapProvider = function(getTileUrl) {
         if (getTileUrl) {
             this.getTileUrl = getTileUrl;
         }
     };
-    
+
     MM.MapProvider.prototype = {
-    
         // defaults to Google-y Mercator style maps
         projection: new MM.MercatorProjection( 0, 
                         MM.deriveTransformation(-Math.PI,  Math.PI, 0, 0, 
@@ -26,7 +25,7 @@
         bottomRightInnerLimit: new MM.Coordinate(1,1,0).zoomTo(18),
         
         getTileUrl: function(coordinate) {
-            console && console.log("Abstract method not implemented by subclass.");
+            throw "Abstract method not implemented by subclass.";
         },
 
         getTile: function(coordinate)
@@ -48,7 +47,7 @@
         },
         
         outerLimits: function() {
-            return [ this.topLeftOuterLimit.copy(), 
+            return [ this.topLeftOuterLimit.copy(),
                      this.bottomRightInnerLimit.copy() ];
         },
 
@@ -77,6 +76,7 @@
         }
     };
     
+    // A simple tileprovider builder that supports `XYZ`-style tiles.
     MM.TemplatedMapProvider = function(template, subdomains)
     {
         var getTileUrl = function(coordinate)
@@ -90,12 +90,15 @@
                 var subdomain = parseInt(coordinate.zoom + coordinate.row + coordinate.column, 10) % subdomains.length;
                 base = base.replace('{S}', subdomains[subdomain]);
             }
-            return base.replace('{Z}', coordinate.zoom.toFixed(0)).replace('{X}', coordinate.column.toFixed(0)).replace('{Y}', coordinate.row.toFixed(0));
+            return base
+                .replace('{Z}', coordinate.zoom.toFixed(0))
+                .replace('{X}', coordinate.column.toFixed(0))
+                .replace('{Y}', coordinate.row.toFixed(0));
         }
     
         MM.MapProvider.call(this, getTileUrl);
     };
-    
+
     MM.extend(MM.TemplatedMapProvider, MM.MapProvider);
     
    /**

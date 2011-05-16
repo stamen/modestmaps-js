@@ -1,35 +1,30 @@
 
-    //////////////////////////// Map
+    // Map
 
-    /* Instance of a map intended for drawing to a div.
-    
-        parent (required DOM element)
-            Can also be an ID of a DOM element
-    
-        provider (required MapProvider)
-            Provides tile URLs and map projections
-            
-        dimensions (optional Point)
-            Size of map to create
-            
-        eventHandlers (optional Array)
-            If empty or null MouseHandler will be used
-            Otherwise, each handler will be called with init(map)
+    // Instance of a map intended for drawing to a div.
+    //
+    //  * `parent` (required DOM element)
+    //      Can also be an ID of a DOM element
+    //  * `providers` (required MapProvider or array)
+    //      Provides tile URLs and map projections, can be an array of providers.
+    //  * `dimensions` (optional Point)
+    //      Size of map to create
+    //  * `eventHandlers` (optional Array)
+    //      If empty or null MouseHandler will be used
+    //      Otherwise, each handler will be called with init(map)
+    MM.Map = function(parent, providers, dimensions, eventHandlers) {
 
-    */    
-    MM.Map = function(parent, providers, dimensions, eventHandlers)
-    {
         if (typeof parent == 'string') {
             parent = document.getElementById(parent);
         }
         this.parent = parent;
-    
+
         // we're no longer adding width and height to parent.style but we still
         // need to enforce padding, overflow and position otherwise everything screws up
         // TODO: maybe console.warn if the current values are bad?
         this.parent.style.padding = '0';
         this.parent.style.overflow = 'hidden';
-        
+
         var position = MM.getStyle(this.parent, 'position');
         if (position != "relative" && position != "absolute") {
             this.parent.style.position = 'relative';
@@ -54,8 +49,8 @@
         } else { // the world
             css.appendChild(document.createTextNode(def));
         }
-        //document.getElementsByTagName('head')[0].appendChild(ss1);        
-        this.parent.appendChild(css);        
+        document.getElementsByTagName('head')[0].appendChild(ss1);
+        this.parent.appendChild(css);
         */
 
         this.layers = [];
@@ -77,7 +72,7 @@
 
         this.coordinate = new MM.Coordinate(0.5,0.5,0);
         this.enablePyramidLoading = false;
-        
+
         this.callbackManager = new MM.CallbackManager(this, [ 'zoomed', 'panned', 'centered', 'extentset', 'resized', 'drawn' ]);
 
         // set up handlers last so that all required attributes/functions are in place if needed
@@ -176,16 +171,16 @@
         zoomIn:  function()  { return this.zoomBy(1); },
         zoomOut: function()  { return this.zoomBy(-1); },
         setZoom: function(z) { return this.zoomBy(z - this.coordinate.zoom); },
-                
+
         zoomByAbout: function(zoomOffset, point) {
             var location = this.pointLocation(point);
             this.zoomBy(zoomOffset);
             var newPoint = this.locationPoint(location);
             return this.panBy(point.x - newPoint.x, point.y - newPoint.y);
         },
-    
+
         // panning
-        
+
         panBy: function(dx, dy) {
             this.coordinate.column -= dx / this.provider.tileWidth;
             this.coordinate.row -= dy / this.provider.tileHeight;
@@ -193,27 +188,26 @@
             this.dispatchCallback('panned', [dx, dy]);
             return this;
         },
-    
+
         panLeft:  function() { return this.panBy(100,0); },
         panRight: function() { return this.panBy(-100,0); },
         panDown:  function() { return this.panBy(0,-100); },
         panUp:    function() { return this.panBy(0,100); },
-        
+
         // positioning
-        
         setCenter: function(location) {
             return this.setCenterZoom(location, this.coordinate.zoom);
         },
-    
+
         setCenterZoom: function(location, zoom) {
             this.coordinate = this.provider.locationCoordinate(location).zoomTo(parseFloat(zoom) || 0);
             this.draw();
             this.dispatchCallback('centered', [location, zoom]);
             return this;
         },
-    
+
         setExtent: function(locations) {
-    
+
             var TL, BR;
             for (var i = 0; i < locations.length; i++) {
                 var coordinate = this.provider.locationCoordinate(locations[i]);
@@ -271,9 +265,9 @@
             this.dispatchCallback('extentset', locations);
             return this;
         },
-    
-        // map dimensions
-        
+
+        // Resize the map's container `<div>`, redrawing the map and triggering
+        // `resized` to make sure that the map's presentation is still correct.
         setSize: function(dimensionsOrX, orY) {
             if (dimensionsOrX.hasOwnProperty('x') && dimensionsOrX.hasOwnProperty('y')) {
                 this.dimensions = dimensionsOrX;
@@ -282,22 +276,19 @@
                 this.dimensions = new MM.Point(dimensionsOrX, orY);
             }
             this.parent.style.width = Math.round(this.dimensions.x) + 'px';
-            this.parent.style.height = Math.round(this.dimensions.y) + 'px';        
+            this.parent.style.height = Math.round(this.dimensions.y) + 'px';
             this.draw();
             this.dispatchCallback('resized', [ this.dimensions ]);
             return this;
         },
-        
+
         // projecting points on and off screen
-        
-        coordinatePoint: function(coord)
-        {
-            /* Return an x, y point on the map image for a given coordinate. */
-            
+        coordinatePoint: function(coord) {
+            // Return an x, y point on the map image for a given coordinate.
             if(coord.zoom != this.coordinate.zoom) {
                 coord = coord.zoomTo(this.coordinate.zoom);
             }
-            
+
             // distance from the center of the map
             var point = new MM.Point(this.dimensions.x/2, this.dimensions.y/2);
             point.x += this.provider.tileWidth * (coord.column - this.coordinate.column);
@@ -305,28 +296,25 @@
             
             return point;
         },
-    
-        pointCoordinate: function(point)
-        {
-            /* Return a coordinate on the map image for a given x, y point. */
-            
+
+        // Get a `MM.Coordinate` from an `MM.Point` - returns a new tile-like object
+        // from a screen point.
+        pointCoordinate: function(point) {
             // new point coordinate reflecting distance from map center, in tile widths
             var coord = this.coordinate.copy();
             coord.column += (point.x - this.dimensions.x/2) / this.provider.tileWidth;
             coord.row += (point.y - this.dimensions.y/2) / this.provider.tileHeight;
-            
+
             return coord;
         },
-    
-        locationPoint: function(location)
-        {
-            /* Return an x, y point on the map image for a given geographical location. */
+
+        // Return an x, y point on the map image for a given geographical location.
+        locationPoint: function(location) {
             return this.coordinatePoint(this.provider.locationCoordinate(location));
         },
-        
-        pointLocation: function(point)
-        {
-            /* Return a geographical location on the map image for a given x, y point. */
+
+        // Return a geographical location on the map image for a given x, y point.
+        pointLocation: function(point) {
             return this.provider.coordinateLocation(this.pointCoordinate(point));
         },
         
@@ -338,11 +326,13 @@
             extent.push(this.pointLocation(this.dimensions));
             return extent;
         },
-        
+
+        // Get the current centerpoint of the map, returning a `Location`
         getCenter: function() {
             return this.provider.coordinateLocation(this.coordinate);
         },
-        
+
+        // Get the current zoom level of the map, returning a number
         getZoom: function() {
             return this.coordinate.zoom;
         },
@@ -447,11 +437,13 @@
         
         // limits
         
+        // Prevent the user from navigating the map outside the `outerLimits`
+        // of the map's provider.
         enforceLimits: function(coord)
         {
             coord = coord.copy();
             var limits = this.provider.outerLimits();
-            if (limits) {                
+            if (limits) {
                 var minZoom = limits[0].zoom;
                 var maxZoom = limits[1].zoom;
                 if (coord.zoom < minZoom) {
@@ -502,6 +494,7 @@
         
         // rendering    
         
+        // Redraw the tiles on the map, reusing existing tiles.
         draw: function()
         {
             // make sure we're not too far in or out:
@@ -515,7 +508,4 @@
 
             this.dispatchCallback('drawn');
         }
-        
     };
-    
-

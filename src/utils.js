@@ -1,5 +1,4 @@
-    //////////////////////////// Make inheritance bearable
-    
+    // Make inheritance bearable: clone one level of properties
     MM.extend = function(child, parent) {
         for (var property in parent.prototype) {
             if (typeof child.prototype[property] == "undefined") {
@@ -8,11 +7,10 @@
         }
         return child;
     };
-    
-    /////////////////////////// Eeeeeeeeeeeeeeeeeeeeeevents
-    
+
+    // Events
+    // Cancel an event: prevent it from bubbling
     MM.cancelEvent = function(e) {
-        //console.log('cancel: ' + e);
         // there's more than one way to skin this cat
         e.cancelBubble = true;
         e.cancel = true;
@@ -21,9 +19,8 @@
         if (e.preventDefault) { e.preventDefault(); }
         return false;
     };
-    
+
     // see http://ejohn.org/apps/jselect/event.html for the originals
-    
     MM.addEvent = function(obj, type, fn) {
         if (obj.attachEvent) {
             obj['e'+type+fn] = fn;
@@ -37,7 +34,7 @@
             }
         }
     };
-    
+
     MM.removeEvent = function( obj, type, fn ) {
         if ( obj.detachEvent ) {
             obj.detachEvent('on'+type, obj[type+fn]);
@@ -50,9 +47,8 @@
             }
         }
     };
-    
-    /////////////////////////////
-        
+
+    // Cross-browser function to get current element style property
     MM.getStyle = function(el,styleProp) {
         if (el.currentStyle)
             var y = el.currentStyle[styleProp];
@@ -60,4 +56,3 @@
             var y = document.defaultView.getComputedStyle(el,null).getPropertyValue(styleProp);
         return y;
     };
-    
