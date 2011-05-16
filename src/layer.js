@@ -9,22 +9,12 @@
         map.parent.appendChild(this.parent);
 
         this.map = map;
-        this.tiles = {};
         this.levels = {};
 
-        this.tileCacheSize = 0;
-        this.maxTileCacheSize = 64;
         this.requestManager = new MM.RequestManager(this.parent);
         this.requestManager.addCallback('requestcomplete', this.getTileComplete());
 
-        if(provider.hasOwnProperty('getTileUrl'))
-        {
-            provider = new MM.TilePaintingProvider(provider);
-        }
-
-        this.provider = provider;
-        this.recentTilesById = {};
-        this.recentTiles = [];
+        this.setProvider(provider);
     }
     
     MM.Layer.prototype = {
@@ -495,7 +485,61 @@
                 }
             }
         },
+     
+        setProvider: function(newProvider)
+        {
+            console.log(['okay...']);
         
+            if(newProvider.hasOwnProperty('getTileUrl'))
+            {
+                newProvider = new MM.TilePaintingProvider(newProvider);
+            }
+
+            var firstProvider = (this.provider === null);
+        
+            // if we already have a provider the we'll need to
+            // clear the DOM, cancel requests and redraw
+            if(!firstProvider)
+            {
+                this.requestManager.clear();
+                
+                for(var name in this.levels)
+                {
+                    if(this.levels.hasOwnProperty(name))
+                    {
+                        var level = this.levels[name];
+                        console.log(['level', name, level.firstChild]);
+
+                        while(level.firstChild)
+                        {
+                            this.provider.releaseTile(level.firstChild.coord);
+                            level.removeChild(level.firstChild);
+                        }
+                    }
+                }
+            }
+            
+            // first provider or not we'll init/reset some values...
+            
+            this.tiles = {};
+            this.tileCacheSize = 0;
+            this.maxTileCacheSize = 64;
+            this.recentTilesById = {};
+            this.recentTiles = [];
+
+            // for later: check geometry of old provider and set a new coordinate center 
+            // if needed (now? or when?)
+
+            this.provider = newProvider;
+
+            if(!firstProvider)
+            {
+                this.draw();
+            }
+            
+            console.log(['yes']);
+        },
+
         // compares manhattan distance from center of 
         // requested tiles to current map center
         // NB:- requested tiles are *popped* from queue, so we do a descending sort

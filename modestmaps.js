@@ -816,8 +816,8 @@ if (!com) {
             }
         },
         
-        clearExcept: function(validKeys) {
-
+        clearExcept: function(validKeys)
+        {
             // clear things from the queue first...
             for (var i = 0; i < this.requestQueue.length; i++) {
                 var request = this.requestQueue[i];
@@ -837,7 +837,7 @@ if (!com) {
                     img.src = img.coord = img.onload = img.onerror = null;
                 }
             }
-        
+            
             // hasOwnProperty protects against prototype additions
             // "The standard describes an augmentable Object.prototype. 
             //  Ignore standards at your own peril."
@@ -854,7 +854,6 @@ if (!com) {
                     }
                 }
             }
-
         },
 
         hasRequest: function(id) {
@@ -985,22 +984,12 @@ if (!com) {
         map.parent.appendChild(this.parent);
 
         this.map = map;
-        this.tiles = {};
         this.levels = {};
 
-        this.tileCacheSize = 0;
-        this.maxTileCacheSize = 64;
         this.requestManager = new MM.RequestManager(this.parent);
         this.requestManager.addCallback('requestcomplete', this.getTileComplete());
 
-        if(provider.hasOwnProperty('getTileUrl'))
-        {
-            provider = new MM.TilePaintingProvider(provider);
-        }
-
-        this.provider = provider;
-        this.recentTilesById = {};
-        this.recentTiles = [];
+        this.setProvider(provider);
     }
     
     MM.Layer.prototype = {
@@ -1471,7 +1460,61 @@ if (!com) {
                 }
             }
         },
+     
+        setProvider: function(newProvider)
+        {
+            console.log(['okay...']);
         
+            if(newProvider.hasOwnProperty('getTileUrl'))
+            {
+                newProvider = new MM.TilePaintingProvider(newProvider);
+            }
+
+            var firstProvider = (this.provider === null);
+        
+            // if we already have a provider the we'll need to
+            // clear the DOM, cancel requests and redraw
+            if(!firstProvider)
+            {
+                this.requestManager.clear();
+                
+                for(var name in this.levels)
+                {
+                    if(this.levels.hasOwnProperty(name))
+                    {
+                        var level = this.levels[name];
+                        console.log(['level', name, level.firstChild]);
+
+                        while(level.firstChild)
+                        {
+                            this.provider.releaseTile(level.firstChild.coord);
+                            level.removeChild(level.firstChild);
+                        }
+                    }
+                }
+            }
+            
+            // first provider or not we'll init/reset some values...
+            
+            this.tiles = {};
+            this.tileCacheSize = 0;
+            this.maxTileCacheSize = 64;
+            this.recentTilesById = {};
+            this.recentTiles = [];
+
+            // for later: check geometry of old provider and set a new coordinate center 
+            // if needed (now? or when?)
+
+            this.provider = newProvider;
+
+            if(!firstProvider)
+            {
+                this.draw();
+            }
+            
+            console.log(['yes']);
+        },
+
         // compares manhattan distance from center of 
         // requested tiles to current map center
         // NB:- requested tiles are *popped* from queue, so we do a descending sort
@@ -1848,6 +1891,92 @@ if (!com) {
         
         getZoom: function() {
             return this.coordinate.zoom;
+        },
+        
+        // layers
+        
+        getProviders: function()
+        {
+            var providers = [];
+            
+            for(var i = 0; i < this.layers.length; i++)
+            {
+                providers.push(this.layers[i].provider);
+            }
+            
+            return providers;
+        },
+        
+        getProviderAt: function(index)
+        {
+            return this.layers[index].provider;
+        },
+        
+        setProviderAt: function(index, provider)
+        {
+            if(index < 0 || index >= this.layers.length)
+                throw new Error('invalid index in setProviderAt(): ' + index);
+
+            // pass it on.
+            this.layers[index].setProvider(provider);
+        },
+        
+        insertProviderAt: function(index, provider)
+        {
+            var layer = new MM.Layer(this, provider);
+            
+            if(index < 0 || index > this.layers.length)
+                throw new Error('invalid index in insertProviderAt(): ' + index);
+            
+            if(index == this.layers.length) {
+                // it just gets tacked on to the end
+                this.layers.push(layer);
+            
+            } else {
+                // it needs to get slipped in amongst the others
+                var other = this.layers[index];
+                other.parent.parentNode.insertBefore(layer.parent, other.parent);
+                this.layers.splice(index, 0, layer);
+            }
+            
+            this.draw();
+        },
+        
+        removeProviderAt: function(index)
+        {
+            if(index < 0 || index >= this.layers.length)
+                throw new Error('invalid index in removeProviderAt(): ' + index);
+            
+            // gone baby gone.
+            var old = this.layers[index];
+            old.parent.parentNode.removeChild(old.parent);
+            this.layers.splice(index, 1);
+        },
+        
+        swapProviders: function(i, j)
+        {
+            if(i < 0 || i >= this.layers.length)
+                throw new Error('invalid index in removeProviderAt(): ' + index);
+            
+            if(j < 0 || j >= this.layers.length)
+                throw new Error('invalid index in removeProviderAt(): ' + index);
+            
+            var layer1 = this.layers[i],
+                layer2 = this.layers[j],
+                dummy = document.createElement('div');
+            
+            // kick layer2 out, replace it with the dummy.
+            this.parent.replaceChild(dummy, layer2.parent);
+            
+            // put layer2 back in and kick layer1 out
+            this.parent.replaceChild(layer2.parent, layer1.parent);
+            
+            // put layer1 back in and ditch the dummy
+            this.parent.replaceChild(layer1.parent, dummy);
+            
+            // now do it to the layers array
+            this.layers[i] = layer2;
+            this.layers[j] = layer1;
         },
     
         // stats

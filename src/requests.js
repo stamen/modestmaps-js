@@ -67,8 +67,8 @@
             }
         },
         
-        clearExcept: function(validKeys) {
-
+        clearExcept: function(validKeys)
+        {
             // clear things from the queue first...
             for (var i = 0; i < this.requestQueue.length; i++) {
                 var request = this.requestQueue[i];
@@ -88,7 +88,7 @@
                     img.src = img.coord = img.onload = img.onerror = null;
                 }
             }
-        
+            
             // hasOwnProperty protects against prototype additions
             // "The standard describes an augmentable Object.prototype. 
             //  Ignore standards at your own peril."
@@ -105,7 +105,6 @@
                     }
                 }
             }
-
         },
 
         hasRequest: function(id) {

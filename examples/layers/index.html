@@ -10,12 +10,23 @@
         function initMap()
         {
             var mm = com.modestmaps,
-                bg = new mm.TemplatedMapProvider('http://acetate.geoiq.com/tiles/terrain/{Z}/{X}/{Y}.png'),
-                fg = new mm.TemplatedMapProvider('http://acetate.geoiq.com/tiles/acetate-fg/{Z}/{X}/{Y}.png');
+                bust = '?q=005',
+                bg = new mm.TemplatedMapProvider('http://acetate.geoiq.com/tiles/terrain/{Z}/{X}/{Y}.png'+bust),
+                fg = new mm.TemplatedMapProvider('http://acetate.geoiq.com/tiles/acetate-fg/{Z}/{X}/{Y}.png'+bust),
+                osm = new mm.TemplatedMapProvider('http://tile.openstreetmap.org/{Z}/{X}/{Y}.png'+bust),
+                ocm = new mm.TemplatedMapProvider('http://c.tile.opencyclemap.org/cycle/{Z}/{X}/{Y}.png'+bust);
             
-            var map = new mm.Map('map', [bg, fg], new mm.Point(800, 390));
+            var map = new mm.Map('map', [bg, fg], new mm.Point(800, 360));
         
             map.setCenterZoom(new mm.Location(37.811530, -122.2666097), 13);
+            
+            window.getproviders = function() { console.log(['got providers:', map.getProviders()]) }
+            window.getprovider0 = function() { console.log(['got provider 0:', map.getProviderAt(0)]) }
+            window.getprovider1 = function() { console.log(['got provider 1:', map.getProviderAt(1)]) }
+            window.setprovider0 = function() { map.setProviderAt(0, osm) }
+            window.addprovider1 = function() { map.insertProviderAt(1, ocm) }
+            window.remprovider1 = function() { map.removeProviderAt(1) }
+            window.swap01 = function() { map.swapProviders(0, 1) }
             
             //console.log(['provider:', bg]);
         }
@@ -27,7 +38,7 @@
         div#map
         {
             width: 800px;
-            height: 390px;
+            height: 360px;
             border: 1px solid black;
         }
 
@@ -36,5 +47,14 @@
 <body onload="initMap()">
     <div id="map">
     </div>
+    <p>
+        <button onclick="getproviders();">get providers</button>
+        <button onclick="getprovider0();">get 1st provider</button>
+        <button onclick="getprovider1();">get 2nd provider</button>
+        <button onclick="setprovider0();">set 1st provider</button>
+        <button onclick="addprovider1();">add provider</button>
+        <button onclick="remprovider1();">remove 2nd provider</button>
+        <button onclick="swap01();">swap first two providers</button>
+    </p>
 </body>
 </html>

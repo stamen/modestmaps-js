@@ -346,6 +346,92 @@
         getZoom: function() {
             return this.coordinate.zoom;
         },
+        
+        // layers
+        
+        getProviders: function()
+        {
+            var providers = [];
+            
+            for(var i = 0; i < this.layers.length; i++)
+            {
+                providers.push(this.layers[i].provider);
+            }
+            
+            return providers;
+        },
+        
+        getProviderAt: function(index)
+        {
+            return this.layers[index].provider;
+        },
+        
+        setProviderAt: function(index, provider)
+        {
+            if(index < 0 || index >= this.layers.length)
+                throw new Error('invalid index in setProviderAt(): ' + index);
+
+            // pass it on.
+            this.layers[index].setProvider(provider);
+        },
+        
+        insertProviderAt: function(index, provider)
+        {
+            var layer = new MM.Layer(this, provider);
+            
+            if(index < 0 || index > this.layers.length)
+                throw new Error('invalid index in insertProviderAt(): ' + index);
+            
+            if(index == this.layers.length) {
+                // it just gets tacked on to the end
+                this.layers.push(layer);
+            
+            } else {
+                // it needs to get slipped in amongst the others
+                var other = this.layers[index];
+                other.parent.parentNode.insertBefore(layer.parent, other.parent);
+                this.layers.splice(index, 0, layer);
+            }
+            
+            this.draw();
+        },
+        
+        removeProviderAt: function(index)
+        {
+            if(index < 0 || index >= this.layers.length)
+                throw new Error('invalid index in removeProviderAt(): ' + index);
+            
+            // gone baby gone.
+            var old = this.layers[index];
+            old.parent.parentNode.removeChild(old.parent);
+            this.layers.splice(index, 1);
+        },
+        
+        swapProviders: function(i, j)
+        {
+            if(i < 0 || i >= this.layers.length)
+                throw new Error('invalid index in removeProviderAt(): ' + index);
+            
+            if(j < 0 || j >= this.layers.length)
+                throw new Error('invalid index in removeProviderAt(): ' + index);
+            
+            var layer1 = this.layers[i],
+                layer2 = this.layers[j],
+                dummy = document.createElement('div');
+            
+            // kick layer2 out, replace it with the dummy.
+            this.parent.replaceChild(dummy, layer2.parent);
+            
+            // put layer2 back in and kick layer1 out
+            this.parent.replaceChild(layer2.parent, layer1.parent);
+            
+            // put layer1 back in and ditch the dummy
+            this.parent.replaceChild(layer1.parent, dummy);
+            
+            // now do it to the layers array
+            this.layers[i] = layer2;
+            this.layers[j] = layer1;
+        },
     
         // stats
         
