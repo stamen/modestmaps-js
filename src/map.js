@@ -17,7 +17,7 @@
             Otherwise, each handler will be called with init(map)
 
     */    
-    MM.Map = function(parent, provider, dimensions, eventHandlers)
+    MM.Map = function(parent, providers, dimensions, eventHandlers)
     {
         if (typeof parent == 'string') {
             parent = document.getElementById(parent);
@@ -58,17 +58,24 @@
         this.parent.appendChild(css);        
         */
 
-        this.requestManager = new MM.RequestManager(this.parent);    
-        //this.requestManager.addCallback('requestcomplete', this.getTileComplete());
+        this.layers = [];
         
-        var layer = new MM.Layer(this, provider);
-    
-        this.levels = {};
-        this.layers = [layer];
-        this.provider = layer.provider;
+        if(providers instanceof Array) {
+            // we were actually passed a list of providers
+            for(var i = 0; i < providers.length; i++)
+            {
+                this.layers.push(new MM.Layer(this, providers[i]));
+            }
+        
+        } else {
+            // we were probably passed a single provider
+            this.layers.push(new MM.Layer(this, providers));
+        }
+        
+        // the first provider in the list gets to decide about projections and geometry
+        this.provider = this.layers[0].provider;
 
         this.coordinate = new MM.Coordinate(0.5,0.5,0);
-        
         this.enablePyramidLoading = false;
         
         this.callbackManager = new MM.CallbackManager(this, [ 'zoomed', 'panned', 'centered', 'extentset', 'resized', 'drawn' ]);
@@ -98,8 +105,6 @@
     
         levels: null,
         layers: null,
-    
-        requestManager: null,
     
         callbackManager: null,        
         eventHandlers: null,
@@ -342,46 +347,6 @@
             return this.coordinate.zoom;
         },
     
-        setProvider: function(newProvider)
-        {
-            if(newProvider.hasOwnProperty('getTileUrl'))
-            {
-                newProvider = new MM.TilePaintingProvider(newProvider, this.requestManager);
-            }
-
-            var firstProvider = false;            
-            if (this.provider === null) {
-                firstProvider = true;
-            }        
-        
-            // if we already have a provider the we'll need to
-            // clear the DOM, cancel requests and redraw
-            if (!firstProvider) {
-
-                this.requestManager.clear();
-                
-                for (var name in this.levels) {
-                    if (this.levels.hasOwnProperty(name)) {
-                        var level = this.levels[name];
-                        while(level.firstChild) {
-                            this.provider.releaseTileElement(level.firstChild.coord);
-                            level.removeChild(level.firstChild);
-                        }
-                    }
-                }
-            }
-
-            // for later: check geometry of old provider and set a new coordinate center 
-            // if needed (now? or when?)
-
-            this.provider = newProvider;
-
-            if (!firstProvider) {            
-                this.draw();
-            }
-            return this;
-        },
-
         // stats
         
         /*
