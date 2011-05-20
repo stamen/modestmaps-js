@@ -8,10 +8,12 @@
         <script type="text/javascript">
               function stderr() {
                     var cdiv = document.getElementById('console');
+                    if (cdiv) {
                     try {
                       cdiv.innerText = JSON.stringify(arguments);
                     } catch(e) {
                       cdiv.innerText = JSON.stringify(e);
+                    }
                     }
                 }
             </script>
@@ -70,6 +72,6 @@
     </head>
     <body onload="initMap()">
         <div id="map"></div>
-        <pre id='console'>...</pre>
+        <!-- <pre id='console'>...</pre> -->
     </body>
 </html>
