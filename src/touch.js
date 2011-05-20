@@ -63,7 +63,6 @@
         // Generate a CSS transformation matrix from
         // two touch events.
         twoTouchMatrix: function(t1, t2) {
-            console.log(Object.keys(t1.start));
             var t1_ = t1.start,
                 t2_ = t2.start;
 
