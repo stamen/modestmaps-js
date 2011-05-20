@@ -1,7 +1,10 @@
 (function(MM) {
 
+    // Quick euclidean distance between screen points
     function distance(t1, t2) {
-        return Math.sqrt(Math.pow(t1.screenX - t2.screenX, 2) + Math.pow(t1.screenY - t2.screenY, 2));
+        return Math.sqrt(
+            Math.pow(t1.screenX - t2.screenX, 2) +
+            Math.pow(t1.screenY - t2.screenY, 2));
     }
 
     function Start(touch, time) {
@@ -33,6 +36,9 @@
         this.last = last;
     }
 
+    // Test whether touches are from the same source -
+    // whether this is the same touchmove event. Currently
+    // only seen working on mobile Safari.
     function sameTouch(event, touch) {
         if (event && event.touch) {
             return touch == event.touch;
@@ -42,40 +48,42 @@
     function interruptTouches(events) {
         var now = new Date().getTime();
 
-        for (var i = 0; i < events.length; i += 1)
-        {
+        for (var i = 0; i < events.length; i += 1) {
             var touch = events[i].touch;
             var start = new Start(touch, now);
-
             events[i] = start;
         }
     }
 
+    // Generate a CSS transformation matrix from
+    // one touch event.
     function oneTouchMatrix(touch) {
         var start = touch.start;
-
         var x = touch.screenX - start.screenX;
         var y = touch.screenY - start.screenY;
 
         return [1, 0, 0, 1, x, y];
     }
 
+    // Generate a CSS transformation matrix from
+    // two touch events.
     function twoTouchMatrix(t1, t2) {
-        var t1_ = t1.start;
-        var t2_ = t2.start;
+        var t1_ = t1.start,
+            t2_ = t2.start;
 
-        var span = distance(t1, t2);
-        var span_ = distance(t1_, t2_);
+        var span = distance(t1, t2),
+            span_ = distance(t1_, t2_);
 
         var s = span / span_;
 
-        var x = (t1.screenX + t2.screenX) / 2;
-        var y = (t1.screenY + t2.screenY) / 2;
-        var x_ = (t1_.screenX + t2_.screenX) / 2;
-        var y_ = (t1_.screenY + t2_.screenY) / 2;
+        var x = (t1.screenX + t2.screenX) / 2,
+            y = (t1.screenY + t2.screenY) / 2;
 
-        var tx = s * -x_ + x;
-        var ty = s * -y_ + y;
+        var x_ = (t1_.screenX + t2_.screenX) / 2,
+            y_ = (t1_.screenY + t2_.screenY) / 2;
+
+        var tx = s * -x_ + x,
+            ty = s * -y_ + y;
 
         return [s, 0, 0, s, tx, ty];
     }
@@ -111,10 +119,8 @@
                     for (var i = 0; i < e.changedTouches.length; i += 1) {
                         var touch = e.changedTouches[i];
                         var start = new Start(touch, new Date().getTime());
-
                         events.push(start);
                     }
-
                     return MM.cancelEvent(e);
                 }
             }
@@ -132,11 +138,12 @@
                     var now = new Date().getTime();
 
                     // Look at each changed touch in turn.
-                    for (var i = 0; i < e.changedTouches.length; i += 1) {
-                        var touch = e.changedTouches[i];
-
+                    for (var i = 0, touch = e.changedTouches[i]; i < e.changedTouches.length; i += 1) {
                         for (var j = 0; j < events.length; j += 1) {
-                            if (sameTouch(events[j], touch)) {
+                            // TODO: identify touches better.
+                            // Android doesn't deal with equality
+                            if ((events.length == 1 && i == j) ||
+                                sameTouch(events[j], touch)) {
                                 events[j] = new Move(touch, events[j], now);
                             }
                         }
@@ -144,7 +151,6 @@
 
                     if (events.length == 1) {
                         theHandler.onPanning(events[0]);
-
                     } else if (events.length == 2) {
                         theHandler.onPinching(events[0], events[1]);
                     }
@@ -162,8 +168,7 @@
                 var theHandler = this;
                 var events = this.events;
 
-                this.getTouchEndMachineHandler = function(e)
-                {
+                this.getTouchEndMachineHandler = function(e) {
                     var now = new Date().getTime();
 
                     if (events.length == 1) {
@@ -172,18 +177,24 @@
                         theHandler.onPinched(events[0], events[1]);
                     }
 
-                   /**
-                    * Look at each changed touch in turn.
-                    */
+                    // Look at each changed touch in turn.
                     for (var i = 0; i < e.changedTouches.length; i += 1) {
                         var touch = e.changedTouches[i];
 
                         for (var j = 0; j < events.length; j += 1) {
-                            if (sameTouch(events[j], touch)) {
+                            // TODO: identify touches better.
+                            // Android doesn't deal with equality
+                            if ((events.length == 1 && i == j) ||
+                                sameTouch(events[j], touch)) {
                                 var event = new Move(touch, events[j], now);
 
-                                //stderr('End of the line for touch #' + touch.identifier + ', c=' + event.count + ', ' + (now - event.start.time) + 'ms, ' + event.travel.toFixed(0) + 'px');
+                                /* stderr('End of the line for touch #' +
+                                 * touch.identifier + ', c=' + event.count + ', ' +
+                                 * (now - event.start.time) + 'ms, ' +
+                                 * event.travel.toFixed(0) + 'px');
+                                 */
 
+                                // Remove the event
                                 events.splice(j, 1);
                                 j -= 1;
 
@@ -196,14 +207,13 @@
 
                                 if (event.travel > theHandler.maxTapDistance) {
                                     // we will to assume that the drag has been handled separately
-
                                 } else if (time > theHandler.maxTapTime) {
                                     // close in time, but not in space: a hold
                                     theHandler.onHold({
                                         x: touch.screenX,
                                         y: touch.screenY,
                                         end: now,
-                                        duration: time,
+                                        duration: time
                                     });
                                 } else {
                                     // close in both time and space: a tap
@@ -240,15 +250,10 @@
                 this.onDoubleTap(tap);
                 return;
             }
-
-            //stderr('Tap: (' + tap.x + ', ' + tap.y + ')');
-
             this.taps = [tap];
         },
 
         onDoubleTap: function(tap) {
-            //stderr('Double-tap: (' + tap.x + ', ' + tap.y + ')');
-
             // zoom in to a round number
             var z = Math.floor(this.map.getZoom() + 2);
             z = z - this.map.getZoom();
@@ -264,7 +269,10 @@
             //m = 'matrix(' + m.join(', ') + ')';
             // http://www.w3.org/TR/css3-3d-transforms/#transform-functions
             // matrix(a,b,c,d,e,f) is equivalent to matrix3d(a, b, 0, 0, c, d, 0, 0, 0, 0, 1, 0, e, f, 0, 1)
-            m = ['1', '0', '0', '0', '0', '1', '0', '0', '0', '0', '1', '0', m[4].toFixed(0), m[5].toFixed(0), '0', '1'];
+            m = [
+                '1', '0', '0', '0', '0', '1', '0', '0', '0', '0', '1', '0',
+                m[4].toFixed(0), m[5].toFixed(0), '0', '1'
+            ];
             m = 'matrix3d(' + m.join(', ') + ')';
 
             this.map.parent.style.webkitTransformOrigin = '0px 0px';
@@ -273,9 +281,6 @@
 
         onPanned: function(touch) {
             var m = oneTouchMatrix(touch);
-
-            //stderr('Pan by ' + m[4].toFixed(0) + ', ' + m[5].toFixed(0));
-
             this.map.panBy(m[4], m[5]);
             this.map.parent.style.webkitTransform = '';
         },
@@ -286,7 +291,12 @@
             //m = 'matrix(' + m.join(', ') + ')';
             // http://www.w3.org/TR/css3-3d-transforms/#transform-functions
             // matrix(a,b,c,d,e,f) is equivalent to matrix3d(a, b, 0, 0, c, d, 0, 0, 0, 0, 1, 0, e, f, 0, 1)
-            m = [m[0].toFixed(3), '0', '0', '0', '0', m[3].toFixed(3), '0', '0', '0', '0', '1', '0', m[4].toFixed(0), m[5].toFixed(0), '0', '1'];
+            m = [
+                m[0].toFixed(3), '0', '0', '0', '0', m[3].toFixed(3),
+                '0', '0', '0', '0', '1', '0',
+                m[4].toFixed(0), m[5].toFixed(0),
+                '0', '1'
+            ];
             m = 'matrix3d(' + m.join(', ') + ')';
 
             this.map.parent.style.webkitTransformOrigin = '0px 0px';
@@ -297,14 +307,7 @@
             var m = twoTouchMatrix(touch1, touch2);
             var z = Math.log(m[0]) / Math.log(2);
             var p = new MM.Point(0, 0);
-
-            /*
-             * stderr('Zoom by ' + z.toFixed(3) + ' about ' + p.toString());
-             * stderr('Pan by ' + m[4].toFixed(0) + ', ' + m[5].toFixed(0));
-             */
-
-            this.map.zoomByAbout(z, p);
-            this.map.panBy(m[4], m[5]);
+            this.map.zoomByAbout(z, p).panBy(m[4], m[5]);
             this.map.parent.style.webkitTransform = '';
         }
     };
