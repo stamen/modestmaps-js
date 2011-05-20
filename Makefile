@@ -7,7 +7,8 @@ JS_FILES = \
 	src/transformation.js \
 	src/projection.js \
 	src/provider.js \
-	src/interaction.js \
+	src/mouse.js \
+	src/touch.js \
 	src/callbacks.js \
 	src/requests.js \
 	src/map.js \
@@ -18,7 +19,7 @@ modestmaps.min.js: modestmaps.js
 	java -jar tools/yuicompressor-2.4.2.jar modestmaps.js > modestmaps.min.js
 	chmod a-w modestmaps.min.js
 
-modestmaps.js: $(JS_FILES) Makefile 
+modestmaps.js: $(JS_FILES) Makefile
 	rm -f modestmaps.js
 	cat $(JS_FILES) >> modestmaps.js
 	chmod a-w modestmaps.js

@@ -1,5 +1,3 @@
-(function(MM) {
-
     // Quick euclidean distance between screen points
     function distance(t1, t2) {
         return Math.sqrt(
@@ -236,7 +234,7 @@
         },
 
         onHold: function(hold) {
-            //stderr('Hold: (' + hold.x + ', ' + hold.y + ') for ' + hold.duration + ' msec');
+            // TODO
         },
 
         onTap: function(tap) {
@@ -253,14 +251,11 @@
             z = z - this.map.getZoom();
 
             var p = new MM.Point(tap.x, tap.y);
-
             this.map.zoomByAbout(z, p);
         },
 
         onPanning: function(touch) {
             var m = oneTouchMatrix(touch);
-            //m = ['1', '0', '0', '1', m[4].toFixed(0), m[5].toFixed(0)];
-            //m = 'matrix(' + m.join(', ') + ')';
             // http://www.w3.org/TR/css3-3d-transforms/#transform-functions
             // matrix(a,b,c,d,e,f) is equivalent to matrix3d(a, b, 0, 0, c, d, 0, 0, 0, 0, 1, 0, e, f, 0, 1)
             m = [
@@ -281,8 +276,6 @@
 
         onPinching: function(touch1, touch2) {
             var m = twoTouchMatrix(touch1, touch2);
-            //m = [m[0].toFixed(3), '0', '0', m[3].toFixed(3), m[4].toFixed(0), m[5].toFixed(0)];
-            //m = 'matrix(' + m.join(', ') + ')';
             // http://www.w3.org/TR/css3-3d-transforms/#transform-functions
             // matrix(a,b,c,d,e,f) is equivalent to matrix3d(a, b, 0, 0, c, d, 0, 0, 0, 0, 1, 0, e, f, 0, 1)
             m = [
@@ -305,4 +298,3 @@
             this.map.parent.style.webkitTransform = '';
         }
     };
-})(com.modestmaps);
