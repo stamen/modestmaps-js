@@ -512,12 +512,12 @@
                                     var parentTile = this.tiles[parentKey];
                                     if (parentTile.parentNode != parentLayer) {
                                         parentLayer.appendChild(parentTile);
-                                    }                            
+                                    }
                                 }
                                 else if (!this.requestManager.hasRequest(parentKey)) {
                                     // force load of parent tiles we don't already have
                                     var tileURL = this.provider.getTileUrl(parentCoord);
-                                    this.requestManager.requestTile(parentKey, parentCoord, tileURL);                            
+                                    this.requestManager.requestTile(parentKey, parentCoord, tileURL);
                                 }
                             }
                             else {
@@ -547,8 +547,8 @@
             }
             
             // i from i to zoom-5 are layers that would be scaled too big,
-            // i from zoom+2 to layers.length are layers that would be 
-            // scaled too small (and tiles would be too numerous)                
+            // i from zoom+2 to layers.length are layers that would be
+            // scaled too small (and tiles would be too numerous)
             for (var name in this.layers) {
                 if (this.layers.hasOwnProperty(name)) {
                     var zoom = parseInt(name,10);
@@ -560,7 +560,7 @@
                     var visibleTiles = layer.getElementsByTagName('img');
                     for (var j = visibleTiles.length-1; j >= 0; j--) {
                         layer.removeChild(visibleTiles[j]);
-                    }                    
+                    }
                 }
             }
         
@@ -605,8 +605,8 @@
                         // position tiles
                         var tx = center.x + (tile.coord.column - theCoord.column) * tileWidth;
                         var ty = center.y + (tile.coord.row - theCoord.row) * tileHeight;
-                        tile.style.left = Math.round(tx) + 'px'; 
-                        tile.style.top = Math.round(ty) + 'px'; 
+                        tile.style.left = Math.round(tx) + 'px';
+                        tile.style.top = Math.round(ty) + 'px';
                         // using style here and not raw width/height for ipad/iphone scaling
                         // see examples/touch/test.html
                         tile.style.width = Math.ceil(tileWidth) + 'px';
@@ -629,51 +629,55 @@
 
             this.dispatchCallback('drawn');
         },
-        
+
         _tileComplete: null,
-        
+
         getTileComplete: function() {
             if (!this._tileComplete) {
                 var theMap = this;
                 this._tileComplete = function(manager, tile) {
-                
+
                     // cache the tile itself:
                     theMap.tiles[tile.id] = tile;
                     theMap.tileCacheSize++;
-                    
+
                     // also keep a record of when we last touched this tile:
-                    var record = { 
-                        id: tile.id, 
-                        lastTouchedTime: new Date().getTime() 
+                    var record = {
+                        id: tile.id,
+                        lastTouchedTime: new Date().getTime()
                     };
                     theMap.recentTilesById[tile.id] = record;
-                    theMap.recentTiles.push(record);                        
+                    theMap.recentTiles.push(record);
 
                     // position this tile (avoids a full draw() call):
                     var theCoord = theMap.coordinate.zoomTo(tile.coord.zoom);
                     var scale = Math.pow(2, theMap.coordinate.zoom - tile.coord.zoom);
                     var tx = ((theMap.dimensions.x/2) + (tile.coord.column - theCoord.column) * theMap.provider.tileWidth * scale);
                     var ty = ((theMap.dimensions.y/2) + (tile.coord.row - theCoord.row) * theMap.provider.tileHeight * scale);
-                    tile.style.left = Math.round(tx) + 'px'; 
-                    tile.style.top = Math.round(ty) + 'px'; 
+
+                    tile.style.left = Math.round(tx) + 'px';
+                    tile.style.top = Math.round(ty) + 'px';
                     // using style here and not raw width/height for ipad/iphone scaling
-                    // see examples/touch/test.html                    
+                    // see examples/touch/test.html
                     tile.style.width = Math.ceil(theMap.provider.tileWidth * scale) + 'px';
                     tile.style.height = Math.ceil(theMap.provider.tileHeight * scale) + 'px';
 
+                    // Support style transition if available.
+
                     // add tile to its layer
                     var theLayer = theMap.layers[tile.coord.zoom];
-                    theLayer.appendChild(tile);                    
+                    theLayer.appendChild(tile);
+                    tile.className = 'map-tile-loaded';
 
                     // ensure the layer is visible if it's still the current layer
                     if (Math.round(theMap.coordinate.zoom) == tile.coord.zoom) {
                         theLayer.style.display = 'block';
                     }
 
-                    // request a lazy redraw of all layers 
+                    // request a lazy redraw of all layers
                     // this will remove tiles that were only visible
                     // to cover this tile while it loaded:
-                    theMap.requestRedraw();                
+                    theMap.requestRedraw();
                 };
             }
             return this._tileComplete;

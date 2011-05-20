@@ -33,19 +33,6 @@
         this.last = last;
     }
 
-    function Tap(x, y, time) {
-        this.x = x;
-        this.y = y;
-        this.time = time;
-    }
-
-    function Hold(x, y, end, duration) {
-        this.x = x;
-        this.y = y;
-        this.end = end;
-        this.duration = duration;
-    }
-
     function sameTouch(event, touch) {
         if (event && event.touch) {
             return touch == event.touch;
@@ -105,11 +92,6 @@
 
         init: function(map) {
             this.map = map;
-            /*
-            MM.addEvent(map.parent, 'touchstart', this.getDoubleTap());
-            MM.addEvent(map.parent, 'touchstart', this.getTouchStart());
-            MM.addEvent(map.parent, 'gesturestart', this.getGestureStart());
-            */
 
             MM.addEvent(map.parent, 'touchstart', this.getTouchStartMachine());
             MM.addEvent(map.parent, 'touchmove', this.getTouchMoveMachine());
@@ -149,9 +131,7 @@
                 this.getTouchMoveMachineHandler = function(e) {
                     var now = new Date().getTime();
 
-                   /**
-                    * Look at each changed touch in turn.
-                    */
+                    // Look at each changed touch in turn.
                     for (var i = 0; i < e.changedTouches.length; i += 1) {
                         var touch = e.changedTouches[i];
 
@@ -219,13 +199,19 @@
 
                                 } else if (time > theHandler.maxTapTime) {
                                     // close in time, but not in space: a hold
-                                    var hold = new Hold(touch.screenX, touch.screenY, now, time);
-                                    theHandler.onHold(hold);
-
+                                    theHandler.onHold({
+                                        x: touch.screenX,
+                                        y: touch.screenY,
+                                        end: now,
+                                        duration: time,
+                                    });
                                 } else {
                                     // close in both time and space: a tap
-                                    var tap = new Tap(touch.screenX, touch.screenY, now);
-                                    theHandler.onTap(tap);
+                                    theHandler.onTap({
+                                        x: touch.screenX,
+                                        y: touch.screenY,
+                                        time: now
+                                    });
                                 }
                             }
                         }
@@ -312,8 +298,10 @@
             var z = Math.log(m[0]) / Math.log(2);
             var p = new MM.Point(0, 0);
 
-            //stderr('Zoom by ' + z.toFixed(3) + ' about ' + p.toString());
-            //stderr('Pan by ' + m[4].toFixed(0) + ', ' + m[5].toFixed(0));
+            /*
+             * stderr('Zoom by ' + z.toFixed(3) + ' about ' + p.toString());
+             * stderr('Pan by ' + m[4].toFixed(0) + ', ' + m[5].toFixed(0));
+             */
 
             this.map.zoomByAbout(z, p);
             this.map.panBy(m[4], m[5]);
