@@ -41,7 +41,7 @@
     // only seen working on mobile Safari.
     function sameTouch(event, touch) {
         if (event && event.touch) {
-            return touch == event.touch;
+            return touch.identifier == event.touch.identifier;
         }
     }
 
@@ -140,10 +140,7 @@
                     // Look at each changed touch in turn.
                     for (var i = 0, touch = e.changedTouches[i]; i < e.changedTouches.length; i += 1) {
                         for (var j = 0; j < events.length; j += 1) {
-                            // TODO: identify touches better.
-                            // Android doesn't deal with equality
-                            if ((events.length == 1 && i == j) ||
-                                sameTouch(events[j], touch)) {
+                            if (sameTouch(events[j], touch)) {
                                 events[j] = new Move(touch, events[j], now);
                             }
                         }
@@ -182,10 +179,7 @@
                         var touch = e.changedTouches[i];
 
                         for (var j = 0; j < events.length; j += 1) {
-                            // TODO: identify touches better.
-                            // Android doesn't deal with equality
-                            if ((events.length == 1 && i == j) ||
-                                sameTouch(events[j], touch)) {
+                            if (sameTouch(events[j], touch)) {
                                 var event = new Move(touch, events[j], now);
 
                                 /* stderr('End of the line for touch #' +
