@@ -1,92 +1,4 @@
-    // Quick euclidean distance between screen points
-    function distance(t1, t2) {
-        return Math.sqrt(
-            Math.pow(t1.screenX - t2.screenX, 2) +
-            Math.pow(t1.screenY - t2.screenY, 2));
-    }
-
-    function Start(touch, time) {
-        this.screenX = touch.screenX;
-        this.screenY = touch.screenY;
-
-        this.touch = touch;
-        this.time = time;
-        // the pointer chase ends here
-        this.start = this;
-        this.count = 0;
-        this.travel = 0;
-        this.last = null;
-    }
-
-    function Move(touch, last, time) {
-        moved = distance(touch, last);
-
-        this.screenX = touch.screenX;
-        this.screenY = touch.screenY;
-
-        this.touch = touch;
-        this.time = time;
-
-        // pointer chase
-        this.start = last.start;
-        this.count = last.count + 1;
-        this.travel = last.travel + moved;
-        this.last = last;
-    }
-
-    // Test whether touches are from the same source -
-    // whether this is the same touchmove event. Currently
-    // only seen working on mobile Safari.
-    function sameTouch(event, touch) {
-        if (event && event.touch) {
-            return touch.identifier == event.touch.identifier;
-        }
-    }
-
-    function interruptTouches(events) {
-        var now = new Date().getTime();
-
-        for (var i = 0; i < events.length; i += 1) {
-            var touch = events[i].touch;
-            var start = new Start(touch, now);
-            events[i] = start;
-        }
-    }
-
-    // Generate a CSS transformation matrix from
-    // one touch event.
-    function oneTouchMatrix(touch) {
-        var start = touch.start;
-        var x = touch.screenX - start.screenX;
-        var y = touch.screenY - start.screenY;
-
-        return [1, 0, 0, 1, x, y];
-    }
-
-    // Generate a CSS transformation matrix from
-    // two touch events.
-    function twoTouchMatrix(t1, t2) {
-        var t1_ = t1.start,
-            t2_ = t2.start;
-
-        var span = distance(t1, t2),
-            span_ = distance(t1_, t2_);
-
-        var s = span / span_;
-
-        var x = (t1.screenX + t2.screenX) / 2,
-            y = (t1.screenY + t2.screenY) / 2;
-
-        var x_ = (t1_.screenX + t2_.screenX) / 2,
-            y_ = (t1_.screenY + t2_.screenY) / 2;
-
-        var tx = s * -x_ + x,
-            ty = s * -y_ + y;
-
-        return [s, 0, 0, s, tx, ty];
-    }
-
-    MM.TouchHandler = function() { }
+    MM.TouchHandler = function() { };
 
     MM.TouchHandler.prototype = {
 
@@ -104,6 +16,72 @@
             MM.addEvent(map.parent, 'touchend', this.getTouchEndMachine());
         },
 
+        interruptTouches: function(events) {
+            var now = new Date().getTime();
+
+            for (var i = 0; i < events.length; i += 1) {
+                var touch = events[i].touch;
+                events[i] = {
+                    screenX: touch.screenX,
+                    screenY: touch.screenY,
+                    touch: touch,
+                    time: now,
+                    start: null,
+                    count: 0,
+                    travel: 0
+                };
+                events[i].start = events[i];
+            }
+        },
+
+        // Test whether touches are from the same source -
+        // whether this is the same touchmove event.
+        sameTouch: function(event, touch) {
+            return (event && event.touch) &&
+                (touch.identifier == event.touch.identifier);
+        },
+
+        // Quick euclidean distance between two points
+        distance: function(t1, t2) {
+            return Math.sqrt(
+                Math.pow(t1.screenX - t2.screenX, 2) +
+                Math.pow(t1.screenY - t2.screenY, 2));
+        },
+
+        // Generate a CSS transformation matrix from
+        // one touch event.
+        oneTouchMatrix: function(touch) {
+            var start = touch.start;
+            var x = touch.screenX - start.screenX;
+            var y = touch.screenY - start.screenY;
+
+            return [1, 0, 0, 1, x, y];
+        },
+
+        // Generate a CSS transformation matrix from
+        // two touch events.
+        twoTouchMatrix: function(t1, t2) {
+            console.log(Object.keys(t1.start));
+            var t1_ = t1.start,
+                t2_ = t2.start;
+
+            var span =  this.distance(t1, t2),
+                span_ = this.distance(t1_, t2_);
+
+            var s = span / span_;
+
+            var x = (t1.screenX + t2.screenX) / 2,
+                y = (t1.screenY + t2.screenY) / 2;
+
+            var x_ = (t1_.screenX + t2_.screenX) / 2,
+                y_ = (t1_.screenY + t2_.screenY) / 2;
+
+            var tx = s * -x_ + x,
+                ty = s * -y_ + y;
+
+            return [s, 0, 0, s, tx, ty];
+        },
+
         getTouchStartMachineHandler: null,
 
         getTouchStartMachine: function() {
@@ -112,12 +90,21 @@
                 var events = this.events;
 
                 this.getTouchStartMachineHandler = function(e) {
-                    interruptTouches(events);
+                    theHandler.interruptTouches(events);
 
                     for (var i = 0; i < e.changedTouches.length; i += 1) {
                         var touch = e.changedTouches[i];
-                        var start = new Start(touch, new Date().getTime());
-                        events.push(start);
+                        var newEvent = {
+                            screenX: touch.screenX,
+                            screenY: touch.screenY,
+                            touch: touch,
+                            time: new Date().getTime(),
+                            start: null,
+                            count: 0,
+                            travel: 0
+                        };
+                        newEvent.start = newEvent;
+                        events.push(newEvent);
                     }
                     return MM.cancelEvent(e);
                 }
@@ -138,8 +125,21 @@
                     // Look at each changed touch in turn.
                     for (var i = 0, touch = e.changedTouches[i]; i < e.changedTouches.length; i += 1) {
                         for (var j = 0; j < events.length; j += 1) {
-                            if (sameTouch(events[j], touch)) {
-                                events[j] = new Move(touch, events[j], now);
+                            if (theHandler.sameTouch(events[j], touch)) {
+                                var newEvent = {
+                                    screenX: touch.screenX,
+                                    screenY: touch.screenY,
+
+                                    touch: touch,
+                                    time: now,
+
+                                    // pointer chase
+                                    start: null,
+                                    count: events[j].count + 1,
+                                    travel: events[j].travel + theHandler.distance(touch, events[j])
+                                };
+                                newEvent.start = events[j].start;
+                                events[j] = newEvent;
                             }
                         }
                     }
@@ -177,15 +177,18 @@
                         var touch = e.changedTouches[i];
 
                         for (var j = 0; j < events.length; j += 1) {
-                            if (sameTouch(events[j], touch)) {
-                                var event = new Move(touch, events[j], now);
-
-                                /* stderr('End of the line for touch #' +
-                                 * touch.identifier + ', c=' + event.count + ', ' +
-                                 * (now - event.start.time) + 'ms, ' +
-                                 * event.travel.toFixed(0) + 'px');
-                                 */
-
+                            if (theHandler.sameTouch(events[j], touch)) {
+                                var event = {
+                                    screenX: touch.screenX,
+                                    screenY: touch.screenY,
+                                    touch: touch,
+                                    time: now,
+                                    // pointer chase
+                                    start: events[j].start,
+                                    count: events[j].count + 1,
+                                    travel: events[j].travel + theHandler.distance(touch, events[j]),
+                                    last: events[j]
+                                };
                                 // Remove the event
                                 events.splice(j, 1);
                                 j -= 1;
@@ -194,9 +197,7 @@
                                 // matching touch that's just ended. Let's see
                                 // what kind of event it is based on how long it
                                 // lasted and how far it moved.
-
                                 var time = now - event.start.time;
-
                                 if (event.travel > theHandler.maxTapDistance) {
                                     // we will to assume that the drag has been handled separately
                                 } else if (time > theHandler.maxTapTime) {
@@ -219,14 +220,13 @@
                         }
                     }
 
-                    interruptTouches(events);
+                    theHandler.interruptTouches(events);
 
                     if (e.touches.length == 0 && events.length >= 1) {
                         // Weird, sometimes an end event doesn't get thrown
                         // for a touch that nevertheless has disappeared.
                         events.splice(0, events.length);
                     }
-
                     return MM.cancelEvent(e);
                 }
             }
@@ -255,7 +255,7 @@
         },
 
         onPanning: function(touch) {
-            var m = oneTouchMatrix(touch);
+            var m = this.oneTouchMatrix(touch);
             // http://www.w3.org/TR/css3-3d-transforms/#transform-functions
             // matrix(a,b,c,d,e,f) is equivalent to matrix3d(a, b, 0, 0, c, d, 0, 0, 0, 0, 1, 0, e, f, 0, 1)
             m = [
@@ -269,13 +269,13 @@
         },
 
         onPanned: function(touch) {
-            var m = oneTouchMatrix(touch);
+            var m = this.oneTouchMatrix(touch);
             this.map.panBy(m[4], m[5]);
             this.map.parent.style.webkitTransform = '';
         },
 
         onPinching: function(touch1, touch2) {
-            var m = twoTouchMatrix(touch1, touch2);
+            var m = this.twoTouchMatrix(touch1, touch2);
             // http://www.w3.org/TR/css3-3d-transforms/#transform-functions
             // matrix(a,b,c,d,e,f) is equivalent to matrix3d(a, b, 0, 0, c, d, 0, 0, 0, 0, 1, 0, e, f, 0, 1)
             m = [
@@ -291,7 +291,7 @@
         },
 
         onPinched: function(touch1, touch2) {
-            var m = twoTouchMatrix(touch1, touch2);
+            var m = this.twoTouchMatrix(touch1, touch2);
             var z = Math.log(m[0]) / Math.log(2);
             var p = new MM.Point(0, 0);
             this.map.zoomByAbout(z, p).panBy(m[4], m[5]);
