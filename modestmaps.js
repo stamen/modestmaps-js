@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v0.16.2
+ * Modest Maps JS v0.16.1
  * http://modestmaps.com/
  *
  * Copyright (c) 2010 Stamen Design, All Rights Reserved.
@@ -1308,15 +1308,7 @@ if (!com) {
         if (typeof parent == 'string') {
             parent = document.getElementById(parent);
         }
-
-        // Protect against one common usage error: instead of giving a
-        // cryptic error caused by no `.style` member, specify the failure
-        // case we know to be... the case.
-        if (!parent) {
-            throw "Map parent DOM element not found or passed correctly.";
-        } else {
-            this.parent = parent;
-        }
+        this.parent = parent;
 
         // we're no longer adding width and height to parent.style but we still
         // need to enforce padding, overflow and position otherwise everything screws up

@@ -8,14 +8,6 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment
     the major version." -- http://semver.org/
 
-v0.16.2
-- Adding package.json for access to non-DOM functionality from non-browsers
-- Developer dependencies installable with npm and package.json
-- Move codebase closer towards style normality
-- Throw a descriptive error when map parent DOM element is not found or
-passed.
-- Add tests for simple math functions, runnable in expresso
-
 v0.16.1
 - Unimplemented abstract methods throw exceptions instead of calling `alert()`
 
