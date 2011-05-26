@@ -2,11 +2,19 @@ Modest Maps JS Changelog.
 
 Following the semantic versioning recommendation best we can:
 
-   "Consider a version format of X.Y.Z (Major.Minor.Patch). 
-    Bug fixes not affecting the API increment the patch version, 
-    backwards compatible API additions/changes increment the 
-    minor version, and backwards incompatible API changes increment 
+   "Consider a version format of X.Y.Z (Major.Minor.Patch).
+    Bug fixes not affecting the API increment the patch version,
+    backwards compatible API additions/changes increment the
+    minor version, and backwards incompatible API changes increment
     the major version." -- http://semver.org/
+
+v0.16.2
+- Adding package.json for access to non-DOM functionality from non-browsers
+- Developer dependencies installable with npm and package.json
+- Move codebase closer towards style normality
+- Throw a descriptive error when map parent DOM element is not found or
+passed.
+- Add tests for simple math functions, runnable in expresso
 
 v0.16.1
 - Unimplemented abstract methods throw exceptions instead of calling `alert()`
@@ -94,7 +102,7 @@ v0.10.2
 
 v0.10.1
  - fixed tile sorting for in-between zoom levels
- - fixed tile position in onload handler 
+ - fixed tile position in onload handler
 
 v0.10.0
  - tidied up initial coord/position maths, now supports arbitrary zoom levels (with seams)
@@ -122,10 +130,10 @@ May 2010, pre-semver
  + optional interaction (factored out mouse handling... enables touch or keyboard later)
  + made a touch handler for iphads
  + made a TemplatedMapProvider
- + made a demo that accepts a URL template for a map provider 
+ + made a demo that accepts a URL template for a map provider
  + started to work towards jslint conformance
  + started to move to 80 character line length where practical
- + made a demo with two maps, synchronized 
+ + made a demo with two maps, synchronized
  + jslint fixes, 80 char lines, better sorting, removed createOverlay
  + templated providers wrap around in longitude by default
  + added a demo keyboard handler

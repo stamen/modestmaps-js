@@ -28,5 +28,8 @@ clean:
 	rm modestmaps.js
 	rm modestmaps.min.js
 
+doc:
+	./node_modules/.bin/docco src/*.js
+
 tests:
-	expresso test/*.test.js
+	./node_modules/.bin/expresso test/*.test.js
