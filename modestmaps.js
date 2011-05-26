@@ -1307,6 +1307,9 @@ if (!com) {
 
         if (typeof parent == 'string') {
             parent = document.getElementById(parent);
+            if (!parent) {
+                throw 'The ID provided to modest maps could not be found.';
+            }
         }
         this.parent = parent;
 
