@@ -1265,11 +1265,10 @@ if (!com) {
                     /* console.log(theManager.openRequestCount + ' open requests'); */
 
                     // NB:- complete is also true onerror if we got a 404
-                    if (img.complete ||
-                        (img.readyState && img.readyState == 'complete')) {
+                    if (e.type === 'load' && (img.complete ||
+                        (img.readyState && img.readyState == 'complete'))) {
                         theManager.dispatchCallback('requestcomplete', img);
-                    }
-                    else {
+                    } else {
                         // if it didn't finish clear its src to make sure it
                         // really stops loading
                         // FIXME: we'll never retry because this id is still
