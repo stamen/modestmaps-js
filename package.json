@@ -1,7 +1,7 @@
 {
   "name": "modestmaps",
   "description": "a display and interaction library for tile-based maps",
-h "version": "0.16.1",
+  "version": "0.17.0",
   "authors": [
     "Tom Carden <tom@tom-carden.co.uk>",
     "Mike Migurski <mike-fromsite@teczno.com>",
