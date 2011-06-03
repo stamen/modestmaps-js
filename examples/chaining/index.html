@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
   <head>
     <title>Modest Maps JS - Chaining Wrapper</title>
@@ -35,29 +36,26 @@ function MM(el, provider) {
 }
 
 window.onload = function() {
-  MM('map', 'http://tile.openstreetmap.org/{Z}/{X}/{Y}.png')
-    .center(51.5001524, -0.1262362)
-    .zoom(11);
+  var MM = com.modestmaps;
+  var provider = new MM.TemplatedMapProvider('http://tile.openstreetmap.org/{Z}/{X}/{Y}.png');
+  var map = new MM.Map('map', provider)
+                      .setCenter(new MM.Location(51.5001524, -0.1262362))
+                      .setZoom(11);
 };
 
     </script>
     <style type="text/css">
-
-body {
+html, body, #map {
+  width: 100%;
+  height: 100%;
   margin: 0;
   padding: 0;
   border: 0;
 }
 
-#map {
-  width: 100%;
-  height: 100%;
-}
-
     </style>
   </head>
   <body> 
-    <div id="map">
-    </div>
+    <div id="map"></div>
   </body>
 </html>

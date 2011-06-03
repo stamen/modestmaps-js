@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 <head>
 <title>Modest Maps JS</title>
@@ -9,19 +10,18 @@
 <script type="text/javascript" src="polygonmarker-raphael.js"></script>
 <script type="text/javascript">
 
+    var MM = com.modestmaps; // "import" the namespace
+        
     var map;
     
     function initMap() {
         
-        // "import" the namespace
-        var mm = com.modestmaps;
-        
         // please use your own API key, see http://developers.cloudmade.com/ for more details
-        var provider = new mm.CloudMadeProvider('1a914755a77758e49e19a26e799268b7','998');
+        var provider = new MM.CloudMadeProvider('1a914755a77758e49e19a26e799268b7','998');
         
-        map = new mm.Map('map', provider, new mm.Point(640,480))
+        map = new MM.Map('map', provider, new MM.Point(640,480))
         
-        map.setCenterZoom(new mm.Location(40.547, -78.091), 3);
+        map.setCenterZoom(new MM.Location(40.547, -78.091), 3);
 
         $.ajax({
             type: "GET",
@@ -37,7 +37,7 @@
         $(xml).find('ForecastWindSwath').each(renderSwath);
         $(xml).find('CurrentWindRing').each(renderSwath);
 
-        new com.modestmaps.MapControls(map);        
+        new MM.MapControls(map);        
     }
     
     function renderSwath(i, swath) {
@@ -48,7 +48,7 @@
             if (pair && pair.length > 3) {
                 pair = pair.split(',');
                 if (pair && pair.length == 2) {
-                    var location = new com.modestmaps.Location(pair[1], pair[0]);
+                    var location = new MM.Location(pair[1], pair[0]);
                     if (!isNaN(location.lat) && !isNaN(location.lon)) {
                         locations.push(location);
                     }
@@ -82,7 +82,7 @@
             }
             
             
-            var polygon = new com.modestmaps.PolygonMarker(map, locations, fillStyle, fillAlpha, strokeStyle);
+            var polygon = new MM.PolygonMarker(map, locations, fillStyle, fillAlpha, strokeStyle);
         }        
     }
 

@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 <head>
 <title>Modest Maps JS - Zoom Box</title>
@@ -5,31 +6,28 @@
 <script type="text/javascript" src="zoombox.js"></script>
 <script type="text/javascript">
 
+var MM = com.modestmaps;
 var map, zoombox;
 
 function initMap() {
 
-    var container = document.getElementById('container');
-
     var template = 'http://{S}tile.openstreetmap.org/{Z}/{X}/{Y}.png';
     var subdomains = [ 'a.', 'b.', 'c.', ''];
-    var provider = new com.modestmaps.TemplatedMapProvider(template, subdomains);
+    var provider = new MM.TemplatedMapProvider(template, subdomains);
 
-    map = new com.modestmaps.Map('map', provider); 
+    map = new MM.Map('map', provider); 
 
-    map.setCenterZoom(new com.modestmaps.Location(37.811530, -122.2666097), 14);
+    map.setCenterZoom(new MM.Location(37.811530, -122.2666097), 14);
 
-    zoombox = new com.modestmaps.ZoomBox(map);
+    zoombox = new MM.ZoomBox(map);
 }
 
 </script>
 <style type="text/css">
-body {
+html, body, #map {
   margin: 0;
   padding: 0;
   border: 0
-}
-#map {
   width: 100%;
   height: 100%;
 }

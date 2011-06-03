@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
   <head>
     <title>Modest Maps JS - Great Circle Test</title>
@@ -10,7 +11,7 @@ window.onload = function() {
 
     var provider = new com.modestmaps.TemplatedMapProvider('http://tile.openstreetmap.org/{Z}/{X}/{Y}.png');
 
-    map = new com.modestmaps.Map('map', provider); 
+    map = new com.modestmaps.Map(document.body, provider); 
 
     var canvas = document.createElement('canvas');
     canvas.style.position = 'absolute';
@@ -43,10 +44,7 @@ window.onload = function() {
       ctx.stroke();
     }
 
-    map.addCallback('panned', redraw);
-    map.addCallback('zoomed', redraw);
-    map.addCallback('extentset', redraw);
-    map.addCallback('centered', redraw);
+    map.addCallback('drawn', redraw);
     map.addCallback('resized', function() {
       canvas.width = map.dimensions.x;
       canvas.height = map.dimensions.y;
@@ -59,13 +57,10 @@ window.onload = function() {
     </script>
     <style type="text/css">
 
-body {
+html, body {
   margin: 0;
   padding: 0;
   border: 0;
-}
-
-#map {
   width: 100%;
   height: 100%;
 }
@@ -73,7 +68,5 @@ body {
     </style>
   </head>
   <body> 
-    <div id="map">
-    </div>
   </body>
 </html>

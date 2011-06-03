@@ -1,21 +1,21 @@
+<!DOCTYPE html>
 <html>
 <head>
 <title>Modest Maps JS</title>
 <script type="text/javascript" src="../../modestmaps.js"></script>
 <script type="text/javascript">
 
+var MM = com.modestmaps;
 var leftMap, rightMap;
 
 function initMaps() {
 
     var container = document.getElementById('container');
     
-    leftMap = new com.modestmaps.Map('leftMap', 
-                                     new com.modestmaps.TemplatedMapProvider("http://tile.openstreetmap.org/{Z}/{X}/{Y}.png"), 
-                                     new com.modestmaps.Point(container.offsetWidth/2, container.offsetHeight))
-    rightMap = new com.modestmaps.Map('rightMap', 
-                                      new com.modestmaps.TemplatedMapProvider("http://s3.amazonaws.com/com.modestmaps.bluemarble/{Z}-r{Y}-c{X}.jpg"), 
-                                      new com.modestmaps.Point(container.offsetWidth/2, container.offsetHeight))
+    leftMap = new MM.Map('leftMap', 
+                         new MM.TemplatedMapProvider("http://tile.openstreetmap.org/{Z}/{X}/{Y}.png")); 
+    rightMap = new MM.Map('rightMap', 
+                         new MM.TemplatedMapProvider("http://s3.amazonaws.com/com.modestmaps.bluemarble/{Z}-r{Y}-c{X}.jpg")); 
      
     leftMap.parent.style.position = 'absolute';
     leftMap.parent.style.left = '0px';
@@ -24,35 +24,23 @@ function initMaps() {
     rightMap.parent.style.left = parseInt(container.offsetWidth/2) + 'px';
     rightMap.parent.style.top = '0px';
 
-    leftMap.setCenterZoom(new com.modestmaps.Location(0, 0), 2);
-    var pt = new com.modestmaps.Point(container.offsetWidth*0.75, container.offsetHeight*0.5);
+    leftMap.setCenterZoom(new MM.Location(0, 0), 2);
+    var pt = new MM.Point(container.offsetWidth*0.75, container.offsetHeight*0.5);
     var loc = leftMap.pointLocation(pt);
     rightMap.setCenterZoom(loc, leftMap.getZoom());
 
     var leftChanging = false, rightChanging = false;
     function syncMaps() {
       if (leftChanging) {
-        var pt = new com.modestmaps.Point(container.offsetWidth*0.75, container.offsetHeight*0.5);
+        var pt = new MM.Point(container.offsetWidth*0.75, container.offsetHeight*0.5);
         var loc = leftMap.pointLocation(pt);
         rightMap.setCenterZoom(loc, leftMap.getZoom());
       }
       if (rightChanging) {
-        var pt = new com.modestmaps.Point(-container.offsetWidth*0.25, container.offsetHeight*0.5);
+        var pt = new MM.Point(-container.offsetWidth*0.25, container.offsetHeight*0.5);
         var loc = rightMap.pointLocation(pt);
         leftMap.setCenterZoom(loc, rightMap.getZoom());
       }
-      var leftInfo = "";
-      var rightInfo = "";
-      var leftStats = leftMap.getStats();
-      var rightStats = rightMap.getStats();
-      for (var key in leftStats) {
-        leftInfo += key + ' = ' + leftStats[key] + '<br>';
-      }
-      for (var key in rightStats) {
-        rightInfo += key + ' = ' +  rightStats[key] + '<br>';
-      }
-      document.getElementById('left-info').innerHTML = leftInfo;
-      document.getElementById('right-info').innerHTML = rightInfo;
     }
     function leftSync() {
         if (!rightChanging) {
@@ -69,22 +57,9 @@ function initMaps() {
         }
     }
 
-    leftMap.addCallback('panned', leftSync);
-    leftMap.addCallback('zoomed', leftSync);
-    leftMap.addCallback('extentset', leftSync);
-    leftMap.addCallback('centered', leftSync);
-    leftMap.addCallback('resized', leftSync);
-    rightMap.addCallback('panned', rightSync);
-    rightMap.addCallback('zoomed', rightSync);
-    rightMap.addCallback('extentset', rightSync);
-    rightMap.addCallback('centered', rightSync);
-    rightMap.addCallback('resized', rightSync);
+    leftMap.addCallback('drawn', leftSync);
+    rightMap.addCallback('drawn', rightSync);
 
-    window.onresize = function() {
-        leftMap.setSize(container.offsetWidth/2, container.offsetHeight);
-        rightMap.setSize(container.offsetWidth/2, container.offsetHeight);
-        rightMap.parent.style.left = parseInt(container.offsetWidth/2) + 'px';
-    };
 }
 
 </script>
@@ -94,14 +69,8 @@ function initMaps() {
 <p><a href="javascript:leftMap.zoomIn()">zoom in</a> | <a href="javascript:leftMap.zoomOut()">zoom out</a>
 <br><a href="javascript:leftMap.panLeft()">pan left</a> | <a href="javascript:leftMap.panRight()">pan right</a> | <a href="javascript:leftMap.panDown()">pan down</a> | <a href="javascript:leftMap.panUp()">pan up</a></p>
 <div id="container" style="width: 100%; height: 512px; position: relative;">
-  <div id="leftMap"></div>
-  <div id="rightMap"></div>
+  <div id="leftMap" style="width: 50%; height: 100%"></div>
+  <div id="rightMap" style="width: 50%; height: 100%"></div>
 </div>
-<table width="100%">
-  <tr>
-    <td width="50%" id="left-info"></td>
-    <td width="50%" id="right-info"></td>
-  </tr>
-</table>
 </body>
 </html>

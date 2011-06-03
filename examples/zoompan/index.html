@@ -1,9 +1,11 @@
+<!DOCTYPE html>
 <html>
 <head>
 <title>Modest Maps JS - Smooth Efficient Zooming and Panning</title>
 <script type="text/javascript" src="../../modestmaps.js"></script>
 <script type="text/javascript">
 
+var MM = com.modestmaps;
 var map;
 
 function initMap() {
@@ -11,15 +13,15 @@ function initMap() {
     // http://blog.mapquest.com/2010/07/09/mapquest-opens-up/
     var template = 'http://{S}.mqcdn.com/tiles/1.0.0/osm/{Z}/{X}/{Y}.png';
     var subdomains = [ 'otile1', 'otile2', 'otile3', 'otile4'];
-    var provider = new com.modestmaps.TemplatedMapProvider(template, subdomains);
+    var provider = new MM.TemplatedMapProvider(template, subdomains);
 
-    map = new com.modestmaps.Map('map', provider); 
+    map = new MM.Map(document.body, provider); 
     map.enablePyramidLoading = true;
 
-    map.setCenterZoom(new com.modestmaps.Location(37.811530, -122.2666097), 14);
+    map.setCenterZoom(new MM.Location(37.811530, -122.2666097), 14);
 
-    //animateCenterZoom(new com.modestmaps.Location(37.770, -122.424), 16);
-    animateCenterZoom(new com.modestmaps.Location(51.514, -0.113), 18);
+    //animateCenterZoom(new MM.Location(37.770, -122.424), 16);
+    animateCenterZoom(new MM.Location(51.514, -0.113), 18);
 }
 
 function animateCenterZoom(l1, z1) {
@@ -31,7 +33,7 @@ function animateCenterZoom(l1, z1) {
         c1 = { x: end.column, y: end.row };
 
     // how much world can we see at zoom 0?
-    var topLeft = map.pointCoordinate(new com.modestmaps.Point(0,0)).zoomTo(0);
+    var topLeft = map.pointCoordinate(new MM.Point(0,0)).zoomTo(0);
     var bottomRight = map.pointCoordinate(map.dimensions).zoomTo(0);
     var w0 = Math.max(bottomRight.column-topLeft.column, bottomRight.row-topLeft.row);
 
@@ -134,11 +136,11 @@ function animateStep(c0,w0,c1,w1,V,rho) {
 }
 
 function applyPos(pos,w) {
-    var c = new com.modestmaps.Coordinate(pos.y,pos.x,0);
+    var c = new MM.Coordinate(pos.y,pos.x,0);
     var l = map.provider.coordinateLocation(c);
 
     // how much world can we see at zoom 0?
-    var topLeft = map.pointCoordinate(new com.modestmaps.Point(0,0)).zoomTo(0);
+    var topLeft = map.pointCoordinate(new MM.Point(0,0)).zoomTo(0);
     var bottomRight = map.pointCoordinate(map.dimensions).zoomTo(0);
     var w0 = Math.max(bottomRight.column-topLeft.column, bottomRight.row-topLeft.row);    
 
@@ -149,19 +151,15 @@ function applyPos(pos,w) {
 
 </script>
 <style type="text/css">
-body {
+html, body {
+  width: 100%;
+  height: 100%;
   margin: 0;
   padding: 0;
   border: 0
 }
-#map {
-  width: 100%;
-  height: 100%;
-}
 </style>
 </head>
 <body onload="initMap()">
-  <div id="map">
-  </div>
 </body>
 </html>
