@@ -19,7 +19,8 @@
         return point;
     };
 
-    // Allow mouse-wheel zooming
+    // A handler that allows mouse-wheel zooming - zooming in
+    // when page would scroll up, and out when the page would scroll down.
     MM.MouseWheelHandler = function(map) {
         if (map !== undefined) {
             this.init(map);
@@ -67,7 +68,7 @@
         }
     };
 
-    // Handle double clicks, that zoom the map.
+    // Handle double clicks, that zoom the map in one zoom level.
     MM.DoubleClickHandler = function(map) {
         if (map !== undefined) {
             this.init(map);
@@ -101,7 +102,7 @@
         }
     };
 
-    // Handle drags, that pan the map.
+    // Handle the use of mouse dragging to pan the map.
     MM.DragHandler = function(map) {
         if (map !== undefined) {
             this.init(map);
@@ -178,8 +179,9 @@
         }
     };
 
-    // MouseHandler is a shortcut for adding drag, double click,
-    // and mouse wheel events to the map.
+    // A shortcut for adding drag, double click,
+    // and mouse wheel events to the map. This is the default
+    // handler attached to a map if the handlers argument isn't given.
     MM.MouseHandler = function(map) {
         if (map !== undefined) {
             this.init(map);

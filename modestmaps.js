@@ -534,6 +534,8 @@ if (!com) {
     // Event Handlers
     // --------------
 
+    // A utility function for finding the offset of the
+    // mouse from the top-left of the page
     MM.getMousePoint = function(e, map) {
         // start with just the mouse (x, y)
         var point = new MM.Point(e.clientX, e.clientY);
@@ -550,7 +552,8 @@ if (!com) {
         return point;
     };
 
-    // map is optional here, use init if you don't have a map yet
+    // A handler that allows mouse-wheel zooming - zooming in
+    // when page would scroll up, and out when the page would scroll down.
     MM.MouseWheelHandler = function(map) {
         if (map !== undefined) {
             this.init(map);
@@ -558,6 +561,7 @@ if (!com) {
     };
 
     MM.MouseWheelHandler.prototype = {
+
         init: function(map) {
             this.map = map;
             MM.addEvent(map.parent, 'mousewheel', this.getMouseWheel());
@@ -597,7 +601,7 @@ if (!com) {
         }
     };
 
-    // map is optional here, use init if you don't have a map yet
+    // Handle double clicks, that zoom the map in one zoom level.
     MM.DoubleClickHandler = function(map) {
         if (map !== undefined) {
             this.init(map);
@@ -606,7 +610,6 @@ if (!com) {
 
     MM.DoubleClickHandler.prototype = {
 
-        // Initialize a MouseHandler on a map by adding its events.
         init: function(map) {
             this.map = map;
             MM.addEvent(map.parent, 'dblclick', this.getDoubleClick());
@@ -632,7 +635,7 @@ if (!com) {
         }
     };
 
-    // map is optional here, use init if you don't have a map yet
+    // Handle the use of mouse dragging to pan the map.
     MM.DragHandler = function(map) {
         if (map !== undefined) {
             this.init(map);
@@ -709,7 +712,9 @@ if (!com) {
         }
     };
 
-    // map is optional here, use init if you don't have a map yet
+    // A shortcut for adding drag, double click,
+    // and mouse wheel events to the map. This is the default
+    // handler attached to a map if the handlers argument isn't given.
     MM.MouseHandler = function(map) {
         if (map !== undefined) {
             this.init(map);
@@ -717,7 +722,6 @@ if (!com) {
     };
 
     MM.MouseHandler.prototype = {
-        // Initialize a MouseHandler on a map by adding its events.
         init: function(map) {
             this.map = map;
             new MM.DragHandler(map);
