@@ -8,6 +8,13 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment
     the major version." -- http://semver.org/
 
+v0.17.0
+- Mouse handlers refactor: while MouseHandler is still available for adding
+  all handlers to the map, double-click, zoomwheel, and drag handlers are
+  available individually.
+- Broken images that result from image loading errors are no longer added to
+  the map.
+
 v0.16.1
 - Unimplemented abstract methods throw exceptions instead of calling `alert()`
 
