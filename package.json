@@ -2,8 +2,12 @@
   "name": "modestmaps",
   "description": "a display and interaction library for tile-based maps",
   "version": "0.17.0",
-  "authors": [
-    "Tom Carden <tom@tom-carden.co.uk>",
+  "author": {
+    "name": "Tom Carden",
+    "email": "tom@tom-carden.co.uk",
+    "url": "http://www.tom-carden.co.uk/"
+  },
+  "contributors": [
     "Mike Migurski <mike-fromsite@teczno.com>",
     "Tom MacWright <macwright@gmail.com>"
   ],
