@@ -793,11 +793,15 @@ if (!com) {
         events: [],
         taps: [],
 
-        init: function(map) {
+        init: function(map, options) {
             this.map = map;
+            options = options || {};
             MM.addEvent(map.parent, 'touchstart', this.getTouchStartMachine());
             MM.addEvent(map.parent, 'touchmove', this.getTouchMoveMachine());
             MM.addEvent(map.parent, 'touchend', this.getTouchEndMachine());
+
+            this.options = {};
+            this.options.snapToZoom = options.snapToZoom || true;
         },
 
         // Essentially the entry point for touches to this control -
@@ -1107,7 +1111,11 @@ if (!com) {
             var m = this.twoTouchMatrix(touch1, touch2);
             var z = Math.log(m[0]) / Math.log(2);
             var p = new MM.Point(0, 0);
-            this.map.zoomByAbout(z, p).panBy(m[4], m[5]);
+            if (this.options.snapToZoom) {
+                this.map.zoomBy(Math.round(z)).panBy(m[4], m[5]);
+            } else {
+                this.map.zoomByAbout(z, p).panBy(m[4], m[5]);
+            }
             this.map.parent.style.webkitTransform = '';
         }
     };
