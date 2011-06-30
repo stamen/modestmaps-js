@@ -8,6 +8,60 @@
         return child;
     };
 
+    MM.getFrame = function () {
+        // native animation frames
+        // http://webstuff.nfshost.com/anim-timing/Overview.html
+        // http://dev.chromium.org/developers/design-documents/requestanimationframe-implementation
+        return function(callback) {
+            (window.requestAnimationFrame  ||
+            window.webkitRequestAnimationFrame ||
+            window.mozRequestAnimationFrame    ||
+            window.oRequestAnimationFrame      ||
+            window.msRequestAnimationFrame     ||
+            function (callback) {
+                window.setTimeout(function () {
+                    callback(+new Date());
+                }, 10);
+            })(callback);
+        };
+    }();
+
+    // Inspired by LeafletJS
+    MM.transformProperty = (function(props) {
+        var style = document.documentElement.style;
+        for (var i = 0; i < props.length; i++) {
+            if (props[i] in style) {
+                return props[i];
+            }
+        }
+        return false;
+    })(['transformProperty', 'WebkitTransform', 'OTransform', 'MozTransform', 'msTransform']);
+
+    MM.translateString = function(point) {
+        // TODO: support 3d
+        return (MM._browser.webkit3d ?
+            'translate3d(' :
+            'translate(') +
+            point.x + 'px,' + point.y + 'px' +
+            (MM._browser.webkit3d ? ',0)' : ')');
+    };
+
+    MM._browser = (function() {
+        return {
+            webkit: ('WebKitCSSMatrix' in window),
+            webkit3d: ('WebKitCSSMatrix' in window) && ('m11' in new WebKitCSSMatrix())
+        }
+    })();
+
+    MM.moveElement = function(el, point) {
+        if (MM._browser.webkit) {
+            el.style[MM.transformProperty] =  MM.translateString(point);
+        } else {
+            el.style.left = point.x + 'px';
+            el.style.top = point.y + 'px';
+        }
+    };
+
     // Events
     // Cancel an event: prevent it from bubbling
     MM.cancelEvent = function(e) {
