@@ -104,14 +104,20 @@
 
         this.enablePyramidLoading = false;
 
-        this.callbackManager = new MM.CallbackManager(this, [ 'zoomed', 'panned', 'centered', 'extentset', 'resized', 'drawn' ]);
+        this.callbackManager = new MM.CallbackManager(this, [
+            'zoomed',
+            'panned',
+            'centered',
+            'extentset',
+            'resized',
+            'drawn'
+        ]);
 
         // set up handlers last so that all required attributes/functions are in place if needed
         if (eventHandlers === undefined) {
             this.eventHandlers = [];
             this.eventHandlers.push(new MM.MouseHandler(this));
-        }
-        else {
+        } else {
             this.eventHandlers = eventHandlers;
             if (eventHandlers instanceof Array) {
                 for (var i = 0; i < eventHandlers.length; i++) {
@@ -119,37 +125,38 @@
                 }
             }
         }
-        
+
     };
-    
+
     MM.Map.prototype = {
-    
+
         parent: null,
         provider: null,
         dimensions: null,
         coordinate: null,
-    
+
         tiles: null,
         layers: null,
         layerParent: null,
-    
+
         requestManager: null,
-    
+
         tileCacheSize: null,
-        
+
         maxTileCacheSize: null,
         recentTiles: null,
         recentTilesById: null,
+        recentTileSize: null,
 
-        callbackManager: null,        
+        callbackManager: null,
         eventHandlers: null,
-    
+
         toString: function() {
             return 'Map(#' + this.parent.id + ')';
         },
-        
+
         // callbacks...
-        
+
         addCallback: function(event, callback) {
             this.callbackManager.addCallback(event,callback);
         },
@@ -157,13 +164,13 @@
         removeCallback: function(event, callback) {
             this.callbackManager.removeCallback(event,callback);
         },
-        
+
         dispatchCallback: function(event, message) {
             this.callbackManager.dispatchCallback(event,message);
         },
-    
+
         // zooming
-        
+
         zoomBy: function(zoomOffset) {
             this.coordinate = this.coordinate.zoomBy(zoomOffset);
             this.draw();
@@ -185,9 +192,12 @@
         // panning
 
         panBy: function(dx, dy) {
+            var theMap = this;
             this.coordinate.column -= dx / this.provider.tileWidth;
             this.coordinate.row -= dy / this.provider.tileHeight;
-            this.draw();
+
+            // Defer until the browser is ready to draw.
+            MM.getFrame(function() { theMap.draw()});
             this.dispatchCallback('panned', [dx, dy]);
             return this;
         },
@@ -227,44 +237,44 @@
                     BR = coordinate.copy();
                 }
             }
-            
+
             var width = this.dimensions.x + 1;
-            var height = this.dimensions.y + 1; 
-            
+            var height = this.dimensions.y + 1;
+
             // multiplication factor between horizontal span and map width
             var hFactor = (BR.column - TL.column) / (width / this.provider.tileWidth);
-        
+
             // multiplication factor expressed as base-2 logarithm, for zoom difference
             var hZoomDiff = Math.log(hFactor) / Math.log(2);
-                
+
             // possible horizontal zoom to fit geographical extent in map width
             var hPossibleZoom = TL.zoom - Math.ceil(hZoomDiff);
-                
+
             // multiplication factor between vertical span and map height
             var vFactor = (BR.row - TL.row) / (height / this.provider.tileHeight);
-                
+
             // multiplication factor expressed as base-2 logarithm, for zoom difference
             var vZoomDiff = Math.log(vFactor) / Math.log(2);
-                
+
             // possible vertical zoom to fit geographical extent in map height
             var vPossibleZoom = TL.zoom - Math.ceil(vZoomDiff);
-                
+
             // initial zoom to fit extent vertically and horizontally
             var initZoom = Math.min(hPossibleZoom, vPossibleZoom);
-        
+
             // additionally, make sure it's not outside the boundaries set by provider limits
             // this also catches Infinity stuff
             initZoom = Math.min(initZoom, this.provider.outerLimits()[1].zoom);
             initZoom = Math.max(initZoom, this.provider.outerLimits()[0].zoom);
-        
+
             // coordinate of extent center
             var centerRow = (TL.row + BR.row) / 2;
             var centerColumn = (TL.column + BR.column) / 2;
             var centerZoom = TL.zoom;
-            
+
             this.coordinate = new MM.Coordinate(centerRow, centerColumn, centerZoom).zoomTo(initZoom);
             this.draw();
-    
+
             this.dispatchCallback('extentset', locations);
             return this;
         },
@@ -296,7 +306,7 @@
             var point = new MM.Point(this.dimensions.x/2, this.dimensions.y/2);
             point.x += this.provider.tileWidth * (coord.column - this.coordinate.column);
             point.y += this.provider.tileHeight * (coord.row - this.coordinate.row);
-            
+
             return point;
         },
 
@@ -320,9 +330,9 @@
         pointLocation: function(point) {
             return this.provider.coordinateLocation(this.pointCoordinate(point));
         },
-        
+
         // inspecting
-    
+
         getExtent: function() {
             var extent = [];
             extent.push(this.pointLocation(new MM.Point(0,0)));
@@ -348,13 +358,13 @@
             if (this.provider === null) {
                 firstProvider = true;
             }
-        
+
             // if we already have a provider the we'll need to
             // clear the DOM, cancel requests and redraw
             if (!firstProvider) {
 
                 this.requestManager.clear();
-                
+
                 for (var name in this.layers) {
                     if (this.layers.hasOwnProperty(name)) {
                         var layer = this.layers[name];
@@ -368,26 +378,26 @@
             // first provider or not we'll init/reset some values...
 
             this.tiles = {};
-        
+
             this.tileCacheSize = 0;
-            
+
             this.maxTileCacheSize = 64;
             this.recentTiles = [];
-            this.recentTilesById = {};            
+            this.recentTilesById = {};
 
-            // for later: check geometry of old provider and set a new coordinate center 
+            // for later: check geometry of old provider and set a new coordinate center
             // if needed (now? or when?)
 
             this.provider = newProvider;
 
-            if (!firstProvider) {            
+            if (!firstProvider) {
                 this.draw();
             }
             return this;
         },
 
         // stats
-        
+
         /*
         getStats: function() {
             return {
@@ -395,9 +405,9 @@
                 'Open Request Count': this.requestManager.requestCount,
                 'Tile Cache Size': this.tileCacheSize,
                 'Tiles On Screen': this.parent.getElementsByTagName('img').length
-            };        
+            };
         },*/
-        
+
         // Prevent the user from navigating the map outside the `outerLimits`
         // of the map's provider.
         enforceLimits: function(coord) {
@@ -412,16 +422,16 @@
                 else if (coord.zoom > maxZoom) {
                     coord = coord.zoomTo(maxZoom);
                 }
-                
-                /*                 
+
+                /*
                 // this generally does the *intended* thing,
                 // but it's not always desired behavior so it's disabled for now
-                
+
                 var topLeftLimit = limits[0].zoomTo(coord.zoom);
                 var bottomRightLimit = limits[1].zoomTo(coord.zoom);
                 var currentTopLeft = this.pointCoordinate(new MM.Point(0,0));
                 var currentBottomRight = this.pointCoordinate(this.dimensions);
-                
+
                 if (bottomRightLimit.row - topLeftLimit.row < currentBottomRight.row - currentTopLeft.row) {
                     // if the limit is smaller than the current view center it
                     coord.row = (bottomRightLimit.row + topLeftLimit.row) / 2;
@@ -436,7 +446,7 @@
                 }
                 if (bottomRightLimit.column - topLeftLimit.column < currentBottomRight.column - currentTopLeft.column) {
                     // if the limit is smaller than the current view, center it
-                    coord.column = (bottomRightLimit.column + topLeftLimit.column) / 2;                    
+                    coord.column = (bottomRightLimit.column + topLeftLimit.column) / 2;
                 }
                 else {
                     if (currentTopLeft.column < topLeftLimit.column) {
@@ -447,14 +457,14 @@
                     }
                 }
                 */
-                
+
             }
             return coord;
         },
-        
+
         // Redraw the tiles on the map, reusing existing tiles.
         draw: function() {
-    
+
             // make sure we're not too far in or out:
             this.coordinate = this.enforceLimits(this.coordinate);
 
@@ -505,7 +515,7 @@
                         for (var pz = 1; pz <= maxStepsOut; pz++) {
                             var parentCoord = tileCoord.zoomBy(-pz).container();
                             var parentKey = parentCoord.toKey();
-                            
+
                             if (this.enablePyramidLoading) {
                                 // mark all parent tiles valid
                                 validTileKeys[parentKey] = true;
@@ -531,7 +541,7 @@
                                     break;
                                 }
                             }
-                            
+
                         }
                         // if we didn't find a parent, look at the children:
                         if (!tileCovered && !this.enablePyramidLoading) {
@@ -548,35 +558,35 @@
                     }
                 }
             }
-            
+
             // i from i to zoom-5 are layers that would be scaled too big,
             // i from zoom+2 to layers.length are layers that would be
             // scaled too small (and tiles would be too numerous)
             for (var name in this.layers) {
                 if (this.layers.hasOwnProperty(name)) {
                     var zoom = parseInt(name,10);
-                    if (zoom >= startCoord.zoom-5 && zoom < startCoord.zoom+2) {
+                    if (zoom >= startCoord.zoom - 5 && zoom < startCoord.zoom + 2) {
                         continue;
                     }
                     var layer = this.layers[name];
                     layer.style.display = 'none';
                     var visibleTiles = layer.getElementsByTagName('img');
-                    for (var j = visibleTiles.length-1; j >= 0; j--) {
+                    for (var j = visibleTiles.length - 1; j >= 0; j--) {
                         layer.removeChild(visibleTiles[j]);
                     }
                 }
             }
-        
+
             // for tracking time of tile usage:
             var now = new Date().getTime();
-        
+
             // layers we want to see, if they have tiles in validTileKeys
-            var minLayer = startCoord.zoom-5;
-            var maxLayer = startCoord.zoom+2;
+            var minLayer = startCoord.zoom - 5;
+            var maxLayer = startCoord.zoom + 2;
             for (var i = minLayer; i < maxLayer; i++) {
 
                 var layer = this.layers[i];
-                
+
                 if (!layer) {
                     // no tiles for this layer yet
                     continue;
@@ -584,49 +594,53 @@
 
                 var scale = 1;
                 var theCoord = this.coordinate.copy();
+                // getElementsByTagName is x10 faster than childNodes, and
+                // let's reuse the access.
+                var visibleTiles = layer.getElementsByTagName('img');
 
-                if (layer.childNodes.length > 0) {
+                if (visibleTiles.length > 0) {
                     layer.style.display = 'block';
                     scale = Math.pow(2, this.coordinate.zoom - i);
                     theCoord = theCoord.zoomTo(i);
-                }
-                else {
+                } else {
                     layer.style.display = 'none';
                 }
-                
+
                 var tileWidth = this.provider.tileWidth * scale;
                 var tileHeight = this.provider.tileHeight * scale;
                 var center = new MM.Point(this.dimensions.x/2, this.dimensions.y/2);
 
-                var visibleTiles = layer.getElementsByTagName('img');
                 for (var j = visibleTiles.length-1; j >= 0; j--) {
                     var tile = visibleTiles[j];
                     if (!validTileKeys[tile.id]) {
                         layer.removeChild(tile);
-                    }
-                    else {
+                    } else {
                         // position tiles
                         var tx = center.x + (tile.coord.column - theCoord.column) * tileWidth;
                         var ty = center.y + (tile.coord.row - theCoord.row) * tileHeight;
-                        tile.style.left = Math.round(tx) + 'px';
-                        tile.style.top = Math.round(ty) + 'px';
+                        MM.moveElement(tile, { x: Math.round(tx), y: Math.round(ty) });
+                        // tile.style.left = Math.round(tx) + 'px';
+                        // tile.style.top = Math.round(ty) + 'px';
                         // using style here and not raw width/height for ipad/iphone scaling
                         // see examples/touch/test.html
-                        tile.style.width = Math.ceil(tileWidth) + 'px';
-                        tile.style.height = Math.ceil(tileHeight) + 'px';
+                        if (this.recentTileSize !== [tileWidth, tileHeight].join(',')) {
+                            tile.style.width = Math.ceil(tileWidth) + 'px';
+                            tile.style.height = Math.ceil(tileHeight) + 'px';
+                            this.recentTileSize = [tileWidth, tileHeight].join(',');
+                        }
                         // log last-touched-time of currently cached tiles
                         this.recentTilesById[tile.id].lastTouchedTime = now;
                     }
                 }
-                
+
             }
-    
+
             // cancel requests that aren't visible:
             this.requestManager.clearExcept(validTileKeys);
-            
+
             // get newly requested tiles, sort according to current view:
             this.requestManager.processQueue(this.getCenterDistanceCompare());
-            
+
             // make sure we don't have too much stuff:
             this.checkCache();
 
@@ -655,11 +669,12 @@
                     // position this tile (avoids a full draw() call):
                     var theCoord = theMap.coordinate.zoomTo(tile.coord.zoom);
                     var scale = Math.pow(2, theMap.coordinate.zoom - tile.coord.zoom);
-                    var tx = ((theMap.dimensions.x/2) + (tile.coord.column - theCoord.column) * theMap.provider.tileWidth * scale);
-                    var ty = ((theMap.dimensions.y/2) + (tile.coord.row - theCoord.row) * theMap.provider.tileHeight * scale);
+                    var tx = ((theMap.dimensions.x/2) +
+                        (tile.coord.column - theCoord.column) * theMap.provider.tileWidth * scale);
+                    var ty = ((theMap.dimensions.y/2) +
+                        (tile.coord.row - theCoord.row) * theMap.provider.tileHeight * scale);
 
-                    tile.style.left = Math.round(tx) + 'px';
-                    tile.style.top = Math.round(ty) + 'px';
+                    MM.moveElement(tile, { x: Math.round(tx), y: Math.round(ty) });
                     // using style here and not raw width/height for ipad/iphone scaling
                     // see examples/touch/test.html
                     tile.style.width = Math.ceil(theMap.provider.tileWidth * scale) + 'px';
@@ -685,10 +700,10 @@
             }
             return this._tileComplete;
         },
-        
-        
+
+
         _redrawTimer: undefined,
-        
+
         requestRedraw: function() {
             // we'll always draw within 1 second of this request,
             // sometimes faster if there's already a pending redraw
@@ -699,9 +714,9 @@
                 this._redrawTimer = setTimeout(this.getRedraw(), 1000);
             }
         },
-    
+
         _redraw: null,
-        
+
         getRedraw: function() {
             // let's only create this closure once...
             if (!this._redraw) {
@@ -713,14 +728,14 @@
             }
             return this._redraw;
         },
-        
+
         createOrGetLayer: function(zoom) {
             if (zoom in this.layers) {
                 return this.layers[zoom];
             }
             //console.log('creating layer ' + zoom);
             var layer = document.createElement('div');
-            layer.id = this.parent.id+'-zoom-'+zoom;
+            layer.id = this.parent.id + '-zoom-' + zoom;
             layer.style.cssText = this.layerParent.style.cssText;
             layer.style.zIndex = zoom;
             this.layerParent.appendChild(layer);

@@ -80,7 +80,19 @@
             var tx = s * -x_ + x,
                 ty = s * -y_ + y;
 
-            return [s, 0, 0, s, tx, ty];
+            return [
+                // scale
+                s,
+                // identity values
+                0,
+                0,
+                // scale
+                s,
+                // translation along x
+                tx,
+                // translation along y
+                ty
+            ];
         },
 
         getTouchStartMachineHandler: null,
@@ -266,20 +278,23 @@
             // http://www.w3.org/TR/css3-3d-transforms/#transform-functions
             // `matrix(a,b,c,d,e,f)` is equivalent to
             // `matrix3d(a, b, 0, 0, c, d, 0, 0, 0, 0, 1, 0, e, f, 0, 1)`
+            /*
             m = [
                 '1', '0', '0', '0', '0', '1', '0', '0', '0', '0', '1', '0',
                 m[4].toFixed(0), m[5].toFixed(0), '0', '1'
             ];
             m = 'matrix3d(' + m.join(', ') + ')';
+            */
 
-            this.map.parent.style.webkitTransformOrigin = '0px 0px';
-            this.map.parent.style.webkitTransform = m;
+            this.map.panBy(m[4], m[5]);
+            // this.map.parent.style.webkitTransformOrigin = '0px 0px';
+            // this.map.parent.style.webkitTransform = m;
         },
 
         onPanned: function(touch) {
             var m = this.oneTouchMatrix(touch);
             this.map.panBy(m[4], m[5]);
-            this.map.parent.style.webkitTransform = '';
+            // this.map.parent.style.webkitTransform = '';
         },
 
         // During a pinch event, don't recalculate zooms and centers,
