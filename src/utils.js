@@ -38,12 +38,23 @@
     })(['transformProperty', 'WebkitTransform', 'OTransform', 'MozTransform', 'msTransform']);
 
     MM.translateString = function(point) {
-        // TODO: support 3d
         return (MM._browser.webkit3d ?
             'translate3d(' :
             'translate(') +
             point.x + 'px,' + point.y + 'px' +
             (MM._browser.webkit3d ? ',0)' : ')');
+    };
+
+    MM.matrixString = function(point) {
+        // http://www.w3.org/TR/css3-3d-transforms/#transform-functions
+        // `matrix(a,b,c,d,e,f)` is equivalent to
+        // `matrix3d(a, b, 0, 0, c, d, 0, 0, 0, 0, 1, 0, e, f, 0, 1)`
+        return (MM._browser.webkit3d ?
+            'matrix3d(' :
+            'matrix(') +
+                ['1', '0', '0', '0', '0', '1', '0', '0', '0', '0', '1', '0',
+                point.x, point.y, '0', '1'].join(',') +
+            (MM._browser.webkit3d ? ')' : ')');
     };
 
     MM._browser = (function() {
@@ -55,7 +66,7 @@
 
     MM.moveElement = function(el, point) {
         if (MM._browser.webkit) {
-            el.style[MM.transformProperty] =  MM.translateString(point);
+            el.style[MM.transformProperty] =  MM.matrixString(point);
         } else {
             el.style.left = point.x + 'px';
             el.style.top = point.y + 'px';
