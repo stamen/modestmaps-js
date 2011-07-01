@@ -51,8 +51,9 @@
         // `matrix3d(a, b, 0, 0, c, d, 0, 0, 0, 0, 1, 0, e, f, 0, 1)`
         return (MM._browser.webkit3d ?
             'matrix3d(' :
-            'matrix(') +
-                [point.scale || '1', '0', '0', '0', '0', point.scale || '1', '0', '0', '0', '0', '1', '0',
+            'matrix(') + [
+                (point.scale || '1'), '0', '0', '0', '0',
+                (point.scale || '1'), '0', '0', '0', '0', '1', '0',
                 point.x, point.y, '0', '1'].join(',') +
             (MM._browser.webkit3d ? ')' : ')');
     };

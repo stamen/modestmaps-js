@@ -622,9 +622,13 @@
                     layer.style.display = 'none';
                 }
 
+                scale += (Math.ceil(this.provider.tileWidth * scale) -
+                    (this.provider.tileWidth * scale));
+
                 var tileWidth = this.provider.tileWidth * scale;
                 var tileHeight = this.provider.tileHeight * scale;
                 var center = new MM.Point(this.dimensions.x / 2, this.dimensions.y / 2);
+                console.log('ideal width: ' + tileWidth);
 
                 for (var j = visibleTiles.length - 1; j >= 0; j--) {
                     var tile = visibleTiles[j];
@@ -632,26 +636,17 @@
                         layer.removeChild(tile);
                     } else {
                         // position tiles
-                        var tx = center.x + (tile.coord.column - theCoord.column) * tileWidth;
-                        var ty = center.y + (tile.coord.row - theCoord.row) * tileHeight;
-
-                        MM.moveElement(tile, { x: Math.round(tx), y: Math.round(ty), scale: scale.toFixed(5) });
-                        // tile.style.left = Math.round(tx) + 'px';
-                        // tile.style.top = Math.round(ty) + 'px';
-                        // using style here and not raw width/height for ipad/iphone scaling
-                        // see examples/touch/test.html
-                        /*
-                        if (this.recentTileSize !== [tileWidth, tileHeight].join(',')) {
-                            tile.style.width = Math.ceil(tileWidth) + 'px';
-                            tile.style.height = Math.ceil(tileHeight) + 'px';
-                            this.recentTileSize = [tileWidth, tileHeight].join(',');
-                        }
-                        */
+                        MM.moveElement(tile, {
+                            x: Math.round(center.x +
+                                (tile.coord.column - theCoord.column) * tileWidth),
+                            y: Math.round(center.y +
+                                (tile.coord.row - theCoord.row) * tileHeight),
+                            scale: scale.toFixed(5)
+                        });
                         // log last-touched-time of currently cached tiles
                         this.recentTilesById[tile.id].lastTouchedTime = now;
                     }
                 }
-
             }
 
             // cancel requests that aren't visible:
