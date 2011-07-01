@@ -19,19 +19,13 @@
             this.options.snapToZoom = options.snapToZoom || true;
         },
 
-        // Essentially the entry point for touches to this control -
-        // on an event, store the touches in the `events` array, one per touch.
-        //
-        // * TODO: this may be storing `events` as a global
         interruptTouches: function(events) {
-            var now = new Date().getTime();
             for (var i = 0; i < events.length; i += 1) {
                 var touch = events[i].touch;
                 events[i] = {
                     screenX: touch.screenX,
                     screenY: touch.screenY,
                     touch: touch,
-                    time: now,
                     start: null,
                     count: 0,
                     travel: 0
@@ -69,17 +63,13 @@
         // two touch events.
         twoTouchMatrix: function(t1, t2) {
             var t1_ = t1.start,
-                t2_ = t2.start;
-
-            var span =  this.distance(t1, t2),
-                span_ = this.distance(t1_, t2_);
-
-            var s = span / span_;
-
-            var x = (t1.screenX + t2.screenX) / 2,
-                y = (t1.screenY + t2.screenY) / 2;
-
-            var x_ = (t1_.screenX + t2_.screenX) / 2,
+                t2_ = t2.start,
+                span =  this.distance(t1, t2),
+                span_ = this.distance(t1_, t2_),
+                s = span / span_,
+                x = (t1.screenX + t2.screenX) / 2,
+                y = (t1.screenY + t2.screenY) / 2,
+                x_ = (t1_.screenX + t2_.screenX) / 2,
                 y_ = (t1_.screenY + t2_.screenY) / 2;
 
             return {
@@ -288,6 +278,7 @@
         // but recalculate the CSS transformation
         onPinching: function(touch1, touch2) {
             var m = this.twoTouchMatrix(touch1, touch2);
+            console.log(m.x, m.y);
             this.map.coordinate = m.startCoordinate;
             // TODO: very broken, still.
             this.map.panZoom(m.x, m.y, m.startCoordinate.zoom * m.scale);

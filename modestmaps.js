@@ -74,8 +74,9 @@ if (!com) {
         // `matrix3d(a, b, 0, 0, c, d, 0, 0, 0, 0, 1, 0, e, f, 0, 1)`
         return (MM._browser.webkit3d ?
             'matrix3d(' :
-            'matrix(') +
-                [point.scale || '1', '0', '0', '0', '0', point.scale || '1', '0', '0', '0', '0', '1', '0',
+            'matrix(') + [
+                (point.scale || '1'), '0', '0', '0', '0',
+                (point.scale || '1'), '0', '0', '0', '0', '1', '0',
                 point.x, point.y, '0', '1'].join(',') +
             (MM._browser.webkit3d ? ')' : ')');
     };
@@ -1084,6 +1085,7 @@ if (!com) {
         // but recalculate the CSS transformation
         onPinching: function(touch1, touch2) {
             var m = this.twoTouchMatrix(touch1, touch2);
+            console.log(m.x, m.y);
             this.map.coordinate = m.startCoordinate;
             // TODO: very broken, still.
             this.map.panZoom(m.x, m.y, m.startCoordinate.zoom * m.scale);
@@ -2016,9 +2018,13 @@ if (!com) {
                     layer.style.display = 'none';
                 }
 
+                scale += (Math.ceil(this.provider.tileWidth * scale) -
+                    (this.provider.tileWidth * scale));
+
                 var tileWidth = this.provider.tileWidth * scale;
                 var tileHeight = this.provider.tileHeight * scale;
                 var center = new MM.Point(this.dimensions.x / 2, this.dimensions.y / 2);
+                console.log('ideal width: ' + tileWidth);
 
                 for (var j = visibleTiles.length - 1; j >= 0; j--) {
                     var tile = visibleTiles[j];
@@ -2026,26 +2032,17 @@ if (!com) {
                         layer.removeChild(tile);
                     } else {
                         // position tiles
-                        var tx = center.x + (tile.coord.column - theCoord.column) * tileWidth;
-                        var ty = center.y + (tile.coord.row - theCoord.row) * tileHeight;
-
-                        MM.moveElement(tile, { x: Math.round(tx), y: Math.round(ty), scale: scale.toFixed(5) });
-                        // tile.style.left = Math.round(tx) + 'px';
-                        // tile.style.top = Math.round(ty) + 'px';
-                        // using style here and not raw width/height for ipad/iphone scaling
-                        // see examples/touch/test.html
-                        /*
-                        if (this.recentTileSize !== [tileWidth, tileHeight].join(',')) {
-                            tile.style.width = Math.ceil(tileWidth) + 'px';
-                            tile.style.height = Math.ceil(tileHeight) + 'px';
-                            this.recentTileSize = [tileWidth, tileHeight].join(',');
-                        }
-                        */
+                        MM.moveElement(tile, {
+                            x: Math.round(center.x +
+                                (tile.coord.column - theCoord.column) * tileWidth),
+                            y: Math.round(center.y +
+                                (tile.coord.row - theCoord.row) * tileHeight),
+                            scale: scale.toFixed(5)
+                        });
                         // log last-touched-time of currently cached tiles
                         this.recentTilesById[tile.id].lastTouchedTime = now;
                     }
                 }
-
             }
 
             // cancel requests that aren't visible:
