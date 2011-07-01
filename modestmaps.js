@@ -60,14 +60,6 @@ if (!com) {
         return false;
     })(['transformProperty', 'WebkitTransform', 'OTransform', 'MozTransform', 'msTransform']);
 
-    MM.translateString = function(point) {
-        return (MM._browser.webkit3d ?
-            'translate3d(' :
-            'translate(') +
-            point.x + 'px,' + point.y + 'px' +
-            (MM._browser.webkit3d ? ',0)' : ')');
-    };
-
     MM.matrixString = function(point) {
         // http://www.w3.org/TR/css3-3d-transforms/#transform-functions
         // `matrix(a,b,c,d,e,f)` is equivalent to
@@ -90,6 +82,10 @@ if (!com) {
 
     MM.moveElement = function(el, point) {
         if (MM._browser.webkit) {
+            if (!el.style['transitionProperty']) {
+                el.style['transitionProperty'] = MM.transformProperty;
+                el.style['transitionDuration'] = '1000ms';
+            }
             el.style[MM.transformProperty] =  MM.matrixString(point);
         } else {
             el.style.left = point.x + 'px';
@@ -897,11 +893,22 @@ if (!com) {
 
         touchEndMachine: function(e) {
             var now = new Date().getTime();
+            console.log(e.changedTouches.length);
+            switch (e.changedTouches.length) {
+                case 1:
+                    // this.onPanned(e);
+                    break;
+                case 2:
+                    console.log('done');
+                    this.onPinched(e);
+                    break;
+            }
 
             // Look at each changed touch in turn.
             for (var i = 0; i < e.changedTouches.length; i += 1) {
                 var t = e.changedTouches[i];
                 var start = this.locations[t.identifier];
+                if (!start) return;
 
                 // we now know we have an event object and a
                 // matching touch that's just ended. Let's see
@@ -994,11 +1001,9 @@ if (!com) {
         // of the map.
         onPinched: function(touch1, touch2) {
             // TODO: easing
-            /*
             if (this.options.snapToZoom) {
-                this.map.zoomBy(Math.round(z)).panBy(m[4], m[5]);
+                this.map.setZoom(Math.round(this.map.getZoom()));
             }
-            */
         }
     };
     // CallbackManager

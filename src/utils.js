@@ -37,14 +37,6 @@
         return false;
     })(['transformProperty', 'WebkitTransform', 'OTransform', 'MozTransform', 'msTransform']);
 
-    MM.translateString = function(point) {
-        return (MM._browser.webkit3d ?
-            'translate3d(' :
-            'translate(') +
-            point.x + 'px,' + point.y + 'px' +
-            (MM._browser.webkit3d ? ',0)' : ')');
-    };
-
     MM.matrixString = function(point) {
         // http://www.w3.org/TR/css3-3d-transforms/#transform-functions
         // `matrix(a,b,c,d,e,f)` is equivalent to
@@ -67,6 +59,10 @@
 
     MM.moveElement = function(el, point) {
         if (MM._browser.webkit) {
+            if (!el.style['transitionProperty']) {
+                el.style['transitionProperty'] = MM.transformProperty;
+                el.style['transitionDuration'] = '1000ms';
+            }
             el.style[MM.transformProperty] =  MM.matrixString(point);
         } else {
             el.style.left = point.x + 'px';

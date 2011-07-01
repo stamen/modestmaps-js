@@ -87,11 +87,20 @@
 
         touchEndMachine: function(e) {
             var now = new Date().getTime();
+            switch (e.changedTouches.length) {
+                case 1:
+                    // this.onPanned(e);
+                    break;
+                case 2:
+                    this.onPinched(e);
+                    break;
+            }
 
             // Look at each changed touch in turn.
             for (var i = 0; i < e.changedTouches.length; i += 1) {
                 var t = e.changedTouches[i];
                 var start = this.locations[t.identifier];
+                if (!start) return;
 
                 // we now know we have an event object and a
                 // matching touch that's just ended. Let's see
@@ -184,10 +193,8 @@
         // of the map.
         onPinched: function(touch1, touch2) {
             // TODO: easing
-            /*
             if (this.options.snapToZoom) {
-                this.map.zoomBy(Math.round(z)).panBy(m[4], m[5]);
+                this.map.setZoom(Math.round(this.map.getZoom()));
             }
-            */
         }
     };
