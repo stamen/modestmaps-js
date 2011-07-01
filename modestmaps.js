@@ -75,7 +75,7 @@ if (!com) {
         return (MM._browser.webkit3d ?
             'matrix3d(' :
             'matrix(') +
-                ['1', '0', '0', '0', '0', '1', '0', '0', '0', '0', '1', '0',
+                [point.scale || '1', '0', '0', '0', '0', point.scale || '1', '0', '0', '0', '0', '1', '0',
                 point.x, point.y, '0', '1'].join(',') +
             (MM._browser.webkit3d ? ')' : ')');
     };
@@ -878,16 +878,15 @@ if (!com) {
             var x_ = (t1_.screenX + t2_.screenX) / 2,
                 y_ = (t1_.screenY + t2_.screenY) / 2;
 
-            var tx = s * -x_ + x,
-                ty = s * -y_ + y;
-
             return {
+                // TODO: which is it, consistently?
+                startCoordinate: t2_.coordinate || t1_.coordinate,
                 // scale
                 scale: span / span_,
                 // translation along x
-                x: tx,
+                x: s * -x_ + x,
                 // translation along y
-                y: ty
+                y: s * -y + y
             };
         },
 
@@ -1085,16 +1084,20 @@ if (!com) {
         // but recalculate the CSS transformation
         onPinching: function(touch1, touch2) {
             var m = this.twoTouchMatrix(touch1, touch2);
-            this.map.panZoom(m.x, m.y, m.scale);
+            this.map.coordinate = m.startCoordinate;
+            // TODO: very broken, still.
+            this.map.panZoom(m.x, m.y, m.startCoordinate.zoom * m.scale);
         },
 
         // When a pinch event ends, recalculate the zoom and center
         // of the map.
         onPinched: function(touch1, touch2) {
             // TODO: easing
+            /*
             if (this.options.snapToZoom) {
                 this.map.zoomBy(Math.round(z)).panBy(m[4], m[5]);
             }
+            */
         }
     };
     // CallbackManager
@@ -1593,11 +1596,11 @@ if (!com) {
             return this;
         },
 
-        panZoom: function(dx, dy, z) {
+        panZoom: function(dx, dy, zoom) {
             var theMap = this;
             this.coordinate.column -= dx / this.provider.tileWidth;
             this.coordinate.row -= dy / this.provider.tileHeight;
-            this.coordinate = this.coordinate.zoomBy(zoomOffset);
+            this.coordinate = this.coordinate.zoomTo(zoom);
 
             // Defer until the browser is ready to draw.
             MM.getFrame(function() { theMap.draw()});
@@ -2025,16 +2028,19 @@ if (!com) {
                         // position tiles
                         var tx = center.x + (tile.coord.column - theCoord.column) * tileWidth;
                         var ty = center.y + (tile.coord.row - theCoord.row) * tileHeight;
-                        MM.moveElement(tile, { x: Math.round(tx), y: Math.round(ty) });
+
+                        MM.moveElement(tile, { x: Math.round(tx), y: Math.round(ty), scale: scale.toFixed(5) });
                         // tile.style.left = Math.round(tx) + 'px';
                         // tile.style.top = Math.round(ty) + 'px';
                         // using style here and not raw width/height for ipad/iphone scaling
                         // see examples/touch/test.html
+                        /*
                         if (this.recentTileSize !== [tileWidth, tileHeight].join(',')) {
                             tile.style.width = Math.ceil(tileWidth) + 'px';
                             tile.style.height = Math.ceil(tileHeight) + 'px';
                             this.recentTileSize = [tileWidth, tileHeight].join(',');
                         }
+                        */
                         // log last-touched-time of currently cached tiles
                         this.recentTilesById[tile.id].lastTouchedTime = now;
                     }
@@ -2081,11 +2087,11 @@ if (!com) {
                     var ty = ((theMap.dimensions.y / 2) +
                         (tile.coord.row - theCoord.row) * theMap.provider.tileHeight * scale);
 
-                    MM.moveElement(tile, { x: Math.round(tx), y: Math.round(ty) });
+                    MM.moveElement(tile, { x: Math.round(tx), y: Math.round(ty), scale: scale });
                     // using style here and not raw width/height for ipad/iphone scaling
                     // see examples/touch/test.html
-                    tile.style.width = Math.ceil(theMap.provider.tileWidth * scale) + 'px';
-                    tile.style.height = Math.ceil(theMap.provider.tileHeight * scale) + 'px';
+                    // tile.style.width = Math.ceil(theMap.provider.tileWidth * scale) + 'px';
+                    // tile.style.height = Math.ceil(theMap.provider.tileHeight * scale) + 'px';
 
                     // Support style transition if available.
 

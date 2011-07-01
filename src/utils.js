@@ -52,7 +52,7 @@
         return (MM._browser.webkit3d ?
             'matrix3d(' :
             'matrix(') +
-                ['1', '0', '0', '0', '0', '1', '0', '0', '0', '0', '1', '0',
+                [point.scale || '1', '0', '0', '0', '0', point.scale || '1', '0', '0', '0', '0', '1', '0',
                 point.x, point.y, '0', '1'].join(',') +
             (MM._browser.webkit3d ? ')' : ')');
     };

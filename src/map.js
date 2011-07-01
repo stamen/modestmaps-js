@@ -202,11 +202,11 @@
             return this;
         },
 
-        panZoom: function(dx, dy, z) {
+        panZoom: function(dx, dy, zoom) {
             var theMap = this;
             this.coordinate.column -= dx / this.provider.tileWidth;
             this.coordinate.row -= dy / this.provider.tileHeight;
-            this.coordinate = this.coordinate.zoomBy(zoomOffset);
+            this.coordinate = this.coordinate.zoomTo(zoom);
 
             // Defer until the browser is ready to draw.
             MM.getFrame(function() { theMap.draw()});
@@ -634,16 +634,19 @@
                         // position tiles
                         var tx = center.x + (tile.coord.column - theCoord.column) * tileWidth;
                         var ty = center.y + (tile.coord.row - theCoord.row) * tileHeight;
-                        MM.moveElement(tile, { x: Math.round(tx), y: Math.round(ty) });
+
+                        MM.moveElement(tile, { x: Math.round(tx), y: Math.round(ty), scale: scale.toFixed(5) });
                         // tile.style.left = Math.round(tx) + 'px';
                         // tile.style.top = Math.round(ty) + 'px';
                         // using style here and not raw width/height for ipad/iphone scaling
                         // see examples/touch/test.html
+                        /*
                         if (this.recentTileSize !== [tileWidth, tileHeight].join(',')) {
                             tile.style.width = Math.ceil(tileWidth) + 'px';
                             tile.style.height = Math.ceil(tileHeight) + 'px';
                             this.recentTileSize = [tileWidth, tileHeight].join(',');
                         }
+                        */
                         // log last-touched-time of currently cached tiles
                         this.recentTilesById[tile.id].lastTouchedTime = now;
                     }
@@ -690,11 +693,11 @@
                     var ty = ((theMap.dimensions.y / 2) +
                         (tile.coord.row - theCoord.row) * theMap.provider.tileHeight * scale);
 
-                    MM.moveElement(tile, { x: Math.round(tx), y: Math.round(ty) });
+                    MM.moveElement(tile, { x: Math.round(tx), y: Math.round(ty), scale: scale });
                     // using style here and not raw width/height for ipad/iphone scaling
                     // see examples/touch/test.html
-                    tile.style.width = Math.ceil(theMap.provider.tileWidth * scale) + 'px';
-                    tile.style.height = Math.ceil(theMap.provider.tileHeight * scale) + 'px';
+                    // tile.style.width = Math.ceil(theMap.provider.tileWidth * scale) + 'px';
+                    // tile.style.height = Math.ceil(theMap.provider.tileHeight * scale) + 'px';
 
                     // Support style transition if available.
 
