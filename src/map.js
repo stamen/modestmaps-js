@@ -519,8 +519,7 @@
                         if (tile.parentNode != thisLayer) {
                             thisLayer.appendChild(tile);
                         }
-                    }
-                    else {
+                    } else {
                         if (!this.requestManager.hasRequest(tileKey)) {
                             var tileURL = this.provider.getTileUrl(tileCoord);
                             this.requestManager.requestTile(tileKey, tileCoord, tileURL);
@@ -542,14 +541,12 @@
                                     if (parentTile.parentNode != parentLayer) {
                                         parentLayer.appendChild(parentTile);
                                     }
-                                }
-                                else if (!this.requestManager.hasRequest(parentKey)) {
+                                } else if (!this.requestManager.hasRequest(parentKey)) {
                                     // force load of parent tiles we don't already have
                                     var tileURL = this.provider.getTileUrl(parentCoord);
                                     this.requestManager.requestTile(parentKey, parentCoord, tileURL);
                                 }
-                            }
-                            else {
+                            } else {
                                 // only mark it valid if we have it already
                                 if (parentKey in this.tiles) {
                                     validTileKeys[parentKey] = true;
@@ -622,9 +619,6 @@
                     layer.style.display = 'none';
                 }
 
-                scale += (Math.ceil(this.provider.tileWidth * scale) -
-                    (this.provider.tileWidth * scale));
-
                 var tileWidth = this.provider.tileWidth * scale;
                 var tileHeight = this.provider.tileHeight * scale;
                 var center = new MM.Point(this.dimensions.x / 2, this.dimensions.y / 2);
@@ -679,7 +673,6 @@
                     theMap.recentTilesById[tile.id] = record;
                     theMap.recentTiles.push(record);
 
-                    // position this tile (avoids a full draw() call):
                     var theCoord = theMap.coordinate.zoomTo(tile.coord.zoom);
                     var scale = Math.pow(2, theMap.coordinate.zoom - tile.coord.zoom);
                     var tx = ((theMap.dimensions.x / 2) +

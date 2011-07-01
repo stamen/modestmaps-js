@@ -860,21 +860,19 @@ if (!com) {
 
         // Generate a CSS transformation matrix from
         // two touch events.
-        twoTouchMatrix: function(t1, t2) {
-            var t1_ = this.locations[t1.identifier],
+        twoTouchMatrix: function(e) {
+            var t1 = e.touches[0],
+                t2 = e.touches[1],
+                t1_ = this.locations[t1.identifier],
                 t2_ = this.locations[t2.identifier],
-                span =  this.distance(t1, t2),
-                span_ = this.distance(t1_, t2_),
-                s = span / span_,
                 x = (t1.screenX + t2.screenX) / 2,
                 y = (t1.screenY + t2.screenY) / 2,
                 x_ = (t1_.screenX + t2_.screenX) / 2,
                 y_ = (t1_.screenY + t2_.screenY) / 2;
 
             return {
-                scale: span / span_,
-                x: s * -x_ + x, // translation along x
-                y: s * -y + y // translation along y
+                x: e.scale * -x_ + x, // translation along x
+                y: e.scale * -y + y // translation along y
             };
         },
 
@@ -891,7 +889,7 @@ if (!com) {
                     this.onPanning(e.touches[0]);
                     break;
                 case 2:
-                    this.onPinching(e.touches[0], e.touches[1]);
+                    this.onPinching(e);
                     break;
             }
             return MM.cancelEvent(e);
@@ -984,11 +982,12 @@ if (!com) {
 
         // During a pinch event, don't recalculate zooms and centers,
         // but recalculate the CSS transformation
-        onPinching: function(touch1, touch2) {
-            var m = this.twoTouchMatrix(touch1, touch2);
-            this.map.coordinate = this.coordinate.copy();
-            // TODO: very broken, still.
-            this.map.panZoom(m.x, m.y, this.coordinate.zoom * m.scale);
+        onPinching: function(e) {
+            var m = this.twoTouchMatrix(e);
+            // this.map.coordinate = this.coordinate.copy();
+            // TODO: fix pan-zooming
+            // this.map.panBy(m.x, m.y);
+            this.map.zoomBy(Math.log(e.scale) / Math.LN2 + this.coordinate.zoom - this.map.getZoom());
         },
 
         // When a pinch event ends, recalculate the zoom and center
@@ -1815,8 +1814,7 @@ if (!com) {
                         if (tile.parentNode != thisLayer) {
                             thisLayer.appendChild(tile);
                         }
-                    }
-                    else {
+                    } else {
                         if (!this.requestManager.hasRequest(tileKey)) {
                             var tileURL = this.provider.getTileUrl(tileCoord);
                             this.requestManager.requestTile(tileKey, tileCoord, tileURL);
@@ -1838,14 +1836,12 @@ if (!com) {
                                     if (parentTile.parentNode != parentLayer) {
                                         parentLayer.appendChild(parentTile);
                                     }
-                                }
-                                else if (!this.requestManager.hasRequest(parentKey)) {
+                                } else if (!this.requestManager.hasRequest(parentKey)) {
                                     // force load of parent tiles we don't already have
                                     var tileURL = this.provider.getTileUrl(parentCoord);
                                     this.requestManager.requestTile(parentKey, parentCoord, tileURL);
                                 }
-                            }
-                            else {
+                            } else {
                                 // only mark it valid if we have it already
                                 if (parentKey in this.tiles) {
                                     validTileKeys[parentKey] = true;
@@ -1918,9 +1914,6 @@ if (!com) {
                     layer.style.display = 'none';
                 }
 
-                scale += (Math.ceil(this.provider.tileWidth * scale) -
-                    (this.provider.tileWidth * scale));
-
                 var tileWidth = this.provider.tileWidth * scale;
                 var tileHeight = this.provider.tileHeight * scale;
                 var center = new MM.Point(this.dimensions.x / 2, this.dimensions.y / 2);
@@ -1975,7 +1968,6 @@ if (!com) {
                     theMap.recentTilesById[tile.id] = record;
                     theMap.recentTiles.push(record);
 
-                    // position this tile (avoids a full draw() call):
                     var theCoord = theMap.coordinate.zoomTo(tile.coord.zoom);
                     var scale = Math.pow(2, theMap.coordinate.zoom - tile.coord.zoom);
                     var tx = ((theMap.dimensions.x / 2) +
