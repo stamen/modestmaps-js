@@ -628,7 +628,6 @@
                 var tileWidth = this.provider.tileWidth * scale;
                 var tileHeight = this.provider.tileHeight * scale;
                 var center = new MM.Point(this.dimensions.x / 2, this.dimensions.y / 2);
-                console.log('ideal width: ' + tileWidth);
 
                 for (var j = visibleTiles.length - 1; j >= 0; j--) {
                     var tile = visibleTiles[j];
