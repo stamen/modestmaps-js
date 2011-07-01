@@ -279,26 +279,19 @@
         // Re-transform the actual map parent's CSS transformation
         onPanning: function(touch) {
             var m = this.oneTouchMatrix(touch);
-            // http://www.w3.org/TR/css3-3d-transforms/#transform-functions
-            // `matrix(a,b,c,d,e,f)` is equivalent to
-            // `matrix3d(a, b, 0, 0, c, d, 0, 0, 0, 0, 1, 0, e, f, 0, 1)`
-            /*
-            m = [
-                '1', '0', '0', '0', '0', '1', '0', '0', '0', '0', '1', '0',
-                m[4].toFixed(0), m[5].toFixed(0), '0', '1'
-            ];
-            m = 'matrix3d(' + m.join(', ') + ')';
-            */
-
             this.map.panBy(m[4], m[5]);
-            // this.map.parent.style.webkitTransformOrigin = '0px 0px';
-            // this.map.parent.style.webkitTransform = m;
         },
 
         onPanned: function(touch) {
             var m = this.oneTouchMatrix(touch);
             this.map.panBy(m[4], m[5]);
-            // this.map.parent.style.webkitTransform = '';
+            // var ms = (touch.time - touch.start.time);
+            // var ms = (touch.time - touch.start.time);
+            // var velocity = this.distance(touch, touch.start) / ms;
+            // FIXME: finish easing
+            // for (var i = 0; i < (velocity * 50) / 10; i++) {
+            //     this.map.panBy(m[4] / i, m[5] / i);
+            // }
         },
 
         // During a pinch event, don't recalculate zooms and centers,

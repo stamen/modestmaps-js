@@ -29,7 +29,7 @@
         this.parent.style.overflow = 'hidden';
 
         var position = MM.getStyle(this.parent, 'position');
-        if (position != "relative" && position != "absolute") {
+        if (position != 'relative' && position != 'absolute') {
             this.parent.style.position = 'relative';
         }
 
@@ -40,11 +40,11 @@
             var h = this.parent.offsetHeight;
             if (!w) {
                 w = 640;
-                this.parent.style.width = w+'px';
+                this.parent.style.width = w + 'px';
             }
             if (!h) {
                 h = 480;
-                this.parent.style.height = h+'px';
+                this.parent.style.height = h + 'px';
             }
             dimensions = new MM.Point(w, h);
             // FIXME: listeners like this will stop the map being removed cleanly?
@@ -55,12 +55,12 @@
                 // and setting the height breaks percentages and default styles
                 theMap.dimensions = new MM.Point(theMap.parent.offsetWidth, theMap.parent.offsetHeight);
                 theMap.draw();
-                theMap.dispatchCallback('resized', [ theMap.dimensions ]);
+                theMap.dispatchCallback('resized', [theMap.dimensions]);
             });
         }
         else {
-            this.parent.style.width = Math.round(dimensions.x)+'px';
-            this.parent.style.height = Math.round(dimensions.y)+'px';
+            this.parent.style.width = Math.round(dimensions.x) + 'px';
+            this.parent.style.height = Math.round(dimensions.y) + 'px';
         }
 
         this.dimensions = dimensions;
@@ -92,13 +92,13 @@
         this.layers = {};
 
         this.layerParent = document.createElement('div');
-        this.layerParent.id = this.parent.id+'-layers';
+        this.layerParent.id = this.parent.id + '-layers';
         // this text is also used in createOrGetLayer
         this.layerParent.style.cssText = 'position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; margin: 0; padding: 0; z-index: 0';
 
         this.parent.appendChild(this.layerParent);
 
-        this.coordinate = new MM.Coordinate(0.5,0.5,0);
+        this.coordinate = new MM.Coordinate(0.5, 0.5, 0);
 
         this.setProvider(provider);
 
@@ -158,15 +158,15 @@
         // callbacks...
 
         addCallback: function(event, callback) {
-            this.callbackManager.addCallback(event,callback);
+            this.callbackManager.addCallback(event, callback);
         },
 
         removeCallback: function(event, callback) {
-            this.callbackManager.removeCallback(event,callback);
+            this.callbackManager.removeCallback(event, callback);
         },
 
         dispatchCallback: function(event, message) {
-            this.callbackManager.dispatchCallback(event,message);
+            this.callbackManager.dispatchCallback(event, message);
         },
 
         // zooming
@@ -178,7 +178,7 @@
             return this;
         },
 
-        zoomIn:  function()  { return this.zoomBy(1); },
+        zoomIn: function()  { return this.zoomBy(1); },
         zoomOut: function()  { return this.zoomBy(-1); },
         setZoom: function(z) { return this.zoomBy(z - this.coordinate.zoom); },
 
@@ -202,10 +202,10 @@
             return this;
         },
 
-        panLeft:  function() { return this.panBy(100,0); },
-        panRight: function() { return this.panBy(-100,0); },
-        panDown:  function() { return this.panBy(0,-100); },
-        panUp:    function() { return this.panBy(0,100); },
+        panLeft: function() { return this.panBy(100, 0); },
+        panRight: function() { return this.panBy(-100, 0); },
+        panDown: function() { return this.panBy(0, -100); },
+        panUp: function() { return this.panBy(0, 100); },
 
         // positioning
         setCenter: function(location) {
@@ -291,19 +291,19 @@
             this.parent.style.width = Math.round(this.dimensions.x) + 'px';
             this.parent.style.height = Math.round(this.dimensions.y) + 'px';
             this.draw();
-            this.dispatchCallback('resized', [ this.dimensions ]);
+            this.dispatchCallback('resized', [this.dimensions]);
             return this;
         },
 
         // projecting points on and off screen
         coordinatePoint: function(coord) {
             // Return an x, y point on the map image for a given coordinate.
-            if(coord.zoom != this.coordinate.zoom) {
+            if (coord.zoom != this.coordinate.zoom) {
                 coord = coord.zoomTo(this.coordinate.zoom);
             }
 
             // distance from the center of the map
-            var point = new MM.Point(this.dimensions.x/2, this.dimensions.y/2);
+            var point = new MM.Point(this.dimensions.x / 2, this.dimensions.y / 2);
             point.x += this.provider.tileWidth * (coord.column - this.coordinate.column);
             point.y += this.provider.tileHeight * (coord.row - this.coordinate.row);
 
@@ -315,8 +315,8 @@
         pointCoordinate: function(point) {
             // new point coordinate reflecting distance from map center, in tile widths
             var coord = this.coordinate.copy();
-            coord.column += (point.x - this.dimensions.x/2) / this.provider.tileWidth;
-            coord.row += (point.y - this.dimensions.y/2) / this.provider.tileHeight;
+            coord.column += (point.x - this.dimensions.x / 2) / this.provider.tileWidth;
+            coord.row += (point.y - this.dimensions.y / 2) / this.provider.tileHeight;
 
             return coord;
         },
@@ -335,7 +335,7 @@
 
         getExtent: function() {
             var extent = [];
-            extent.push(this.pointLocation(new MM.Point(0,0)));
+            extent.push(this.pointLocation(new MM.Point(0, 0)));
             extent.push(this.pointLocation(this.dimensions));
             return extent;
         },
@@ -368,7 +368,7 @@
                 for (var name in this.layers) {
                     if (this.layers.hasOwnProperty(name)) {
                         var layer = this.layers[name];
-                        while(layer.firstChild) {
+                        while (layer.firstChild) {
                             layer.removeChild(layer.firstChild);
                         }
                     }
@@ -473,7 +473,7 @@
 
             // these are the top left and bottom right tile coordinates
             // we'll be loading everything in between:
-            var startCoord = this.pointCoordinate(new MM.Point(0,0)).zoomTo(baseZoom).container();
+            var startCoord = this.pointCoordinate(new MM.Point(0, 0)).zoomTo(baseZoom).container();
             var endCoord = this.pointCoordinate(this.dimensions).zoomTo(baseZoom).container().right().down();
 
             var tilePadding = 0;
@@ -493,8 +493,12 @@
             // use this coordinate for generating keys, parents and children:
             var tileCoord = startCoord.copy();
 
-            for (tileCoord.column = startCoord.column; tileCoord.column <= endCoord.column; tileCoord.column += 1) {
-                for (tileCoord.row = startCoord.row; tileCoord.row <= endCoord.row; tileCoord.row += 1) {
+            for (tileCoord.column = startCoord.column;
+                tileCoord.column <= endCoord.column;
+                tileCoord.column += 1) {
+                for (tileCoord.row = startCoord.row;
+                    tileCoord.row <= endCoord.row;
+                    tileCoord.row += 1) {
                     var tileKey = tileCoord.toKey();
                     validTileKeys[tileKey] = true;
                     if (tileKey in this.tiles) {
@@ -564,7 +568,7 @@
             // scaled too small (and tiles would be too numerous)
             for (var name in this.layers) {
                 if (this.layers.hasOwnProperty(name)) {
-                    var zoom = parseInt(name,10);
+                    var zoom = parseInt(name, 10);
                     if (zoom >= startCoord.zoom - 5 && zoom < startCoord.zoom + 2) {
                         continue;
                     }
@@ -608,9 +612,9 @@
 
                 var tileWidth = this.provider.tileWidth * scale;
                 var tileHeight = this.provider.tileHeight * scale;
-                var center = new MM.Point(this.dimensions.x/2, this.dimensions.y/2);
+                var center = new MM.Point(this.dimensions.x / 2, this.dimensions.y / 2);
 
-                for (var j = visibleTiles.length-1; j >= 0; j--) {
+                for (var j = visibleTiles.length - 1; j >= 0; j--) {
                     var tile = visibleTiles[j];
                     if (!validTileKeys[tile.id]) {
                         layer.removeChild(tile);
@@ -669,9 +673,9 @@
                     // position this tile (avoids a full draw() call):
                     var theCoord = theMap.coordinate.zoomTo(tile.coord.zoom);
                     var scale = Math.pow(2, theMap.coordinate.zoom - tile.coord.zoom);
-                    var tx = ((theMap.dimensions.x/2) +
+                    var tx = ((theMap.dimensions.x / 2) +
                         (tile.coord.column - theCoord.column) * theMap.provider.tileWidth * scale);
-                    var ty = ((theMap.dimensions.y/2) +
+                    var ty = ((theMap.dimensions.y / 2) +
                         (tile.coord.row - theCoord.row) * theMap.provider.tileHeight * scale);
 
                     MM.moveElement(tile, { x: Math.round(tx), y: Math.round(ty) });
@@ -688,7 +692,7 @@
                     tile.className = 'map-tile-loaded';
 
                     // ensure the layer is visible if it's still the current layer
-                    if (Math.round(theMap.coordinate.zoom) == tile.coord.zoom) {
+                    if (Math.round(theMap.coordinate.zoom) === tile.coord.zoom) {
                         theLayer.style.display = 'block';
                     }
 
@@ -751,7 +755,9 @@
             if (this.tileCacheSize > maxTiles) {
                 // sort from newest (highest) to oldest (lowest)
                 this.recentTiles.sort(function(t1, t2) {
-                    return t2.lastTouchedTime < t1.lastTouchedTime ? -1 : t2.lastTouchedTime > t1.lastTouchedTime ? 1 : 0;
+                    return t2.lastTouchedTime < t1.lastTouchedTime ?
+                        -1 :
+                        t2.lastTouchedTime > t1.lastTouchedTime ? 1 : 0;
                 });
             }
             while (this.tileCacheSize > maxTiles) {
@@ -766,8 +772,7 @@
                 if (tile.parentNode) {
                     // I'm leaving this uncommented for now but you should never see it:
                     alert("Gah: trying to removing cached tile even though it's still in the DOM");
-                }
-                else {
+                } else {
                     delete this.tiles[tileRecord.id];
                     this.tileCacheSize--;
                 }
