@@ -82,16 +82,15 @@
             var x_ = (t1_.screenX + t2_.screenX) / 2,
                 y_ = (t1_.screenY + t2_.screenY) / 2;
 
-            var tx = s * -x_ + x,
-                ty = s * -y_ + y;
-
             return {
+                // TODO: which is it, consistently?
+                startCoordinate: t2_.coordinate || t1_.coordinate,
                 // scale
                 scale: span / span_,
                 // translation along x
-                x: tx,
+                x: s * -x_ + x,
                 // translation along y
-                y: ty
+                y: s * -y + y
             };
         },
 
@@ -289,15 +288,19 @@
         // but recalculate the CSS transformation
         onPinching: function(touch1, touch2) {
             var m = this.twoTouchMatrix(touch1, touch2);
-            this.map.panZoom(m.x, m.y, m.scale);
+            this.map.coordinate = m.startCoordinate;
+            // TODO: very broken, still.
+            this.map.panZoom(m.x, m.y, m.startCoordinate.zoom * m.scale);
         },
 
         // When a pinch event ends, recalculate the zoom and center
         // of the map.
         onPinched: function(touch1, touch2) {
             // TODO: easing
+            /*
             if (this.options.snapToZoom) {
                 this.map.zoomBy(Math.round(z)).panBy(m[4], m[5]);
             }
+            */
         }
     };
