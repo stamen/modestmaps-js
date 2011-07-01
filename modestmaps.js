@@ -854,10 +854,11 @@ if (!com) {
         // one touch event.
         oneTouchMatrix: function(touch) {
             var start = touch.start;
-            var x = touch.screenX - start.screenX;
-            var y = touch.screenY - start.screenY;
-
-            return [1, 0, 0, 1, x, y];
+            return {
+                startCoordinate: touch.start.coordinate.copy(),
+                x: touch.screenX - start.screenX,
+                y: touch.screenY - start.screenY
+            };
         },
 
         // Generate a CSS transformation matrix from
@@ -880,19 +881,14 @@ if (!com) {
             var tx = s * -x_ + x,
                 ty = s * -y_ + y;
 
-            return [
+            return {
                 // scale
-                s,
-                // identity values
-                0,
-                0,
-                // scale
-                s,
+                scale: span / span_,
                 // translation along x
-                tx,
+                x: tx,
                 // translation along y
-                ty
-            ];
+                y: ty
+            };
         },
 
         getTouchStartMachineHandler: null,
@@ -910,6 +906,7 @@ if (!com) {
                         var newEvent = {
                             screenX: touch.screenX,
                             screenY: touch.screenY,
+                            coordinate: theHandler.map.coordinate.copy(),
                             touch: touch,
                             time: new Date().getTime(),
                             start: null,
@@ -1075,55 +1072,29 @@ if (!com) {
         // Re-transform the actual map parent's CSS transformation
         onPanning: function(touch) {
             var m = this.oneTouchMatrix(touch);
-            this.map.panBy(m[4], m[5]);
+            this.map.coordinate = m.startCoordinate;
+            this.map.panBy(m.x, m.y);
         },
 
         onPanned: function(touch) {
-            var m = this.oneTouchMatrix(touch);
-            this.map.panBy(m[4], m[5]);
-            // var ms = (touch.time - touch.start.time);
-            // var ms = (touch.time - touch.start.time);
-            // var velocity = this.distance(touch, touch.start) / ms;
-            // FIXME: finish easing
-            // for (var i = 0; i < (velocity * 50) / 10; i++) {
-            //     this.map.panBy(m[4] / i, m[5] / i);
-            // }
+            // var m = this.oneTouchMatrix(touch);
+            // this.map.panBy(m.x, m.y]);
         },
 
         // During a pinch event, don't recalculate zooms and centers,
         // but recalculate the CSS transformation
         onPinching: function(touch1, touch2) {
             var m = this.twoTouchMatrix(touch1, touch2);
-            // http://www.w3.org/TR/css3-3d-transforms/#transform-functions
-            // `matrix(a,b,c,d,e,f)` is equivalent to
-            // `matrix3d(a, b, 0, 0, c, d, 0, 0, 0, 0, 1, 0, e, f, 0, 1)`
-            m = [
-                m[0].toFixed(3), '0', '0', '0', '0', m[3].toFixed(3),
-                '0', '0', '0', '0', '1', '0',
-                m[4].toFixed(0), m[5].toFixed(0),
-                '0', '1'
-            ];
-            m = 'matrix3d(' + m.join(', ') + ')';
-
-            this.map.parent.style.webkitTransformOrigin = '0px 0px';
-            this.map.parent.style.webkitTransform = m;
+            this.map.panZoom(m.x, m.y, m.scale);
         },
 
         // When a pinch event ends, recalculate the zoom and center
         // of the map.
         onPinched: function(touch1, touch2) {
-            var m = this.twoTouchMatrix(touch1, touch2);
-            var z = Math.log(m[0]) / Math.log(2);
-            var p = new MM.Point(0, 0);
-
             // TODO: easing
             if (this.options.snapToZoom) {
                 this.map.zoomBy(Math.round(z)).panBy(m[4], m[5]);
-            } else {
-                this.map.zoomByAbout(z, p).panBy(m[4], m[5]);
             }
-
-            this.map.parent.style.webkitTransform = '';
         }
     };
     // CallbackManager
@@ -1615,6 +1586,18 @@ if (!com) {
             var theMap = this;
             this.coordinate.column -= dx / this.provider.tileWidth;
             this.coordinate.row -= dy / this.provider.tileHeight;
+
+            // Defer until the browser is ready to draw.
+            MM.getFrame(function() { theMap.draw()});
+            this.dispatchCallback('panned', [dx, dy]);
+            return this;
+        },
+
+        panZoom: function(dx, dy, z) {
+            var theMap = this;
+            this.coordinate.column -= dx / this.provider.tileWidth;
+            this.coordinate.row -= dy / this.provider.tileHeight;
+            this.coordinate = this.coordinate.zoomBy(zoomOffset);
 
             // Defer until the browser is ready to draw.
             MM.getFrame(function() { theMap.draw()});
