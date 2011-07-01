@@ -202,6 +202,18 @@
             return this;
         },
 
+        panZoom: function(dx, dy, z) {
+            var theMap = this;
+            this.coordinate.column -= dx / this.provider.tileWidth;
+            this.coordinate.row -= dy / this.provider.tileHeight;
+            this.coordinate = this.coordinate.zoomBy(zoomOffset);
+
+            // Defer until the browser is ready to draw.
+            MM.getFrame(function() { theMap.draw()});
+            this.dispatchCallback('panned', [dx, dy]);
+            return this;
+        },
+
         panLeft: function() { return this.panBy(100, 0); },
         panRight: function() { return this.panBy(-100, 0); },
         panDown: function() { return this.panBy(0, -100); },
