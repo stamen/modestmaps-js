@@ -839,7 +839,7 @@ if (!com) {
                 this.locations[t.identifier] = {
                     screenX: t.screenX,
                     screenY: t.screenY,
-                    touch: t
+                    time: +new Date()
                 };
             }
         },
@@ -861,8 +861,8 @@ if (!com) {
         // Generate a CSS transformation matrix from
         // two touch events.
         twoTouchMatrix: function(t1, t2) {
-            var t1_ = t1.start,
-                t2_ = t2.start,
+            var t1_ = this.locations[t1.identifier],
+                t2_ = this.locations[t2.identifier],
                 span =  this.distance(t1, t2),
                 span_ = this.distance(t1_, t2_),
                 s = span / span_,
@@ -900,67 +900,46 @@ if (!com) {
         touchEndMachine: function(e) {
             var now = new Date().getTime();
 
-            // if (events.length === 1) {
-            //     theHandler.onPanned(events[0]);
-            // } else if (events.length === 2) {
-            //     theHandler.onPinched(events[0], events[1]);
-            // }
-
-            delete locations[e.identifier];
-
             // Look at each changed touch in turn.
             for (var i = 0; i < e.changedTouches.length; i += 1) {
-                var touch = e.changedTouches[i];
+                var t = e.changedTouches[i];
+                var start = this.locations[t.identifier];
 
-                for (var j = 0; j < events.length; j += 1) {
-                    if (theHandler.sameTouch(events[j], touch)) {
-                        var event = {
-                            screenX: touch.screenX,
-                            screenY: touch.screenY,
-                            touch: touch,
-                            time: now,
-                            // pointer chase
-                            start: events[j].start,
-                            count: events[j].count + 1,
-                            travel: events[j].travel +
-                                theHandler.distance(touch, events[j]),
-                            last: events[j]
-                        };
-
-                        // we now know we have an event object and a
-                        // matching touch that's just ended. Let's see
-                        // what kind of event it is based on how long it
-                        // lasted and how far it moved.
-                        var time = now - event.start.time;
-                        if (event.travel > theHandler.maxTapDistance) {
-                            // we will to assume that the drag has been handled separately
-                        } else if (time > theHandler.maxTapTime) {
-                            // close in time, but not in space: a hold
-                            theHandler.onHold({
-                                x: touch.screenX,
-                                y: touch.screenY,
-                                end: now,
-                                duration: time
-                            });
-                        } else {
-                            // close in both time and space: a tap
-                            theHandler.onTap({
-                                x: touch.screenX,
-                                y: touch.screenY,
-                                time: now
-                            });
-                        }
-                    }
+                // we now know we have an event object and a
+                // matching touch that's just ended. Let's see
+                // what kind of event it is based on how long it
+                // lasted and how far it moved.
+                var time = now - start.time;
+                var travel = this.distance(t, start)
+                if (travel > this.maxTapDistance) {
+                    // we will to assume that the drag has been handled separately
+                } else if (time > this.maxTapTime) {
+                    // close in time, but not in space: a hold
+                    this.onHold({
+                        x: t.screenX,
+                        y: t.screenY,
+                        end: now,
+                        duration: time
+                    });
+                } else {
+                    // close in both time and space: a tap
+                    this.onTap({
+                        x: t.screenX,
+                        y: t.screenY,
+                        time: now
+                    });
                 }
             }
 
-            theHandler.interruptTouches(events);
+            // this.interruptTouches(events);
 
-            if (e.touches.length === 0 && events.length >= 1) {
-                // Weird, sometimes an end event doesn't get thrown
-                // for a touch that nevertheless has disappeared.
-                events.splice(0, events.length);
-            }
+            // Weird, sometimes an end event doesn't get thrown
+            // for a touch that nevertheless has disappeared.
+            // TODO
+            // if (e.touches.length === 0 && events.length >= 1) {
+            //     events.splice(0, events.length);
+            // }
+            this.locations = {};
             return MM.cancelEvent(e);
         },
 
@@ -992,7 +971,7 @@ if (!com) {
         // Re-transform the actual map parent's CSS transformation
         onPanning: function(touch) {
             var start = this.locations[touch.identifier];
-            this.map.coordinate = this.coordinate;
+            this.map.coordinate = this.coordinate.copy();
             this.map.panBy(
                 touch.screenX - start.screenX,
                 touch.screenY - start.screenY);
@@ -1007,9 +986,9 @@ if (!com) {
         // but recalculate the CSS transformation
         onPinching: function(touch1, touch2) {
             var m = this.twoTouchMatrix(touch1, touch2);
-            this.map.coordinate = m.startCoordinate;
+            this.map.coordinate = this.coordinate.copy();
             // TODO: very broken, still.
-            this.map.panZoom(m.x, m.y, m.startCoordinate.zoom * m.scale);
+            this.map.panZoom(m.x, m.y, this.coordinate.zoom * m.scale);
         },
 
         // When a pinch event ends, recalculate the zoom and center

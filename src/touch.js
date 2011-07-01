@@ -114,8 +114,8 @@
                 } else {
                     // close in both time and space: a tap
                     this.onTap({
-                        x: this.screenX,
-                        y: this.screenY,
+                        x: t.screenX,
+                        y: t.screenY,
                         time: now
                     });
                 }
