@@ -18,9 +18,6 @@
     "type" : "git",
     "url"  : "git://github.com/stamen/modestmaps-js.git"
   }],
-  "engines": {
-    "node": "= 0.4.x"
-  },
   "devDependencies": {
     "docco": "= 0.3.0",
     "expresso": "= 0.7.x",
