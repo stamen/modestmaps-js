@@ -676,7 +676,7 @@ if (!com) {
             MM.addEvent(map.parent, 'dblclick', this._doubleClick = MM.bind(this.doubleClick, this));
         },
 
-        doubleClick: function() {
+        doubleClick: function(e) {
             // Ensure that this handler is attached once.
             // Get the point on the map that was double-clicked
             var point = MM.getMousePoint(e, this.map);
