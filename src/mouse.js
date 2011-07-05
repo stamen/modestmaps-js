@@ -31,40 +31,31 @@
 
         init: function(map) {
             this.map = map;
-            MM.addEvent(map.parent, 'mousewheel', this.getMouseWheel());
+            MM.addEvent(map.parent, 'mousewheel', MM.bind(this.mouseWheel, this));
         },
 
-        mouseWheelHandler: null,
+        mouseWheel: function(e) {
+            var delta = 0;
+            this.prevTime = this.prevTime || new Date().getTime();
 
-        getMouseWheel: function() {
-            // Ensure that this handler is attached once.
-            if (!this.mouseWheelHandler) {
-                var theHandler = this;
-                var prevTime = new Date().getTime();
-                this.mouseWheelHandler = function(e) {
-
-                    var delta = 0;
-                    if (e.wheelDelta) {
-                        delta = e.wheelDelta;
-                    } else if (e.detail) {
-                        delta = -e.detail;
-                    }
-
-                    // limit mousewheeling to once every 200ms
-                    var timeSince = new Date().getTime() - prevTime;
-
-                    if (Math.abs(delta) > 0 && (timeSince > 200)) {
-                        var point = MM.getMousePoint(e, theHandler.map);
-                        theHandler.map.zoomByAbout(delta > 0 ? 1 : -1, point);
-
-                        prevTime = new Date().getTime();
-                    }
-
-                    // Cancel the event so that the page doesn't scroll
-                    return MM.cancelEvent(e);
-                };
+            if (e.wheelDelta) {
+                delta = e.wheelDelta;
+            } else if (e.detail) {
+                delta = -e.detail;
             }
-            return this.mouseWheelHandler;
+
+            // limit mousewheeling to once every 200ms
+            var timeSince = new Date().getTime() - this.prevTime;
+
+            if (Math.abs(delta) > 0 && (timeSince > 200)) {
+                var point = MM.getMousePoint(e, this.map);
+                this.map.zoomByAbout(delta > 0 ? 1 : -1, point);
+
+                this.prevTime = new Date().getTime();
+            }
+
+            // Cancel the event so that the page doesn't scroll
+            return MM.cancelEvent(e);
         }
     };
 
@@ -79,26 +70,18 @@
 
         init: function(map) {
             this.map = map;
-            MM.addEvent(map.parent, 'dblclick', this.getDoubleClick());
+            MM.addEvent(map.parent, 'dblclick', this._doubleClick = MM.bind(this.doubleClick, this));
         },
 
-        doubleClickHandler: null,
-
-        getDoubleClick: function() {
+        doubleClick: function() {
             // Ensure that this handler is attached once.
-            if (!this.doubleClickHandler) {
-                var theHandler = this;
-                this.doubleClickHandler = function(e) {
-                    // Get the point on the map that was double-clicked
-                    var point = MM.getMousePoint(e, theHandler.map);
+            // Get the point on the map that was double-clicked
+            var point = MM.getMousePoint(e, this.map);
 
-                    // use shift-double-click to zoom out
-                    theHandler.map.zoomByAbout(e.shiftKey ? -1 : 1, point);
+            // use shift-double-click to zoom out
+            this.map.zoomByAbout(e.shiftKey ? -1 : 1, point);
 
-                    return MM.cancelEvent(e);
-                };
-            }
-            return this.doubleClickHandler;
+            return MM.cancelEvent(e);
         }
     };
 
@@ -113,69 +96,39 @@
 
         init: function(map) {
             this.map = map;
-            MM.addEvent(map.parent, 'mousedown', this.getMouseDown());
+            MM.addEvent(map.parent, 'mousedown', MM.bind(this.mouseDown, this));
         },
 
-        mouseDownHandler: null,
+        mouseDown: function(e) {
+            MM.addEvent(document, 'mouseup', this._mouseUp = MM.bind(this.mouseUp, this));
+            MM.addEvent(document, 'mousemove', this._mouseMove = MM.bind(this.mouseMove, this));
 
-        getMouseDown: function() {
-            // Ensure that this handler is attached once.
-            if (!this.mouseDownHandler) {
-                var theHandler = this;
-                this.mouseDownHandler = function(e) {
+            this.prevMouse = new MM.Point(e.clientX, e.clientY);
+            this.map.parent.style.cursor = 'move';
 
-                    MM.addEvent(document, 'mouseup', theHandler.getMouseUp());
-                    MM.addEvent(document, 'mousemove', theHandler.getMouseMove());
-
-                    theHandler.prevMouse = new MM.Point(e.clientX, e.clientY);
-                    theHandler.map.parent.style.cursor = 'move';
-
-                    return MM.cancelEvent(e);
-                };
-            }
-            return this.mouseDownHandler;
+            return MM.cancelEvent(e);
         },
 
-        mouseMoveHandler: null,
-
-        getMouseMove: function() {
-            // Ensure that this handler is attached once.
-            if (!this.mouseMoveHandler) {
-                var theHandler = this;
-                this.mouseMoveHandler = function(e) {
-
-                    if (theHandler.prevMouse) {
-                        theHandler.map.panBy(
-                            e.clientX - theHandler.prevMouse.x,
-                            e.clientY - theHandler.prevMouse.y);
-                        theHandler.prevMouse.x = e.clientX;
-                        theHandler.prevMouse.y = e.clientY;
-                    }
-
-                    return MM.cancelEvent(e);
-                };
+        mouseMove: function(e) {
+            if (this.prevMouse) {
+                this.map.panBy(
+                    e.clientX - this.prevMouse.x,
+                    e.clientY - this.prevMouse.y);
+                this.prevMouse.x = e.clientX;
+                this.prevMouse.y = e.clientY;
             }
-            return this.mouseMoveHandler;
+
+            return MM.cancelEvent(e);
         },
 
-        mouseUpHandler: null,
+        mouseUp: function(e) {
+            MM.removeEvent(document, 'mouseup', this._mouseUp);
+            MM.removeEvent(document, 'mousemove', this._mouseMove);
 
-        getMouseUp: function() {
-            // Ensure that this handler is attached once.
-            if (!this.mouseUpHandler) {
-                var theHandler = this;
-                this.mouseUpHandler = function(e) {
+            this.prevMouse = null;
+            this.map.parent.style.cursor = '';
 
-                    MM.removeEvent(document, 'mouseup', theHandler.getMouseUp());
-                    MM.removeEvent(document, 'mousemove', theHandler.getMouseMove());
-
-                    theHandler.prevMouse = null;
-                    theHandler.map.parent.style.cursor = '';
-
-                    return MM.cancelEvent(e);
-                };
-            }
-            return this.mouseUpHandler;
+            return MM.cancelEvent(e);
         }
     };
 
