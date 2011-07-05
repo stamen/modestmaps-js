@@ -204,7 +204,7 @@ if (!com) {
         // index it in hashes.
         toKey: function() {
             // Only works for 24 bit input numbers (up to 16777215).
-            return (1 << this.zoom) * (1 << this.zoom) + this.row * this.zoom * this.zoom + this.column;
+            return (1 << this.zoom) * ((1 << this.zoom) + this.row) + this.column;
         },
         // Clone this object.
         copy: function() {
