@@ -20,7 +20,7 @@
                 MM.bind(this.touchEndMachine, this));
 
             this.options = {};
-            this.options.snapToZoom = options.snapToZoom || true;
+            this.options.snapToZoom = options.snapToZoom || false;
         },
 
         interruptTouches: function(e) {
@@ -46,24 +46,6 @@
             return Math.sqrt(
                 Math.pow(t1.screenX - t2.screenX, 2) +
                 Math.pow(t1.screenY - t2.screenY, 2));
-        },
-
-        // Generate a CSS transformation matrix from
-        // two touch events.
-        twoTouchMatrix: function(e) {
-            var t1 = e.touches[0],
-                t2 = e.touches[1],
-                t1_ = this.locations[t1.identifier],
-                t2_ = this.locations[t2.identifier],
-                x = (t1.screenX + t2.screenX) / 2,
-                y = (t1.screenY + t2.screenY) / 2,
-                x_ = (t1_.screenX + t2_.screenX) / 2,
-                y_ = (t1_.screenY + t2_.screenY) / 2;
-
-            return {
-                x: e.scale * -x_ + x, // translation along x
-                y: e.scale * -y + y // translation along y
-            };
         },
 
         touchStartMachine: function(e) {
@@ -182,10 +164,18 @@
         // During a pinch event, don't recalculate zooms and centers,
         // but recalculate the CSS transformation
         onPinching: function(e) {
-            var m = this.twoTouchMatrix(e);
-            // this.map.coordinate = this.coordinate.copy();
-            // TODO: fix pan-zooming
-            // this.map.panBy(m.x, m.y);
+            this.map.coordinate = this.coordinate.copy();
+
+            this.map.panBy(
+                ((e.touches[0].screenX +
+                  e.touches[0].screenX) / 2) -
+                ((this.locations[e.touches[0].identifier].screenX +
+                  this.locations[e.touches[0].identifier].screenX) / 2),
+                ((e.touches[0].screenY +
+                  e.touches[0].screenY) / 2) -
+                ((this.locations[e.touches[0].identifier].screenY +
+                  this.locations[e.touches[0].identifier].screenY) / 2)
+            );
             this.map.zoomBy(Math.log(e.scale) / Math.LN2 + this.coordinate.zoom - this.map.getZoom());
         },
 

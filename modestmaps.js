@@ -774,7 +774,7 @@ if (!com) {
                 MM.bind(this.touchEndMachine, this));
 
             this.options = {};
-            this.options.snapToZoom = options.snapToZoom || true;
+            this.options.snapToZoom = options.snapToZoom || false;
         },
 
         interruptTouches: function(e) {
@@ -800,24 +800,6 @@ if (!com) {
             return Math.sqrt(
                 Math.pow(t1.screenX - t2.screenX, 2) +
                 Math.pow(t1.screenY - t2.screenY, 2));
-        },
-
-        // Generate a CSS transformation matrix from
-        // two touch events.
-        twoTouchMatrix: function(e) {
-            var t1 = e.touches[0],
-                t2 = e.touches[1],
-                t1_ = this.locations[t1.identifier],
-                t2_ = this.locations[t2.identifier],
-                x = (t1.screenX + t2.screenX) / 2,
-                y = (t1.screenY + t2.screenY) / 2,
-                x_ = (t1_.screenX + t2_.screenX) / 2,
-                y_ = (t1_.screenY + t2_.screenY) / 2;
-
-            return {
-                x: e.scale * -x_ + x, // translation along x
-                y: e.scale * -y + y // translation along y
-            };
         },
 
         touchStartMachine: function(e) {
@@ -936,10 +918,18 @@ if (!com) {
         // During a pinch event, don't recalculate zooms and centers,
         // but recalculate the CSS transformation
         onPinching: function(e) {
-            var m = this.twoTouchMatrix(e);
-            // this.map.coordinate = this.coordinate.copy();
-            // TODO: fix pan-zooming
-            // this.map.panBy(m.x, m.y);
+            this.map.coordinate = this.coordinate.copy();
+
+            this.map.panBy(
+                ((e.touches[0].screenX +
+                  e.touches[0].screenX) / 2) -
+                ((this.locations[e.touches[0].identifier].screenX +
+                  this.locations[e.touches[0].identifier].screenX) / 2),
+                ((e.touches[0].screenY +
+                  e.touches[0].screenY) / 2) -
+                ((this.locations[e.touches[0].identifier].screenY +
+                  this.locations[e.touches[0].identifier].screenY) / 2)
+            );
             this.map.zoomBy(Math.log(e.scale) / Math.LN2 + this.coordinate.zoom - this.map.getZoom());
         },
 
@@ -1311,27 +1301,6 @@ if (!com) {
 
         this.dimensions = dimensions;
 
-        // TODO: is it sensible to do this (could be more than one map on a page)
-        /*
-        // add a style element so layer/tile styles can be class-based
-        // thanks to http://www.phpied.com/dynamic-script-and-style-elements-in-ie/
-        var css = document.createElement('style');
-        css.setAttribute("type", "text/css");
-        var def = "div.modestmaps-layer {"
-            + "position: absolute;"
-            + "top: 0px; left: 0px;"
-            + "width: 100%; height: 100%;"
-            + "margin: 0; padding: 0; border: 0;"
-        + "}";
-        if (css.styleSheet) { // IE
-            css.styleSheet.cssText = def;
-        } else { // the world
-            css.appendChild(document.createTextNode(def));
-        }
-        document.getElementsByTagName('head')[0].appendChild(ss1);
-        this.parent.appendChild(css);
-        */
-
         this.requestManager = new MM.RequestManager(this.parent);
         this.requestManager.addCallback('requestcomplete', this.getTileComplete());
 
@@ -1448,6 +1417,7 @@ if (!com) {
             return this;
         },
 
+        /*
         panZoom: function(dx, dy, zoom) {
             var theMap = this;
             this.coordinate.column -= dx / this.provider.tileWidth;
@@ -1459,6 +1429,7 @@ if (!com) {
             this.dispatchCallback('panned', [dx, dy]);
             return this;
         },
+        */
 
         panLeft: function() { return this.panBy(100, 0); },
         panRight: function() { return this.panBy(-100, 0); },
@@ -1680,42 +1651,6 @@ if (!com) {
                 else if (coord.zoom > maxZoom) {
                     coord = coord.zoomTo(maxZoom);
                 }
-
-                /*
-                // this generally does the *intended* thing,
-                // but it's not always desired behavior so it's disabled for now
-
-                var topLeftLimit = limits[0].zoomTo(coord.zoom);
-                var bottomRightLimit = limits[1].zoomTo(coord.zoom);
-                var currentTopLeft = this.pointCoordinate(new MM.Point(0,0));
-                var currentBottomRight = this.pointCoordinate(this.dimensions);
-
-                if (bottomRightLimit.row - topLeftLimit.row < currentBottomRight.row - currentTopLeft.row) {
-                    // if the limit is smaller than the current view center it
-                    coord.row = (bottomRightLimit.row + topLeftLimit.row) / 2;
-                }
-                else {
-                    if (currentTopLeft.row < topLeftLimit.row) {
-                        coord.row += topLeftLimit.row - currentTopLeft.row;
-                    }
-                    else if (currentBottomRight.row > bottomRightLimit.row) {
-                        coord.row -= currentBottomRight.row - bottomRightLimit.row;
-                    }
-                }
-                if (bottomRightLimit.column - topLeftLimit.column < currentBottomRight.column - currentTopLeft.column) {
-                    // if the limit is smaller than the current view, center it
-                    coord.column = (bottomRightLimit.column + topLeftLimit.column) / 2;
-                }
-                else {
-                    if (currentTopLeft.column < topLeftLimit.column) {
-                        coord.column += topLeftLimit.column - currentTopLeft.column;
-                    }
-                    else if (currentBottomRight.column > bottomRightLimit.column) {
-                        coord.column -= currentBottomRight.column - bottomRightLimit.column;
-                    }
-                }
-                */
-
             }
             return coord;
         },
@@ -1851,11 +1786,12 @@ if (!com) {
                     continue;
                 }
 
-                var scale = 1;
-                var theCoord = this.coordinate.copy();
+
                 // getElementsByTagName is x10 faster than childNodes, and
                 // let's reuse the access.
-                var visibleTiles = layer.getElementsByTagName('img');
+                var scale = 1,
+                    theCoord = this.coordinate.copy(),
+                    visibleTiles = layer.getElementsByTagName('img');
 
                 if (visibleTiles.length > 0) {
                     layer.style.display = 'block';
@@ -1865,9 +1801,9 @@ if (!com) {
                     layer.style.display = 'none';
                 }
 
-                var tileWidth = this.provider.tileWidth * scale;
-                var tileHeight = this.provider.tileHeight * scale;
-                var center = new MM.Point(this.dimensions.x / 2, this.dimensions.y / 2);
+                var tileWidth = this.provider.tileWidth * scale,
+                    tileHeight = this.provider.tileHeight * scale,
+                    center = new MM.Point(this.dimensions.x / 2, this.dimensions.y / 2);
 
                 for (var j = visibleTiles.length - 1; j >= 0; j--) {
                     var tile = visibleTiles[j];
