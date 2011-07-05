@@ -61,16 +61,10 @@ if (!com) {
     })(['transformProperty', 'WebkitTransform', 'OTransform', 'MozTransform', 'msTransform']);
 
     MM.matrixString = function(point) {
-        // http://www.w3.org/TR/css3-3d-transforms/#transform-functions
-        // `matrix(a,b,c,d,e,f)` is equivalent to
-        // `matrix3d(a, b, 0, 0, c, d, 0, 0, 0, 0, 1, 0, e, f, 0, 1)`
-        return (MM._browser.webkit3d ?
-            'matrix3d(' :
-            'matrix(') + [
-                (point.scale || '1'), '0', '0', '0', '0',
-                (point.scale || '1'), '0', '0', '0', '0', '1', '0',
-                point.x, point.y, '0', '1'].join(',') +
-            (MM._browser.webkit3d ? ')' : ')');
+        return 'matrix3d(' +
+            [(point.scale || '1'), '0,0,0,0',
+            (point.scale || '1'), '0,0,0,0,1,0',
+            point.x, point.y, '0,1'].join(',') + ')';
     };
 
     MM._browser = (function() {
@@ -81,12 +75,14 @@ if (!com) {
     })();
 
     MM.moveElement = function(el, point) {
-        if (MM._browser.webkit) {
-            if (!el.style['transitionProperty']) {
-                el.style['transitionProperty'] = MM.transformProperty;
-                el.style['transitionDuration'] = '1000ms';
+        if (MM._browser.webkit3d) {
+            // Optimize for identity transforms, where you don't actually
+            // need to change this element's string. Browsers can optimize for
+            // the .style.left case but not for this CSS case.
+            var ms = MM.matrixString(point);
+            if (el[MM.transformProperty] !== ms) {
+                el.style[MM.transformProperty] = el[MM.transformProperty] = MM.matrixString(point);
             }
-            el.style[MM.transformProperty] =  MM.matrixString(point);
         } else {
             el.style.left = point.x + 'px';
             el.style.top = point.y + 'px';
@@ -207,9 +203,8 @@ if (!com) {
         // Quickly generate a string representation of this coordinate to
         // index it in hashes.
         toKey: function() {
-            /* there used to be a clever hash function here but there were collisions.
-               TODO: optimize, but test for collisions properly :) */
-            return [ Math.floor(this.zoom), Math.floor(this.column), Math.floor(this.row) ].join(',');
+            var k = Math.pow(2, this.zoom + 1);
+            return k * k + this.row * this.zoom * this.zoom + this.column;
         },
         // Clone this object.
         copy: function() {
@@ -893,13 +888,11 @@ if (!com) {
 
         touchEndMachine: function(e) {
             var now = new Date().getTime();
-            console.log(e.changedTouches.length);
             switch (e.changedTouches.length) {
                 case 1:
                     // this.onPanned(e);
                     break;
                 case 2:
-                    console.log('done');
                     this.onPinched(e);
                     break;
             }
