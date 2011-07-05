@@ -203,8 +203,8 @@ if (!com) {
         // Quickly generate a string representation of this coordinate to
         // index it in hashes.
         toKey: function() {
-            var k = Math.pow(2, this.zoom + 1);
-            return k * k + this.row * this.zoom * this.zoom + this.column;
+            // Only works for 24 bit input numbers (up to 16777215).
+            return (1 << this.zoom) * (1 << this.zoom) + this.row * this.zoom * this.zoom + this.column;
         },
         // Clone this object.
         copy: function() {
