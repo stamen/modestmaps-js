@@ -17,9 +17,9 @@
         zoom: 0,
 
         toString: function() {
-            return "(" + this.row.toFixed(3) + ", "
-                       + this.column.toFixed(3) + " @"
-                       + this.zoom.toFixed(3) + ")";
+            return "("  + this.row.toFixed(3) +
+                   ", " + this.column.toFixed(3) +
+                   " @" + this.zoom.toFixed(3) + ")";
         },
         // Quickly generate a string representation of this coordinate to
         // index it in hashes.
@@ -34,8 +34,8 @@
         // Get the actual, rounded-number tile that contains this point.
         container: function() {
             // using floor here (not parseInt, ~~) because we want -0.56 --> -1
-            return new MM.Coordinate(Math.floor(this.row), 
-                                     Math.floor(this.column), 
+            return new MM.Coordinate(Math.floor(this.row),
+                                     Math.floor(this.column),
                                      Math.floor(this.zoom));
         },
         // Recalculate this Coordinate at a different zoom level and return the

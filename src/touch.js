@@ -89,7 +89,7 @@
                 // what kind of event it is based on how long it
                 // lasted and how far it moved.
                 var time = now - start.time;
-                var travel = this.distance(t, start)
+                var travel = this.distance(t, start);
                 if (travel > this.maxTapDistance) {
                     // we will to assume that the drag has been handled separately
                 } else if (time > this.maxTapTime) {

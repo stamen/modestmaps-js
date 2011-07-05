@@ -48,7 +48,7 @@
         return {
             webkit: ('WebKitCSSMatrix' in window),
             webkit3d: ('WebKitCSSMatrix' in window) && ('m11' in new WebKitCSSMatrix())
-        }
+        };
     })();
 
     MM.moveElement = function(el, point) {
@@ -122,8 +122,7 @@
     // Cross-browser function to get current element style property
     MM.getStyle = function(el,styleProp) {
         if (el.currentStyle)
-            var y = el.currentStyle[styleProp];
+            return el.currentStyle[styleProp];
         else if (window.getComputedStyle)
-            var y = document.defaultView.getComputedStyle(el,null).getPropertyValue(styleProp);
-        return y;
+            return document.defaultView.getComputedStyle(el,null).getPropertyValue(styleProp);
     };

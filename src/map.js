@@ -176,7 +176,7 @@
             this.coordinate.row -= dy / this.provider.tileHeight;
 
             // Defer until the browser is ready to draw.
-            MM.getFrame(function() { theMap.draw()});
+            MM.getFrame(function() { theMap.draw(); });
             this.dispatchCallback('panned', [dx, dy]);
             return this;
         },
@@ -488,8 +488,8 @@
                                     }
                                 } else if (!this.requestManager.hasRequest(parentKey)) {
                                     // force load of parent tiles we don't already have
-                                    var tileURL = this.provider.getTileUrl(parentCoord);
-                                    this.requestManager.requestTile(parentKey, parentCoord, tileURL);
+                                    this.requestManager.requestTile(parentKey, parentCoord,
+                                        this.provider.getTileUrl(parentCoord));
                                 }
                             } else {
                                 // only mark it valid if we have it already
