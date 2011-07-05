@@ -71,7 +71,7 @@ if (!com) {
         return {
             webkit: ('WebKitCSSMatrix' in window),
             webkit3d: ('WebKitCSSMatrix' in window) && ('m11' in new WebKitCSSMatrix())
-        }
+        };
     })();
 
     MM.moveElement = function(el, point) {
@@ -145,10 +145,9 @@ if (!com) {
     // Cross-browser function to get current element style property
     MM.getStyle = function(el,styleProp) {
         if (el.currentStyle)
-            var y = el.currentStyle[styleProp];
+            return el.currentStyle[styleProp];
         else if (window.getComputedStyle)
-            var y = document.defaultView.getComputedStyle(el,null).getPropertyValue(styleProp);
-        return y;
+            return document.defaultView.getComputedStyle(el,null).getPropertyValue(styleProp);
     };
     // Point
     MM.Point = function(x, y) {
@@ -196,9 +195,9 @@ if (!com) {
         zoom: 0,
 
         toString: function() {
-            return "(" + this.row.toFixed(3) + ", "
-                       + this.column.toFixed(3) + " @"
-                       + this.zoom.toFixed(3) + ")";
+            return "("  + this.row.toFixed(3) +
+                   ", " + this.column.toFixed(3) +
+                   " @" + this.zoom.toFixed(3) + ")";
         },
         // Quickly generate a string representation of this coordinate to
         // index it in hashes.
@@ -213,8 +212,8 @@ if (!com) {
         // Get the actual, rounded-number tile that contains this point.
         container: function() {
             // using floor here (not parseInt, ~~) because we want -0.56 --> -1
-            return new MM.Coordinate(Math.floor(this.row), 
-                                     Math.floor(this.column), 
+            return new MM.Coordinate(Math.floor(this.row),
+                                     Math.floor(this.column),
                                      Math.floor(this.zoom));
         },
         // Recalculate this Coordinate at a different zoom level and return the
@@ -361,17 +360,17 @@ if (!com) {
         cy: 0,
 
         transform: function(point) {
-            return new MM.Point(this.ax*point.x + this.bx*point.y + this.cx,
-                                this.ay*point.x + this.by*point.y + this.cy);
+            return new MM.Point(this.ax * point.x + this.bx * point.y + this.cx,
+                                this.ay * point.x + this.by * point.y + this.cy);
         },
 
         untransform: function(point) {
-            return new MM.Point((point.x*this.by - point.y*this.bx
-                               - this.cx*this.by + this.cy*this.bx)
-                              / (this.ax*this.by - this.ay*this.bx),
-                                (point.x*this.ay - point.y*this.ax
-                               - this.cx*this.ay + this.cy*this.ax)
-                              / (this.bx*this.ay - this.by*this.ax));
+            return new MM.Point((point.x * this.by - point.y * this.bx -
+                               this.cx * this.by + this.cy * this.bx) /
+                              (this.ax * this.by - this.ay * this.bx),
+                              (point.x * this.ay - point.y * this.ax -
+                               this.cx * this.ay + this.cy * this.ax) /
+                              (this.bx * this.ay - this.by * this.ax));
         }
 
     };
@@ -412,11 +411,11 @@ if (!com) {
         s3 = parseFloat(s3);
         t3 = parseFloat(t3);
 
-        var a = (((t2 - t3) * (s1 - s2)) - ((t1 - t2) * (s2 - s3)))
-              / (((r2 - r3) * (s1 - s2)) - ((r1 - r2) * (s2 - s3)));
+        var a = (((t2 - t3) * (s1 - s2)) - ((t1 - t2) * (s2 - s3))) /
+              (((r2 - r3) * (s1 - s2)) - ((r1 - r2) * (s2 - s3)));
 
-        var b = (((t2 - t3) * (r1 - r2)) - ((t1 - t2) * (r2 - r3)))
-              / (((s2 - s3) * (r1 - r2)) - ((s1 - s2) * (r2 - r3)));
+        var b = (((t2 - t3) * (r1 - r2)) - ((t1 - t2) * (r2 - r3))) /
+              (((s2 - s3) * (r1 - r2)) - ((s1 - s2) * (r2 - r3)));
 
         var c = t1 - (r1 * a) - (s1 * b);
         return [ a, b, c ];
@@ -843,7 +842,7 @@ if (!com) {
                 // what kind of event it is based on how long it
                 // lasted and how far it moved.
                 var time = now - start.time;
-                var travel = this.distance(t, start)
+                var travel = this.distance(t, start);
                 if (travel > this.maxTapDistance) {
                     // we will to assume that the drag has been handled separately
                 } else if (time > this.maxTapTime) {
@@ -1412,7 +1411,7 @@ if (!com) {
             this.coordinate.row -= dy / this.provider.tileHeight;
 
             // Defer until the browser is ready to draw.
-            MM.getFrame(function() { theMap.draw()});
+            MM.getFrame(function() { theMap.draw(); });
             this.dispatchCallback('panned', [dx, dy]);
             return this;
         },
@@ -1724,8 +1723,8 @@ if (!com) {
                                     }
                                 } else if (!this.requestManager.hasRequest(parentKey)) {
                                     // force load of parent tiles we don't already have
-                                    var tileURL = this.provider.getTileUrl(parentCoord);
-                                    this.requestManager.requestTile(parentKey, parentCoord, tileURL);
+                                    this.requestManager.requestTile(parentKey, parentCoord,
+                                        this.provider.getTileUrl(parentCoord));
                                 }
                             } else {
                                 // only mark it valid if we have it already
