@@ -22,9 +22,7 @@
     // A handler that allows mouse-wheel zooming - zooming in
     // when page would scroll up, and out when the page would scroll down.
     MM.MouseWheelHandler = function(map) {
-        if (map !== undefined) {
-            this.init(map);
-        }
+        if (map !== undefined) this.init(map);
     };
 
     MM.MouseWheelHandler.prototype = {
@@ -116,6 +114,7 @@
                     e.clientY - this.prevMouse.y);
                 this.prevMouse.x = e.clientX;
                 this.prevMouse.y = e.clientY;
+                this.prevMouse.t = +new Date();
             }
 
             return MM.cancelEvent(e);
@@ -124,6 +123,13 @@
         mouseUp: function(e) {
             MM.removeEvent(document, 'mouseup', this._mouseUp);
             MM.removeEvent(document, 'mousemove', this._mouseMove);
+
+            var inertia = 50;
+
+            var iv = {
+                x: (e.clientX - this.prevMouse.x) * (inertia / Math.min(+new Date() - this.prevMouse.t, 1)),
+                y: (e.clientY - this.prevMouse.y) * (inertia / Math.min(+new Date() - this.prevMouse.t, 1))
+            };
 
             this.prevMouse = null;
             this.map.parent.style.cursor = '';

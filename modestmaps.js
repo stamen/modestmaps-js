@@ -62,9 +62,12 @@ if (!com) {
 
     MM.matrixString = function(point) {
         return 'matrix3d(' +
-            [(point.scale || '1'), '0,0,0,0',
-            (point.scale || '1'), '0,0,0,0,1,0',
-            point.x, point.y, '0,1'].join(',') + ')';
+            [(point.scale || '1'), '0,0,0,' +
+            '0', (point.scale || '1'), '0,0,' +
+            '0,0,1,0',
+            point.x + (point.width  * (point.scale - 1)),
+            point.y + (point.height * (point.scale - 1)),
+            '0,1'].join(',') + ')';
     };
 
     MM._browser = (function() {
@@ -86,6 +89,8 @@ if (!com) {
         } else {
             el.style.left = point.x + 'px';
             el.style.top = point.y + 'px';
+            el.style.width = point.width + 'px';
+            el.style.height = point.height + 'px';
         }
     };
 
@@ -624,9 +629,7 @@ if (!com) {
     // A handler that allows mouse-wheel zooming - zooming in
     // when page would scroll up, and out when the page would scroll down.
     MM.MouseWheelHandler = function(map) {
-        if (map !== undefined) {
-            this.init(map);
-        }
+        if (map !== undefined) this.init(map);
     };
 
     MM.MouseWheelHandler.prototype = {
@@ -718,6 +721,7 @@ if (!com) {
                     e.clientY - this.prevMouse.y);
                 this.prevMouse.x = e.clientX;
                 this.prevMouse.y = e.clientY;
+                this.prevMouse.t = +new Date();
             }
 
             return MM.cancelEvent(e);
@@ -726,6 +730,13 @@ if (!com) {
         mouseUp: function(e) {
             MM.removeEvent(document, 'mouseup', this._mouseUp);
             MM.removeEvent(document, 'mousemove', this._mouseMove);
+
+            var inertia = 50;
+
+            var iv = {
+                x: (e.clientX - this.prevMouse.x) * (inertia / Math.min(+new Date() - this.prevMouse.t, 1)),
+                y: (e.clientY - this.prevMouse.y) * (inertia / Math.min(+new Date() - this.prevMouse.t, 1))
+            };
 
             this.prevMouse = null;
             this.map.parent.style.cursor = '';
@@ -1815,7 +1826,9 @@ if (!com) {
                                 (tile.coord.column - theCoord.column) * tileWidth),
                             y: Math.round(center.y +
                                 (tile.coord.row - theCoord.row) * tileHeight),
-                            scale: scale.toFixed(5)
+                            scale: scale,
+                            width: Math.ceil(this.provider.tileWidth * scale),
+                            height: Math.ceil(this.provider.tileHeight * scale)
                         });
                         // log last-touched-time of currently cached tiles
                         this.recentTilesById[tile.id].lastTouchedTime = now;
@@ -1861,14 +1874,16 @@ if (!com) {
                     var ty = ((theMap.dimensions.y / 2) +
                         (tile.coord.row - theCoord.row) * theMap.provider.tileHeight * scale);
 
-                    MM.moveElement(tile, { x: Math.round(tx), y: Math.round(ty), scale: scale });
-                    // using style here and not raw width/height for ipad/iphone scaling
-                    // see examples/touch/test.html
-                    // tile.style.width = Math.ceil(theMap.provider.tileWidth * scale) + 'px';
-                    // tile.style.height = Math.ceil(theMap.provider.tileHeight * scale) + 'px';
+                    MM.moveElement(tile, {
+                        x: Math.round(tx),
+                        y: Math.round(ty),
+                        scale: scale,
+                        // TODO: pass only scale or only w/h
+                        width: Math.ceil(theMap.provider.tileWidth * scale),
+                        height: Math.ceil(theMap.provider.tileHeight * scale)
+                    });
 
                     // Support style transition if available.
-
                     // add tile to its layer
                     var theLayer = theMap.layers[tile.coord.zoom];
                     theLayer.appendChild(tile);
