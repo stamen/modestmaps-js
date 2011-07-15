@@ -61,12 +61,21 @@ if (!com) {
     })(['transformProperty', 'WebkitTransform', 'OTransform', 'MozTransform', 'msTransform']);
 
     MM.matrixString = function(point) {
+
+        /*
+
+        (256 * 0.5) - 256
+         128 - 256 = 128
+
+         */
+
+
         return 'matrix3d(' +
             [(point.scale || '1'), '0,0,0,' +
             '0', (point.scale || '1'), '0,0,' +
             '0,0,1,0',
-            point.x + (point.width  * (point.scale - 1)),
-            point.y + (point.height * (point.scale - 1)),
+            point.x + (((point.width  * point.scale) - point.width) / 2),
+            point.y + (((point.height * point.scale) - point.height) / 2),
             '0,1'].join(',') + ')';
     };
 
@@ -1827,8 +1836,8 @@ if (!com) {
                             y: Math.round(center.y +
                                 (tile.coord.row - theCoord.row) * tileHeight),
                             scale: scale,
-                            width: Math.ceil(this.provider.tileWidth * scale),
-                            height: Math.ceil(this.provider.tileHeight * scale)
+                            width:  this.provider.tileWidth,
+                            height: this.provider.tileHeight
                         });
                         // log last-touched-time of currently cached tiles
                         this.recentTilesById[tile.id].lastTouchedTime = now;
@@ -1879,8 +1888,8 @@ if (!com) {
                         y: Math.round(ty),
                         scale: scale,
                         // TODO: pass only scale or only w/h
-                        width: Math.ceil(theMap.provider.tileWidth * scale),
-                        height: Math.ceil(theMap.provider.tileHeight * scale)
+                        width: theMap.provider.tileWidth,
+                        height: theMap.provider.tileHeight
                     });
 
                     // Support style transition if available.
