@@ -20,7 +20,7 @@
                 MM.bind(this.touchEndMachine, this));
 
             this.options = {};
-            this.options.snapToZoom = options.snapToZoom || false;
+            this.options.snapToZoom = options.snapToZoom || true;
         },
 
         interruptTouches: function(e) {
@@ -168,13 +168,13 @@
 
             this.map.panBy(
                 ((e.touches[0].screenX +
-                  e.touches[0].screenX) / 2) -
+                  e.touches[1].screenX) / 2) -
                 ((this.locations[e.touches[0].identifier].screenX +
-                  this.locations[e.touches[0].identifier].screenX) / 2),
+                  this.locations[e.touches[1].identifier].screenX) / 2),
                 ((e.touches[0].screenY +
-                  e.touches[0].screenY) / 2) -
+                  e.touches[1].screenY) / 2) -
                 ((this.locations[e.touches[0].identifier].screenY +
-                  this.locations[e.touches[0].identifier].screenY) / 2)
+                  this.locations[e.touches[1].identifier].screenY) / 2)
             );
             this.map.zoomBy(Math.log(e.scale) / Math.LN2 + this.coordinate.zoom - this.map.getZoom());
         },
