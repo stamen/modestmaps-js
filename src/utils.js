@@ -42,8 +42,8 @@
             [(point.scale || '1'), '0,0,0,' +
             '0', (point.scale || '1'), '0,0,' +
             '0,0,1,0',
-            point.x + (point.width  * (point.scale - 1)),
-            point.y + (point.height * (point.scale - 1)),
+            point.x + (((point.width  * point.scale) - point.width) / 2),
+            point.y + (((point.height * point.scale) - point.height) / 2),
             '0,1'].join(',') + ')';
     };
 
