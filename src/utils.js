@@ -39,9 +39,12 @@
 
     MM.matrixString = function(point) {
         return 'matrix3d(' +
-            [(point.scale || '1'), '0,0,0,0',
-            (point.scale || '1'), '0,0,0,0,1,0',
-            point.x, point.y, '0,1'].join(',') + ')';
+            [(point.scale || '1'), '0,0,0,' +
+            '0', (point.scale || '1'), '0,0,' +
+            '0,0,1,0',
+            point.x + (point.width  * (point.scale - 1)),
+            point.y + (point.height * (point.scale - 1)),
+            '0,1'].join(',') + ')';
     };
 
     MM._browser = (function() {
@@ -63,6 +66,8 @@
         } else {
             el.style.left = point.x + 'px';
             el.style.top = point.y + 'px';
+            el.style.width = point.width + 'px';
+            el.style.height = point.height + 'px';
         }
     };
 

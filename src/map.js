@@ -580,7 +580,9 @@
                                 (tile.coord.column - theCoord.column) * tileWidth),
                             y: Math.round(center.y +
                                 (tile.coord.row - theCoord.row) * tileHeight),
-                            scale: scale.toFixed(5)
+                            scale: scale,
+                            width: Math.ceil(this.provider.tileWidth * scale),
+                            height: Math.ceil(this.provider.tileHeight * scale)
                         });
                         // log last-touched-time of currently cached tiles
                         this.recentTilesById[tile.id].lastTouchedTime = now;
@@ -626,14 +628,16 @@
                     var ty = ((theMap.dimensions.y / 2) +
                         (tile.coord.row - theCoord.row) * theMap.provider.tileHeight * scale);
 
-                    MM.moveElement(tile, { x: Math.round(tx), y: Math.round(ty), scale: scale });
-                    // using style here and not raw width/height for ipad/iphone scaling
-                    // see examples/touch/test.html
-                    // tile.style.width = Math.ceil(theMap.provider.tileWidth * scale) + 'px';
-                    // tile.style.height = Math.ceil(theMap.provider.tileHeight * scale) + 'px';
+                    MM.moveElement(tile, {
+                        x: Math.round(tx),
+                        y: Math.round(ty),
+                        scale: scale,
+                        // TODO: pass only scale or only w/h
+                        width: Math.ceil(theMap.provider.tileWidth * scale),
+                        height: Math.ceil(theMap.provider.tileHeight * scale)
+                    });
 
                     // Support style transition if available.
-
                     // add tile to its layer
                     var theLayer = theMap.layers[tile.coord.zoom];
                     theLayer.appendChild(tile);
