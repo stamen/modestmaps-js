@@ -46,14 +46,14 @@
                 h = 480;
                 this.parent.style.height = h + 'px';
             }
-            dimensions = new MM.Point(w, h);
+            dimensions = { x: w, y: h };
             // FIXME: listeners like this will stop the map being removed cleanly?
             // when does removeEvent get called?
             var theMap = this;
             MM.addEvent(window, 'resize', function(event) {
                 // don't call setSize here because it sets parent.style.width/height
                 // and setting the height breaks percentages and default styles
-                theMap.dimensions = new MM.Point(theMap.parent.offsetWidth, theMap.parent.offsetHeight);
+                theMap.dimensions = { x: theMap.parent.offsetWidth, y: theMap.parent.offsetHeight };
                 theMap.draw();
                 theMap.dispatchCallback('resized', [theMap.dimensions]);
             });
@@ -77,7 +77,11 @@
 
         this.parent.appendChild(this.layerParent);
 
-        this.coordinate = new MM.Coordinate(0.5, 0.5, 0);
+        this.coordinate = {
+            row: 0.5,
+            column: 0.5,
+            zoom: 0
+        };
 
         this.setProvider(provider);
 
@@ -95,7 +99,8 @@
         // set up handlers last so that all required attributes/functions are in place if needed
         if (eventHandlers === undefined) {
             this.eventHandlers = [];
-            this.eventHandlers.push(new MM.MouseHandler(this));
+            this.eventHandlers.push(MM.mouseWheelHandler(this));
+            this.eventHandlers.push(MM.dragHandler(this));
         } else {
             this.eventHandlers = eventHandlers;
             if (eventHandlers instanceof Array) {
@@ -206,7 +211,14 @@
         },
 
         setCenterZoom: function(location, zoom) {
-            this.coordinate = this.provider.locationCoordinate(location).zoomTo(parseFloat(zoom) || 0);
+            var z = parseFloat(zoom) || 0,
+                c = this.provider.locationCoordinate(location),
+                p = Math.pow(2, z - this.coordinate.zoom);
+            this.coordinate = {
+                row: c.row * p,
+                column: c.column * p,
+                zoom: z
+            };
             this.draw();
             this.dispatchCallback('centered', [location, zoom]);
             return this;
@@ -265,7 +277,11 @@
             var centerColumn = (TL.column + BR.column) / 2;
             var centerZoom = TL.zoom;
 
-            this.coordinate = new MM.Coordinate(centerRow, centerColumn, centerZoom).zoomTo(initZoom);
+            this.coordinate = {
+                row: centerRow,
+                column: centerColumn,
+                zoom: centerZoom
+            }.zoomTo(initZoom);
             this.draw();
 
             this.dispatchCallback('extentset', locations);
@@ -279,7 +295,7 @@
                 this.dimensions = dimensionsOrX;
             }
             else if (orY !== undefined && !isNaN(orY)) {
-                this.dimensions = new MM.Point(dimensionsOrX, orY);
+                this.dimensions = { x: dimensionsOrX, y: orY };
             }
             this.parent.style.width = Math.round(this.dimensions.x) + 'px';
             this.parent.style.height = Math.round(this.dimensions.y) + 'px';
@@ -296,7 +312,7 @@
             }
 
             // distance from the center of the map
-            var point = new MM.Point(this.dimensions.x / 2, this.dimensions.y / 2);
+            var point = { x: this.dimensions.x / 2, y: this.dimensions.y / 2 };
             point.x += this.provider.tileWidth * (coord.column - this.coordinate.column);
             point.y += this.provider.tileHeight * (coord.row - this.coordinate.row);
 
@@ -328,7 +344,7 @@
 
         getExtent: function() {
             var extent = [];
-            extent.push(this.pointLocation(new MM.Point(0, 0)));
+            extent.push(this.pointLocation({ x: 0, y: 0 }));
             extent.push(this.pointLocation(this.dimensions));
             return extent;
         },
@@ -430,7 +446,7 @@
 
             // these are the top left and bottom right tile coordinates
             // we'll be loading everything in between:
-            var startCoord = this.pointCoordinate(new MM.Point(0, 0)).zoomTo(baseZoom).container();
+            var startCoord = this.pointCoordinate({ x: 0, y: 0 }).zoomTo(baseZoom).container();
             var endCoord = this.pointCoordinate(this.dimensions).zoomTo(baseZoom).container().right().down();
 
             var tilePadding = 0;
@@ -567,7 +583,10 @@
 
                 var tileWidth = this.provider.tileWidth * scale,
                     tileHeight = this.provider.tileHeight * scale,
-                    center = new MM.Point(this.dimensions.x / 2, this.dimensions.y / 2);
+                    center = {
+                        x: this.dimensions.x / 2,
+                        y: this.dimensions.y / 2
+                    };
 
                 for (var j = visibleTiles.length - 1; j >= 0; j--) {
                     var tile = visibleTiles[j];

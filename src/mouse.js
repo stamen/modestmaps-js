@@ -114,7 +114,7 @@
             }
 
             return MM.cancelEvent(e);
-        },
+        }
 
 
         function mouseDown(e) {

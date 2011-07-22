@@ -40,18 +40,29 @@
         },
 
         locationCoordinate: function(location) {
-            var point = new MM.Point(Math.PI * location.lon / 180.0,
-                                     Math.PI * location.lat / 180.0);
+            var point = {
+                x: Math.PI * location.lon / 180.0,
+                y: Math.PI * location.lat / 180.0
+            };
             point = this.project(point);
-            return new MM.Coordinate(point.y, point.x, this.zoom);
+            return {
+                row: point.y,
+                column: point.x,
+                zoom: this.zoom
+            };
         },
 
         coordinateLocation: function(coordinate) {
             coordinate = coordinate.zoomTo(this.zoom);
-            var point = new MM.Point(coordinate.column, coordinate.row);
+            var point = {
+                x: coordinate.column,
+                y: coordinate.row
+            };
             point = this.unproject(point);
-            return new MM.Location(180.0 * point.y / Math.PI,
-                                   180.0 * point.x / Math.PI);
+            return {
+                lat: 180.0 * point.y / Math.PI,
+                lon: 180.0 * point.x / Math.PI
+            };
         }
     };
 
@@ -63,10 +74,10 @@
     // The Linear projection doesn't reproject points
     MM.LinearProjection.prototype = {
         rawProject: function(point) {
-            return new MM.Point(point.x, point.y);
+            return { x: point.x, y: point.y };
         },
         rawUnproject: function(point) {
-            return new MM.Point(point.x, point.y);
+            return { x: point.x, y: point.y };
         }
     };
 
@@ -80,13 +91,17 @@
     // Project lon/lat points into meters required for Mercator
     MM.MercatorProjection.prototype = {
         rawProject: function(point) {
-            return new MM.Point(point.x,
-                         Math.log(Math.tan(0.25 * Math.PI + 0.5 * point.y)));
+            return {
+                x: point.x,
+                y: Math.log(Math.tan(0.25 * Math.PI + 0.5 * point.y))
+            };
         },
 
         rawUnproject: function(point) {
-            return new MM.Point(point.x,
-                    2 * Math.atan(Math.pow(Math.E, point.y)) - 0.5 * Math.PI);
+            return {
+                x: point.x,
+                y: 2 * Math.atan(Math.pow(Math.E, point.y)) - 0.5 * Math.PI
+            };
         }
     };
 

@@ -467,18 +467,29 @@ if (!com) {
         },
 
         locationCoordinate: function(location) {
-            var point = new MM.Point(Math.PI * location.lon / 180.0,
-                                     Math.PI * location.lat / 180.0);
+            var point = {
+                x: Math.PI * location.lon / 180.0,
+                y: Math.PI * location.lat / 180.0
+            };
             point = this.project(point);
-            return new MM.Coordinate(point.y, point.x, this.zoom);
+            return {
+                row: point.y,
+                column: point.x,
+                zoom: this.zoom
+            };
         },
 
         coordinateLocation: function(coordinate) {
             coordinate = coordinate.zoomTo(this.zoom);
-            var point = new MM.Point(coordinate.column, coordinate.row);
+            var point = {
+                x: coordinate.column,
+                y: coordinate.row
+            };
             point = this.unproject(point);
-            return new MM.Location(180.0 * point.y / Math.PI,
-                                   180.0 * point.x / Math.PI);
+            return {
+                lat: 180.0 * point.y / Math.PI,
+                lon: 180.0 * point.x / Math.PI
+            };
         }
     };
 
@@ -490,10 +501,10 @@ if (!com) {
     // The Linear projection doesn't reproject points
     MM.LinearProjection.prototype = {
         rawProject: function(point) {
-            return new MM.Point(point.x, point.y);
+            return { x: point.x, y: point.y };
         },
         rawUnproject: function(point) {
-            return new MM.Point(point.x, point.y);
+            return { x: point.x, y: point.y };
         }
     };
 
@@ -507,13 +518,17 @@ if (!com) {
     // Project lon/lat points into meters required for Mercator
     MM.MercatorProjection.prototype = {
         rawProject: function(point) {
-            return new MM.Point(point.x,
-                         Math.log(Math.tan(0.25 * Math.PI + 0.5 * point.y)));
+            return {
+                x: point.x,
+                y: Math.log(Math.tan(0.25 * Math.PI + 0.5 * point.y))
+            };
         },
 
         rawUnproject: function(point) {
-            return new MM.Point(point.x,
-                    2 * Math.atan(Math.pow(Math.E, point.y)) - 0.5 * Math.PI);
+            return {
+                x: point.x,
+                y: 2 * Math.atan(Math.pow(Math.E, point.y)) - 0.5 * Math.PI
+            };
         }
     };
 
@@ -628,20 +643,13 @@ if (!com) {
 
     // A handler that allows mouse-wheel zooming - zooming in
     // when page would scroll up, and out when the page would scroll down.
-    MM.MouseWheelHandler = function(map) {
-        if (map !== undefined) this.init(map);
-    };
+    MM.mouseWheelHandler = function(map) {
+        var handler = {},
+            prevTime;
 
-    MM.MouseWheelHandler.prototype = {
-
-        init: function(map) {
-            this.map = map;
-            MM.addEvent(map.parent, 'mousewheel', MM.bind(this.mouseWheel, this));
-        },
-
-        mouseWheel: function(e) {
+        function handler(e) {
             var delta = 0;
-            this.prevTime = this.prevTime || new Date().getTime();
+            prevTime = prevTime || new Date().getTime();
 
             if (e.wheelDelta) {
                 delta = e.wheelDelta;
@@ -650,202 +658,170 @@ if (!com) {
             }
 
             // limit mousewheeling to once every 200ms
-            var timeSince = new Date().getTime() - this.prevTime;
+            var timeSince = new Date().getTime() - prevTime;
 
             if (Math.abs(delta) > 0 && (timeSince > 200)) {
-                var point = MM.getMousePoint(e, this.map);
-                this.map.zoomByAbout(delta > 0 ? 1 : -1, point);
+                var point = MM.getMousePoint(e, map);
+                map.zoomByAbout(delta > 0 ? 1 : -1, point);
 
-                this.prevTime = new Date().getTime();
+                prevTime = new Date().getTime();
             }
 
             // Cancel the event so that the page doesn't scroll
             return MM.cancelEvent(e);
         }
-    };
 
-    // Handle double clicks, that zoom the map in one zoom level.
-    MM.DoubleClickHandler = function(map) {
+        handler.init = function(x) {
+            if (!arguments.length) return map;
+            if (map) {
+                MM.removeEvent(map.parent, 'mousewheel', handler);
+            } else {
+                map = x;
+                MM.addEvent(map.parent, 'mousewheel', handler);
+            }
+            return handler;
+        };
+
         if (map !== undefined) {
-            this.init(map);
+            handler.init(map);
+        } else {
+            return handler;
         }
     };
 
-    MM.DoubleClickHandler.prototype = {
+    MM.doubleClickHandler = function(map) {
+        var handler = {};
 
-        init: function(map) {
-            this.map = map;
-            MM.addEvent(map.parent, 'dblclick', this._doubleClick = MM.bind(this.doubleClick, this));
-        },
-
-        doubleClick: function(e) {
-            // Ensure that this handler is attached once.
+        function doubleClick(e) {
             // Get the point on the map that was double-clicked
-            var point = MM.getMousePoint(e, this.map);
-
+            var point = MM.getMousePoint(e, map);
             // use shift-double-click to zoom out
-            this.map.zoomByAbout(e.shiftKey ? -1 : 1, point);
-
+            map.zoomByAbout(e.shiftKey ? -1 : 1, point);
             return MM.cancelEvent(e);
         }
+
+        handler.init = function(x) {
+            map = x;
+            MM.addEvent(map.parent, 'dblclick', doubleClick);
+        };
+
+        if (map !== undefined) handler.init(map);
+
+        return handler;
     };
 
     // Handle the use of mouse dragging to pan the map.
-    MM.DragHandler = function(map) {
-        if (map !== undefined) {
-            this.init(map);
-        }
-    };
+    MM.dragHandler = function(map) {
+        var handler = {},
+            prevMouse;
 
-    MM.DragHandler.prototype = {
+        function mouseUp(e) {
+            MM.removeEvent(document, 'mouseup', mouseUp);
+            MM.removeEvent(document, 'mousemove', mouseMove);
 
-        init: function(map) {
-            this.map = map;
-            MM.addEvent(map.parent, 'mousedown', MM.bind(this.mouseDown, this));
-        },
-
-        mouseDown: function(e) {
-            MM.addEvent(document, 'mouseup', this._mouseUp = MM.bind(this.mouseUp, this));
-            MM.addEvent(document, 'mousemove', this._mouseMove = MM.bind(this.mouseMove, this));
-
-            this.prevMouse = new MM.Point(e.clientX, e.clientY);
-            this.map.parent.style.cursor = 'move';
+            prevMouse = null;
+            map.parent.style.cursor = '';
 
             return MM.cancelEvent(e);
-        },
+        }
 
-        mouseMove: function(e) {
-            if (this.prevMouse) {
-                this.map.panBy(
-                    e.clientX - this.prevMouse.x,
-                    e.clientY - this.prevMouse.y);
-                this.prevMouse.x = e.clientX;
-                this.prevMouse.y = e.clientY;
-                this.prevMouse.t = +new Date();
+        function mouseMove(e) {
+            if (prevMouse) {
+                map.panBy(
+                    e.clientX - prevMouse.x,
+                    e.clientY - prevMouse.y);
+                prevMouse.x = e.clientX;
+                prevMouse.y = e.clientY;
+                prevMouse.t = +new Date();
             }
 
             return MM.cancelEvent(e);
-        },
+        }
 
-        mouseUp: function(e) {
-            MM.removeEvent(document, 'mouseup', this._mouseUp);
-            MM.removeEvent(document, 'mousemove', this._mouseMove);
 
-            var inertia = 50;
+        function mouseDown(e) {
+            MM.addEvent(document, 'mouseup', mouseUp);
+            MM.addEvent(document, 'mousemove', mouseMove);
 
-            var iv = {
-                x: (e.clientX - this.prevMouse.x) * (inertia / Math.min(+new Date() - this.prevMouse.t, 1)),
-                y: (e.clientY - this.prevMouse.y) * (inertia / Math.min(+new Date() - this.prevMouse.t, 1))
-            };
-
-            this.prevMouse = null;
-            this.map.parent.style.cursor = '';
+            prevMouse = new MM.Point(e.clientX, e.clientY);
+            map.parent.style.cursor = 'move';
 
             return MM.cancelEvent(e);
-        }
+        };
+
+        handler.init = function(x) {
+            MM.addEvent(map.parent, 'mousedown', mouseDown);
+        };
+
+        if (map !== undefined) handler.init(map);
+
+        return handler;
     };
+    MM.touchHandler = function(map) {
+        var handler = {},
+            maxTapTime = 150,
+            maxTapDistance = 10,
+            maxDoubleTapDelay = 350,
+            locations = {},
+            coordinate = null,
+            taps = [];
 
-    // A shortcut for adding drag, double click,
-    // and mouse wheel events to the map. This is the default
-    // handler attached to a map if the handlers argument isn't given.
-    MM.MouseHandler = function(map) {
-        if (map !== undefined) {
-            this.init(map);
+        // Test whether touches are from the same source -
+        // whether this is the same touchmove event.
+        function sameTouch(event, touch) {
+            return (event && event.touch) &&
+                (touch.identifier == event.touch.identifier);
         }
-    };
 
-    MM.MouseHandler.prototype = {
-        init: function(map) {
-            this.map = map;
-            new MM.DragHandler(map);
-            new MM.DoubleClickHandler(map);
-            new MM.MouseWheelHandler(map);
+        // Quick euclidean distance between two points
+        function distance(t1, t2) {
+            return Math.sqrt(
+                Math.pow(t1.screenX - t2.screenX, 2) +
+                Math.pow(t1.screenY - t2.screenY, 2));
         }
-    };
-    MM.TouchHandler = function() { };
 
-    MM.TouchHandler.prototype = {
 
-        maxTapTime: 150,
-        maxTapDistance: 10,
-        maxDoubleTapDelay: 350,
-        locations: {},
-        coordinate: null,
-        taps: [],
-
-        init: function(map, options) {
-            this.map = map;
-            options = options || {};
-            MM.addEvent(map.parent, 'touchstart',
-                MM.bind(this.touchStartMachine, this));
-            MM.addEvent(map.parent, 'touchmove',
-                MM.bind(this.touchMoveMachine, this));
-            MM.addEvent(map.parent, 'touchend',
-                MM.bind(this.touchEndMachine, this));
-
-            this.options = {};
-            this.options.snapToZoom = options.snapToZoom || true;
-        },
-
-        interruptTouches: function(e) {
+        function interruptTouches(e) {
             for (var i = 0; i < e.touches.length; i += 1) {
                 var t = e.touches[i];
-                this.locations[t.identifier] = {
+                locations[t.identifier] = {
                     screenX: t.screenX,
                     screenY: t.screenY,
                     time: +new Date()
                 };
             }
-        },
+        }
 
-        // Test whether touches are from the same source -
-        // whether this is the same touchmove event.
-        sameTouch: function(event, touch) {
-            return (event && event.touch) &&
-                (touch.identifier == event.touch.identifier);
-        },
-
-        // Quick euclidean distance between two points
-        distance: function(t1, t2) {
-            return Math.sqrt(
-                Math.pow(t1.screenX - t2.screenX, 2) +
-                Math.pow(t1.screenY - t2.screenY, 2));
-        },
-
-        touchStartMachine: function(e) {
-            this.interruptTouches(e);
-            this.coordinate = this.map.coordinate.copy();
+        function touchStartMachine(e) {
+            interruptTouches(e);
+            coordinate = map.coordinate.copy();
             return MM.cancelEvent(e);
-        },
+        }
 
-        touchMoveMachine: function(e) {
+        function touchMoveMachine(e) {
             var now = new Date().getTime();
             switch (e.touches.length) {
                 case 1:
-                    this.onPanning(e.touches[0]);
+                    onPanning(e.touches[0]);
                     break;
                 case 2:
-                    this.onPinching(e);
+                    onPinching(e);
                     break;
             }
             return MM.cancelEvent(e);
-        },
+        }
 
-        touchEndMachine: function(e) {
+        function touchEndMachine(e) {
             var now = new Date().getTime();
-            switch (e.changedTouches.length) {
-                case 1:
-                    // this.onPanned(e);
-                    break;
-                case 2:
-                    this.onPinched(e);
-                    break;
+
+            if (e.changedTouches.length === 2) {
+                onPinched(e);
             }
 
             // Look at each changed touch in turn.
             for (var i = 0; i < e.changedTouches.length; i += 1) {
                 var t = e.changedTouches[i];
-                var start = this.locations[t.identifier];
+                var start = locations[t.identifier];
                 if (!start) return;
 
                 // we now know we have an event object and a
@@ -853,12 +829,12 @@ if (!com) {
                 // what kind of event it is based on how long it
                 // lasted and how far it moved.
                 var time = now - start.time;
-                var travel = this.distance(t, start);
-                if (travel > this.maxTapDistance) {
+                var travel = distance(t, start);
+                if (travel > maxTapDistance) {
                     // we will to assume that the drag has been handled separately
-                } else if (time > this.maxTapTime) {
+                } else if (time > maxTapTime) {
                     // close in time, but not in space: a hold
-                    this.onHold({
+                    onHold({
                         x: t.screenX,
                         y: t.screenY,
                         end: now,
@@ -866,7 +842,7 @@ if (!com) {
                     });
                 } else {
                     // close in both time and space: a tap
-                    this.onTap({
+                    onTap({
                         x: t.screenX,
                         y: t.screenY,
                         time: now
@@ -882,75 +858,78 @@ if (!com) {
             // if (e.touches.length === 0 && events.length >= 1) {
             //     events.splice(0, events.length);
             // }
-            this.locations = {};
+            locations = {};
             return MM.cancelEvent(e);
-        },
+        }
 
-        onHold: function(hold) {
-            // TODO
-        },
 
         // Handle a tap event - mainly watch for a doubleTap
-        onTap: function(tap) {
-            if (this.taps.length &&
-                (tap.time - this.taps[0].time) < this.maxDoubleTapDelay) {
-                this.onDoubleTap(tap);
+        function onTap(tap) {
+            if (taps.length &&
+                (tap.time - taps[0].time) < maxDoubleTapDelay) {
+                onDoubleTap(tap);
                 return;
             }
-            this.taps = [tap];
-        },
+            taps = [tap];
+        }
 
         // Handle a double tap by zooming in a single zoom level to a
         // round zoom.
-        onDoubleTap: function(tap) {
+        function onDoubleTap(tap) {
             // zoom in to a round number
-            var z = Math.floor(this.map.getZoom() + 2);
-            z = z - this.map.getZoom();
+            var z = Math.floor(map.getZoom() + 2);
+            z = z - map.getZoom();
 
             var p = new MM.Point(tap.x, tap.y);
-            this.map.zoomByAbout(z, p);
-        },
+            map.zoomByAbout(z, p);
+        }
 
         // Re-transform the actual map parent's CSS transformation
-        onPanning: function(touch) {
-            var start = this.locations[touch.identifier];
-            this.map.coordinate = this.coordinate.copy();
-            this.map.panBy(
+        function onPanning(touch) {
+            var start = locations[touch.identifier];
+            map.coordinate = coordinate.copy();
+            map.panBy(
                 touch.screenX - start.screenX,
                 touch.screenY - start.screenY);
-        },
-
-        onPanned: function(touch) {
-            // var m = this.oneTouchMatrix(touch);
-            // this.map.panBy(m.x, m.y]);
-        },
+        }
 
         // During a pinch event, don't recalculate zooms and centers,
         // but recalculate the CSS transformation
-        onPinching: function(e) {
-            this.map.coordinate = this.coordinate.copy();
+        function onPinching(e) {
+            map.coordinate = coordinate.copy();
 
-            this.map.panBy(
+            map.panBy(
                 ((e.touches[0].screenX +
                   e.touches[1].screenX) / 2) -
-                ((this.locations[e.touches[0].identifier].screenX +
-                  this.locations[e.touches[1].identifier].screenX) / 2),
+                ((locations[e.touches[0].identifier].screenX +
+                  locations[e.touches[1].identifier].screenX) / 2),
                 ((e.touches[0].screenY +
                   e.touches[1].screenY) / 2) -
-                ((this.locations[e.touches[0].identifier].screenY +
-                  this.locations[e.touches[1].identifier].screenY) / 2)
+                ((locations[e.touches[0].identifier].screenY +
+                  locations[e.touches[1].identifier].screenY) / 2)
             );
-            this.map.zoomBy(Math.log(e.scale) / Math.LN2 + this.coordinate.zoom - this.map.getZoom());
-        },
+            map.zoomBy(Math.log(e.scale) / Math.LN2 + coordinate.zoom - map.getZoom());
+        }
 
         // When a pinch event ends, recalculate the zoom and center
         // of the map.
-        onPinched: function(touch1, touch2) {
+        function onPinched(touch1, touch2) {
             // TODO: easing
-            if (this.options.snapToZoom) {
-                this.map.setZoom(Math.round(this.map.getZoom()));
+            if (options.snapToZoom) {
+                map.setZoom(Math.round(map.getZoom()));
             }
         }
+
+        handler.init = function(map, options) {
+            map = map;
+            options = options || {};
+
+            MM.addEvent(map.parent, 'touchstart', touchStartMachine);
+            MM.addEvent(map.parent, 'touchmove', touchMoveMachine);
+            MM.addEvent(map.parent, 'touchend', touchEndMachine);
+
+            snapToZoom = options.snapToZoom || true;
+        };
     };
     // CallbackManager
     // ---------------
@@ -1292,14 +1271,14 @@ if (!com) {
                 h = 480;
                 this.parent.style.height = h + 'px';
             }
-            dimensions = new MM.Point(w, h);
+            dimensions = { x: w, y: h };
             // FIXME: listeners like this will stop the map being removed cleanly?
             // when does removeEvent get called?
             var theMap = this;
             MM.addEvent(window, 'resize', function(event) {
                 // don't call setSize here because it sets parent.style.width/height
                 // and setting the height breaks percentages and default styles
-                theMap.dimensions = new MM.Point(theMap.parent.offsetWidth, theMap.parent.offsetHeight);
+                theMap.dimensions = { x: theMap.parent.offsetWidth, y: theMap.parent.offsetHeight };
                 theMap.draw();
                 theMap.dispatchCallback('resized', [theMap.dimensions]);
             });
@@ -1323,7 +1302,11 @@ if (!com) {
 
         this.parent.appendChild(this.layerParent);
 
-        this.coordinate = new MM.Coordinate(0.5, 0.5, 0);
+        this.coordinate = {
+            row: 0.5,
+            column: 0.5,
+            zoom: 0
+        };
 
         this.setProvider(provider);
 
@@ -1341,7 +1324,8 @@ if (!com) {
         // set up handlers last so that all required attributes/functions are in place if needed
         if (eventHandlers === undefined) {
             this.eventHandlers = [];
-            this.eventHandlers.push(new MM.MouseHandler(this));
+            this.eventHandlers.push(MM.mouseWheelHandler(this));
+            this.eventHandlers.push(MM.dragHandler(this));
         } else {
             this.eventHandlers = eventHandlers;
             if (eventHandlers instanceof Array) {
@@ -1452,7 +1436,14 @@ if (!com) {
         },
 
         setCenterZoom: function(location, zoom) {
-            this.coordinate = this.provider.locationCoordinate(location).zoomTo(parseFloat(zoom) || 0);
+            var z = parseFloat(zoom) || 0,
+                c = this.provider.locationCoordinate(location),
+                p = Math.pow(2, z - this.coordinate.zoom);
+            this.coordinate = {
+                row: c.row * p,
+                column: c.column * p,
+                zoom: z
+            };
             this.draw();
             this.dispatchCallback('centered', [location, zoom]);
             return this;
@@ -1511,7 +1502,11 @@ if (!com) {
             var centerColumn = (TL.column + BR.column) / 2;
             var centerZoom = TL.zoom;
 
-            this.coordinate = new MM.Coordinate(centerRow, centerColumn, centerZoom).zoomTo(initZoom);
+            this.coordinate = {
+                row: centerRow,
+                column: centerColumn,
+                zoom: centerZoom
+            }.zoomTo(initZoom);
             this.draw();
 
             this.dispatchCallback('extentset', locations);
@@ -1525,7 +1520,7 @@ if (!com) {
                 this.dimensions = dimensionsOrX;
             }
             else if (orY !== undefined && !isNaN(orY)) {
-                this.dimensions = new MM.Point(dimensionsOrX, orY);
+                this.dimensions = { x: dimensionsOrX, y: orY };
             }
             this.parent.style.width = Math.round(this.dimensions.x) + 'px';
             this.parent.style.height = Math.round(this.dimensions.y) + 'px';
@@ -1542,7 +1537,7 @@ if (!com) {
             }
 
             // distance from the center of the map
-            var point = new MM.Point(this.dimensions.x / 2, this.dimensions.y / 2);
+            var point = { x: this.dimensions.x / 2, y: this.dimensions.y / 2 };
             point.x += this.provider.tileWidth * (coord.column - this.coordinate.column);
             point.y += this.provider.tileHeight * (coord.row - this.coordinate.row);
 
@@ -1574,7 +1569,7 @@ if (!com) {
 
         getExtent: function() {
             var extent = [];
-            extent.push(this.pointLocation(new MM.Point(0, 0)));
+            extent.push(this.pointLocation({ x: 0, y: 0 }));
             extent.push(this.pointLocation(this.dimensions));
             return extent;
         },
@@ -1676,7 +1671,7 @@ if (!com) {
 
             // these are the top left and bottom right tile coordinates
             // we'll be loading everything in between:
-            var startCoord = this.pointCoordinate(new MM.Point(0, 0)).zoomTo(baseZoom).container();
+            var startCoord = this.pointCoordinate({ x: 0, y: 0 }).zoomTo(baseZoom).container();
             var endCoord = this.pointCoordinate(this.dimensions).zoomTo(baseZoom).container().right().down();
 
             var tilePadding = 0;
@@ -1813,7 +1808,10 @@ if (!com) {
 
                 var tileWidth = this.provider.tileWidth * scale,
                     tileHeight = this.provider.tileHeight * scale,
-                    center = new MM.Point(this.dimensions.x / 2, this.dimensions.y / 2);
+                    center = {
+                        x: this.dimensions.x / 2,
+                        y: this.dimensions.y / 2
+                    };
 
                 for (var j = visibleTiles.length - 1; j >= 0; j--) {
                     var tile = visibleTiles[j];
