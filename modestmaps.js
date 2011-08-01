@@ -61,13 +61,22 @@ if (!com) {
     })(['transformProperty', 'WebkitTransform', 'OTransform', 'MozTransform', 'msTransform']);
 
     MM.matrixString = function(point) {
-        return 'matrix3d(' +
-            [(point.scale || '1'), '0,0,0,' +
-            '0', (point.scale || '1'), '0,0,' +
-            '0,0,1,0',
-            point.x + (((point.width  * point.scale) - point.width) / 2),
-            point.y + (((point.height * point.scale) - point.height) / 2),
-            '0,1'].join(',') + ')';
+        if (MM._browser.webkit3d) {
+            return 'matrix3d(' +
+                [(point.scale || '1'), '0,0,0,0',
+                 (point.scale || '1'), '0,0',
+                '0,0,1,0',
+                point.x + (((point.width  * point.scale) - point.width) / 2),
+                point.y + (((point.height * point.scale) - point.height) / 2),
+                0,1].join(',') + ')';
+        } else {
+            return 'matrix(' +
+                [(point.scale || '1'), 0, 0,
+                (point.scale || '1'),
+                point.x + (((point.width  * point.scale) - point.width) / 2),
+                point.y + (((point.height * point.scale) - point.height) / 2),
+                ].join(',') + ')';
+        }
     };
 
     MM._browser = (function() {
@@ -78,13 +87,16 @@ if (!com) {
     })();
 
     MM.moveElement = function(el, point) {
-        if (MM._browser.webkit3d) {
+        if (MM.transformProperty) {
             // Optimize for identity transforms, where you don't actually
             // need to change this element's string. Browsers can optimize for
             // the .style.left case but not for this CSS case.
             var ms = MM.matrixString(point);
             if (el[MM.transformProperty] !== ms) {
-                el.style[MM.transformProperty] = el[MM.transformProperty] = MM.matrixString(point);
+                console.log(ms);
+                el.style[MM.transformProperty] =
+                    el[MM.transformProperty] =
+                    MM.matrixString(point);
             }
         } else {
             el.style.left = point.x + 'px';
