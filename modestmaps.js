@@ -1422,10 +1422,11 @@ if (!com) {
         },
 
         // zooming
-
         zoomBy: function(zoomOffset) {
+            var theMap = this;
             this.coordinate = this.coordinate.zoomBy(zoomOffset);
-            this.draw();
+
+            MM.getFrame(function() { theMap.draw(); });
             this.dispatchCallback('zoomed', zoomOffset);
             return this;
         },
@@ -1436,13 +1437,15 @@ if (!com) {
 
         zoomByAbout: function(zoomOffset, point) {
             var location = this.pointLocation(point);
-            this.zoomBy(zoomOffset);
+
+            this.coordinate = this.coordinate.zoomBy(zoomOffset);
             var newPoint = this.locationPoint(location);
+
+            this.dispatchCallback('zoomed', zoomOffset);
             return this.panBy(point.x - newPoint.x, point.y - newPoint.y);
         },
 
         // panning
-
         panBy: function(dx, dy) {
             var theMap = this;
             this.coordinate.column -= dx / this.provider.tileWidth;
