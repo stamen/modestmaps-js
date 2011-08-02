@@ -5,20 +5,7 @@
         <meta name="apple-mobile-web-app-status-bar-style" content="black" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <title>Modest Maps JS - Touch Tester</title>
-        <script type="text/javascript">
-              function stderr() {
-                    var cdiv = document.getElementById('console');
-                    if (cdiv) {
-                    try {
-                      cdiv.innerText = JSON.stringify(arguments);
-                    } catch(e) {
-                      cdiv.innerText = JSON.stringify(e);
-                    }
-                    }
-                }
-            </script>
         <script type="text/javascript" src="../../modestmaps.js"></script>
-        <script type="text/javascript" src="touch.js"></script>
         <script type="text/javascript">
             var map;
             function initMap() {
@@ -28,7 +15,8 @@
                 map = new com.modestmaps.Map('map',
                   provider,
                   null, [
-                    new com.modestmaps.TouchHandler()
+                    new com.modestmaps.TouchHandler(),
+                    new com.modestmaps.MouseHandler()
                   ]);
                 map.setCenterZoom(new com.modestmaps.Location(37.811530, -122.2666097), 14);
             }
@@ -41,17 +29,6 @@
                 padding: 0;
                 border: 0;
             }
-            #console {
-              position:absolute;
-              top:0;
-              right:0;
-              left:0;
-              height:50px;
-              overflow:auto;
-              z-index:8888888;
-              background:#fff;
-              }
-
             .map-tile {
               opacity:0;
             }
@@ -72,6 +49,5 @@
     </head>
     <body onload="initMap()">
         <div id="map"></div>
-        <!-- <pre id='console'>...</pre> -->
     </body>
 </html>
