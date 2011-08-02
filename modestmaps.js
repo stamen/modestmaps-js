@@ -93,7 +93,6 @@ if (!com) {
             // the .style.left case but not for this CSS case.
             var ms = MM.matrixString(point);
             if (el[MM.transformProperty] !== ms) {
-                console.log(ms);
                 el.style[MM.transformProperty] =
                     el[MM.transformProperty] =
                     MM.matrixString(point);
