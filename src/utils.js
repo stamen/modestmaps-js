@@ -38,6 +38,9 @@
     })(['transformProperty', 'WebkitTransform', 'OTransform', 'MozTransform', 'msTransform']);
 
     MM.matrixString = function(point) {
+        // Make the result of point.scale * point.width a whole number.
+        point.scale += (1 - point.scale * point.width % 1) / point.width;
+
         if (MM._browser.webkit3d) {
             return 'matrix3d(' +
                 [(point.scale || '1'), '0,0,0,0',
