@@ -43,8 +43,8 @@
                 [(point.scale || '1'), '0,0,0,0',
                  (point.scale || '1'), '0,0',
                 '0,0,1,0',
-                point.x + (((point.width  * point.scale) - point.width) / 2),
-                point.y + (((point.height * point.scale) - point.height) / 2),
+                (point.x + (((point.width  * point.scale) - point.width) / 2)).toFixed(4),
+                (point.y + (((point.height * point.scale) - point.height) / 2)).toFixed(4),
                 0,1].join(',') + ')';
         } else {
             return 'matrix(' +

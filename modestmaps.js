@@ -66,8 +66,8 @@ if (!com) {
                 [(point.scale || '1'), '0,0,0,0',
                  (point.scale || '1'), '0,0',
                 '0,0,1,0',
-                point.x + (((point.width  * point.scale) - point.width) / 2),
-                point.y + (((point.height * point.scale) - point.height) / 2),
+                (point.x + (((point.width  * point.scale) - point.width) / 2)).toFixed(4),
+                (point.y + (((point.height * point.scale) - point.height) / 2)).toFixed(4),
                 0,1].join(',') + ')';
         } else {
             return 'matrix(' +
@@ -781,7 +781,6 @@ if (!com) {
         maxTapDistance: 10,
         maxDoubleTapDelay: 350,
         locations: {},
-        coordinate: null,
         taps: [],
 
         init: function(map, options) {
@@ -802,6 +801,7 @@ if (!com) {
             for (var i = 0; i < e.touches.length; i += 1) {
                 var t = e.touches[i];
                 this.locations[t.identifier] = {
+                    scale: e.scale,
                     screenX: t.screenX,
                     screenY: t.screenY,
                     time: +new Date()
@@ -825,7 +825,6 @@ if (!com) {
 
         touchStartMachine: function(e) {
             this.interruptTouches(e);
-            this.coordinate = this.map.coordinate.copy();
             return MM.cancelEvent(e);
         },
 
@@ -924,34 +923,51 @@ if (!com) {
 
         // Re-transform the actual map parent's CSS transformation
         onPanning: function(touch) {
-            var start = this.locations[touch.identifier];
-            this.map.coordinate = this.coordinate.copy();
             this.map.panBy(
-                touch.screenX - start.screenX,
-                touch.screenY - start.screenY);
+                touch.screenX - this.locations[touch.identifier].screenX,
+                touch.screenY - this.locations[touch.identifier].screenY);
+
+            this.locations[touch.identifier] = {
+                screenX: touch.screenX,
+                screenY: touch.screenY,
+                time: +new Date()
+            };
         },
 
-        onPanned: function(touch) {
-            // var m = this.oneTouchMatrix(touch);
-            // this.map.panBy(m.x, m.y]);
-        },
+        onPanned: function(touch) { },
 
-        // During a pinch event, don't recalculate zooms and centers,
-        // but recalculate the CSS transformation
         onPinching: function(e) {
-            this.map.coordinate = this.coordinate.copy();
+            this.map.zoomByAbout(
+                Math.log(e.scale) / Math.LN2 -
+                Math.log(this.locations[e.touches[0].identifier].scale) / Math.LN2,
+                new MM.Point(
+                    ((e.touches[0].screenX + e.touches[1].screenX) / 2),
+                    ((e.touches[0].screenY + e.touches[1].screenY) / 2))
+            );
 
             this.map.panBy(
                 ((e.touches[0].screenX +
                   e.touches[1].screenX) / 2) -
+
+                // centerpoint of previous x
                 ((this.locations[e.touches[0].identifier].screenX +
-                  this.locations[e.touches[1].identifier].screenX) / 2),
+                 this.locations[e.touches[1].identifier].screenX) / 2),
+
                 ((e.touches[0].screenY +
                   e.touches[1].screenY) / 2) -
+
+                // centerpoint of previous y
                 ((this.locations[e.touches[0].identifier].screenY +
-                  this.locations[e.touches[1].identifier].screenY) / 2)
-            );
-            this.map.zoomBy(Math.log(e.scale) / Math.LN2 + this.coordinate.zoom - this.map.getZoom());
+                 this.locations[e.touches[1].identifier].screenY) / 2));
+
+            for (var i = 0; i < e.touches.length; i++) {
+                this.locations[e.touches[i].identifier] = {
+                    screenX: e.touches[i].screenX,
+                    screenY: e.touches[i].screenY,
+                    scale: e.scale,
+                    time: +new Date()
+                };
+            }
         },
 
         // When a pinch event ends, recalculate the zoom and center
