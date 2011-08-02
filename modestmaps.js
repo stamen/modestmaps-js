@@ -100,8 +100,8 @@ if (!com) {
         } else {
             el.style.left = point.x + 'px';
             el.style.top = point.y + 'px';
-            el.style.width = point.width + 'px';
-            el.style.height = point.height + 'px';
+            el.style.width =  Math.ceil(point.width  * point.scale) + 'px';
+            el.style.height = Math.ceil(point.height * point.scale) + 'px';
         }
     };
 
