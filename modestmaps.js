@@ -75,11 +75,12 @@ if (!com) {
                 (point.y + (((point.height * point.scale) - point.height) / 2)).toFixed(4),
                 0,1].join(',') + ')';
         } else {
+            var unit = (MM.transformProperty == 'MozTransform') ? 'px' : '';
             return 'matrix(' +
                 [(point.scale || '1'), 0, 0,
                 (point.scale || '1'),
-                point.x + (((point.width  * point.scale) - point.width) / 2),
-                point.y + (((point.height * point.scale) - point.height) / 2)
+                (point.x + (((point.width  * point.scale) - point.width) / 2)) + unit,
+                (point.y + (((point.height * point.scale) - point.height) / 2)) + unit
                 ].join(',') + ')';
         }
     };
@@ -96,7 +97,6 @@ if (!com) {
             // Optimize for identity transforms, where you don't actually
             // need to change this element's string. Browsers can optimize for
             // the .style.left case but not for this CSS case.
-            var ms = MM.matrixString(point);
             if (el[MM.transformProperty] !== ms) {
                 el.style[MM.transformProperty] =
                     el[MM.transformProperty] =
@@ -1830,7 +1830,6 @@ if (!com) {
                     // no tiles for this layer yet
                     continue;
                 }
-
 
                 // getElementsByTagName is x10 faster than childNodes, and
                 // let's reuse the access.
