@@ -553,7 +553,6 @@
                     continue;
                 }
 
-
                 // getElementsByTagName is x10 faster than childNodes, and
                 // let's reuse the access.
                 var scale = 1,
