@@ -1,0 +1,21 @@
+{
+  "author": "Tom Carden <tom@tom-carden.co.uk> (http://www.tom-carden.co.uk)",
+  "name": "modestmaps-static",
+  "description": "create a static image composed of several map tiles",
+  "version": "0.0.0",
+  "homepage": "https://github.com/stamen/modestmaps-js/",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/stamen/modestmaps-js.git"
+  },
+  "main": "modestmaps-static.js",
+  "engines": {
+    "node": "~v0.4.2"
+  },
+  "dependencies": {
+    "express": "~2.4.3",
+    "canvas": "~0.7.0",
+    "get": "~0.4.0"
+  },
+  "devDependencies": {}
+}
