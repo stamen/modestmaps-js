@@ -63,8 +63,10 @@ function renderStaticMap(provider, dimensions, zoom, location, callback) {
       var c = new MM.Coordinate(row, column, zoom),
           url = provider.getTileUrl(c),
           p = coordinatePoint(c);
-      getTile(url, p);
-      numRequests++;
+      if (url) {
+        getTile(url, p);
+        numRequests++;
+      }
     }
   }
   
@@ -99,13 +101,13 @@ var providers = {
 var app = express.createServer();
 
 app.get('/map', function(req,res) {
-  var provider = providers[req.param("provider") || "osm"], // default osm
-      width = req.param("width") || 800,
-      height = req.param("height") || 600,
+  var provider = providers[req.param("provider", "osm")], // default osm
+      width = req.param("width", 800),
+      height = req.param("height", 600),
       dimensions = new MM.Point(width, height),
-      zoom = parseInt(req.param("zoom") || 11),
-      lat = parseFloat(req.param("lat") || 0.0),
-      lon = parseFloat(req.param("lon") || 0.0),
+      zoom = parseInt(req.param("zoom", 1)),
+      lat = req.param("lat", 0.0),
+      lon = req.param("lon", 0.0),
       location = new MM.Location(lat, lon);
   renderStaticMap(provider, dimensions, zoom, location, function(err,canvas) {
     if (err) {    
