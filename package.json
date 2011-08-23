@@ -19,12 +19,12 @@
     "url"  : "git://github.com/stamen/modestmaps-js.git"
   }],
   "engines": {
-    "node": "= 0.4.x"
+    "node": "~0.4.0"
   },
   "devDependencies": {
-    "docco": "= 0.3.0",
-    "expresso": "= 0.7.x",
-    "uglify-js": "= 1.0.x"
+    "docco": "~0.3.0",
+    "expresso": "~0.7.0",
+    "uglify-js": "~1.0.0"
   },
   "directories": { }
 }
