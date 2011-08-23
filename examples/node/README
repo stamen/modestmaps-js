@@ -5,6 +5,6 @@ to pull down all dependencies.
 
 Then do `node modestmaps-static.js` to run the example server.
 
-Example URL, San Francisco at zoom level 11 on Modest Maps, in an 800x600 image:
+Example URL, San Francisco at zoom level 11 on OpenStreetMap, in an 800x600 image:
 http://localhost:3000/map?provider=osm&width=800&height=600&zoom=11&lat=37.774929&lon=-122.419415
 
