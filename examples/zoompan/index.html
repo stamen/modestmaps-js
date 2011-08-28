@@ -118,20 +118,23 @@ function animateStep(c0,w0,c1,w1,V,rho) {
     }
     
     var t0 = Date.now();
-    var interval = setInterval(function() {
+    function tick() {
         var t1 = Date.now();
         var frameInterval = t1;
         var t = (t1 - t0) / 1000.0;
         var s = V * t;
         if (s > S) {
             s = S;
-            clearInterval(interval);
+        }
+        else {
+            MM.getFrame(tick);
         }
         var us = u(s);
         var pos = lerp2(c0,c1,(us-u0)/(u1-u0));
         applyPos(pos, w(s));
-        console.log(Date.now() - frameInterval);
-    }, 100);
+        //console.log(Date.now() - frameInterval);
+    }
+    MM.getFrame(tick);
 
 }
 
