@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v0.17.0
+ * Modest Maps JS v0.18.0
  * http://modestmaps.com/
  *
  * Copyright (c) 2010 Stamen Design, All Rights Reserved.
@@ -97,10 +97,10 @@ if (!com) {
             // Optimize for identity transforms, where you don't actually
             // need to change this element's string. Browsers can optimize for
             // the .style.left case but not for this CSS case.
+            var ms = MM.matrixString(point);
             if (el[MM.transformProperty] !== ms) {
                 el.style[MM.transformProperty] =
-                    el[MM.transformProperty] =
-                    MM.matrixString(point);
+                    el[MM.transformProperty] = ms;
             }
         } else {
             el.style.left = point.x + 'px';
