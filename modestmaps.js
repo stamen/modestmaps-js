@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v0.18.2
+ * Modest Maps JS v0.18.3
  * http://modestmaps.com/
  *
  * Copyright (c) 2010 Stamen Design, All Rights Reserved.
@@ -577,8 +577,8 @@ if (!com) {
             return this.projection.locationCoordinate(location);
         },
     
-        coordinateLocation: function(location) {
-            return this.projection.coordinateLocation(location);
+        coordinateLocation: function(coordinate) {
+            return this.projection.coordinateLocation(coordinate);
         },
         
         outerLimits: function() {
@@ -1440,7 +1440,7 @@ if (!com) {
         // zooming
         zoomBy: function(zoomOffset) {
             var theMap = this;
-            this.coordinate = this.coordinate.zoomBy(zoomOffset);
+            this.coordinate = this.enforceLimits(this.coordinate.zoomBy(zoomOffset));
 
             MM.getFrame(function() { theMap.draw(); });
             this.dispatchCallback('zoomed', zoomOffset);
@@ -1454,7 +1454,7 @@ if (!com) {
         zoomByAbout: function(zoomOffset, point) {
             var location = this.pointLocation(point);
 
-            this.coordinate = this.coordinate.zoomBy(zoomOffset);
+            this.coordinate = this.enforceLimits(this.coordinate.zoomBy(zoomOffset));
             var newPoint = this.locationPoint(location);
 
             this.dispatchCallback('zoomed', zoomOffset);
@@ -1466,6 +1466,8 @@ if (!com) {
             var theMap = this;
             this.coordinate.column -= dx / this.provider.tileWidth;
             this.coordinate.row -= dy / this.provider.tileHeight;
+
+            this.coordinate = this.enforceLimits(this.coordinate);
 
             // Defer until the browser is ready to draw.
             MM.getFrame(function() { theMap.draw(); });
@@ -1558,7 +1560,8 @@ if (!com) {
             var centerZoom = TL.zoom;
 
             this.coordinate = new MM.Coordinate(centerRow, centerColumn, centerZoom).zoomTo(initZoom);
-            this.draw();
+            this.draw(); // draw calls enforceLimits 
+            // (if you switch to getFrame, call enforceLimits first)
 
             this.dispatchCallback('extentset', locations);
             return this;

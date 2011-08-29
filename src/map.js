@@ -151,7 +151,7 @@
         // zooming
         zoomBy: function(zoomOffset) {
             var theMap = this;
-            this.coordinate = this.coordinate.zoomBy(zoomOffset);
+            this.coordinate = this.enforceLimits(this.coordinate.zoomBy(zoomOffset));
 
             MM.getFrame(function() { theMap.draw(); });
             this.dispatchCallback('zoomed', zoomOffset);
@@ -165,7 +165,7 @@
         zoomByAbout: function(zoomOffset, point) {
             var location = this.pointLocation(point);
 
-            this.coordinate = this.coordinate.zoomBy(zoomOffset);
+            this.coordinate = this.enforceLimits(this.coordinate.zoomBy(zoomOffset));
             var newPoint = this.locationPoint(location);
 
             this.dispatchCallback('zoomed', zoomOffset);
@@ -177,6 +177,8 @@
             var theMap = this;
             this.coordinate.column -= dx / this.provider.tileWidth;
             this.coordinate.row -= dy / this.provider.tileHeight;
+
+            this.coordinate = this.enforceLimits(this.coordinate);
 
             // Defer until the browser is ready to draw.
             MM.getFrame(function() { theMap.draw(); });
@@ -269,7 +271,8 @@
             var centerZoom = TL.zoom;
 
             this.coordinate = new MM.Coordinate(centerRow, centerColumn, centerZoom).zoomTo(initZoom);
-            this.draw();
+            this.draw(); // draw calls enforceLimits 
+            // (if you switch to getFrame, call enforceLimits first)
 
             this.dispatchCallback('extentset', locations);
             return this;
