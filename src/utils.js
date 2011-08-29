@@ -8,21 +8,28 @@
         return child;
     };
 
-    MM.getFrame = function (window) {
+    MM.getFrame = function () {
         // native animation frames
         // http://webstuff.nfshost.com/anim-timing/Overview.html
         // http://dev.chromium.org/developers/design-documents/requestanimationframe-implementation
-        return (window.requestAnimationFrame  ||
-                window.webkitRequestAnimationFrame ||
-                window.mozRequestAnimationFrame    ||
-                window.oRequestAnimationFrame      ||
-                window.msRequestAnimationFrame     ||
-                function (callback) {
-                    window.setTimeout(function () {
-                        callback(+new Date());
-                    }, 10);
-                });
-    }(this);
+        // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
+        // can't apply these directly to MM because Chrome needs window
+        // to own webkitRequestAnimationFrame (for example)
+        // perhaps we should namespace an alias onto window instead? 
+        // e.g. window.mmRequestAnimationFrame?
+        return function(callback) {
+            (window.requestAnimationFrame  ||
+            window.webkitRequestAnimationFrame ||
+            window.mozRequestAnimationFrame    ||
+            window.oRequestAnimationFrame      ||
+            window.msRequestAnimationFrame     ||
+            function (callback) {
+                window.setTimeout(function () {
+                    callback(+new Date());
+                }, 10);
+            })(callback);
+        };
+    }();
 
     // Inspired by LeafletJS
     MM.transformProperty = (function(props) {

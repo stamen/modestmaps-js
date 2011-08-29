@@ -8,6 +8,9 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment
     the major version." -- http://semver.org/
 
+v0.18.2
+- revert to @tmcw's original getFrame (simpler version broke in Chrome)
+
 v0.18.1
 - revert Coordinate.toKey to string joining
 - fix up utils.js functions so that tests run again
