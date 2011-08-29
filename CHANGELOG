@@ -8,6 +8,12 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment
     the major version." -- http://semver.org/
 
+v0.18.1
+- revert Coordinate.toKey to string joining
+- fix up utils.js functions so that tests run again
+- modify double-tap thresholds and adjust onPinched behavior
+- a few more cleanups in TouchHandler (mainly to use MM.Point functions)
+
 v0.18.0
 - many tiny formatting/syntax fixes; thx JSHint!
 - MM.moveElement is used for tile positioning

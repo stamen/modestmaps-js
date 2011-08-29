@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v0.18.0
+ * Modest Maps JS v0.18.1
  * http://modestmaps.com/
  *
  * Copyright (c) 2010 Stamen Design, All Rights Reserved.
@@ -31,26 +31,25 @@ if (!com) {
         return child;
     };
 
-    MM.getFrame = function () {
+    MM.getFrame = function (window) {
         // native animation frames
         // http://webstuff.nfshost.com/anim-timing/Overview.html
         // http://dev.chromium.org/developers/design-documents/requestanimationframe-implementation
-        return function(callback) {
-            (window.requestAnimationFrame  ||
-            window.webkitRequestAnimationFrame ||
-            window.mozRequestAnimationFrame    ||
-            window.oRequestAnimationFrame      ||
-            window.msRequestAnimationFrame     ||
-            function (callback) {
-                window.setTimeout(function () {
-                    callback(+new Date());
-                }, 10);
-            })(callback);
-        };
-    }();
+        return (window.requestAnimationFrame  ||
+                window.webkitRequestAnimationFrame ||
+                window.mozRequestAnimationFrame    ||
+                window.oRequestAnimationFrame      ||
+                window.msRequestAnimationFrame     ||
+                function (callback) {
+                    window.setTimeout(function () {
+                        callback(+new Date());
+                    }, 10);
+                });
+    }(this);
 
     // Inspired by LeafletJS
     MM.transformProperty = (function(props) {
+        if (!this.document) return; // node.js safety
         var style = document.documentElement.style;
         for (var i = 0; i < props.length; i++) {
             if (props[i] in style) {
@@ -85,12 +84,12 @@ if (!com) {
         }
     };
 
-    MM._browser = (function() {
+    MM._browser = (function(window) {
         return {
             webkit: ('WebKitCSSMatrix' in window),
             webkit3d: ('WebKitCSSMatrix' in window) && ('m11' in new WebKitCSSMatrix())
         };
-    })();
+    })(this); // use this for node.js global
 
     MM.moveElement = function(el, point) {
         if (MM.transformProperty) {
@@ -221,10 +220,13 @@ if (!com) {
                    " @" + this.zoom.toFixed(3) + ")";
         },
         // Quickly generate a string representation of this coordinate to
-        // index it in hashes.
+        // index it in hashes. 
         toKey: function() {
-            // Only works for 24 bit input numbers (up to 16777215).
-            return (1 << this.zoom) * ((1 << this.zoom) + this.row) + this.column;
+            // We've tried to use efficient hash functions here before but we took
+            // them out. Contributions welcome but watch out for collisions when the
+            // row or column are negative and check thoroughly (exhaustively) before
+            // committing.
+            return [ this.zoom, this.row, this.column ].join(',');
         },
         // Clone this object.
         copy: function() {
@@ -782,11 +784,13 @@ if (!com) {
 
     MM.TouchHandler.prototype = {
 
-        maxTapTime: 150,
-        maxTapDistance: 10,
+        maxTapTime: 250,
+        maxTapDistance: 30,
         maxDoubleTapDelay: 350,
         locations: {},
         taps: [],
+        wasPinching: false,
+        lastPinchCenter: null,
 
         init: function(map, options) {
             this.map = map;
@@ -802,15 +806,24 @@ if (!com) {
             this.options.snapToZoom = options.snapToZoom || true;
         },
 
-        interruptTouches: function(e) {
+        updateTouches: function(e) {
             for (var i = 0; i < e.touches.length; i += 1) {
                 var t = e.touches[i];
-                this.locations[t.identifier] = {
-                    scale: e.scale,
-                    screenX: t.screenX,
-                    screenY: t.screenY,
-                    time: +new Date()
-                };
+                if (t.identifier in this.locations) {
+                    var l = this.locations[t.identifier];
+                    l.x = t.screenX;
+                    l.y = t.screenY;
+                    l.scale = e.scale;
+                }
+                else {
+                    this.locations[t.identifier] = {
+                        scale: e.scale,
+                        startPos: { x: t.screenX, y: t.screenY },
+                        x: t.screenX, 
+                        y: t.screenY,
+                        time: new Date().getTime()
+                    };
+                }
             }
         },
 
@@ -821,20 +834,12 @@ if (!com) {
                 (touch.identifier == event.touch.identifier);
         },
 
-        // Quick euclidean distance between two points
-        distance: function(t1, t2) {
-            return Math.sqrt(
-                Math.pow(t1.screenX - t2.screenX, 2) +
-                Math.pow(t1.screenY - t2.screenY, 2));
-        },
-
         touchStartMachine: function(e) {
-            this.interruptTouches(e);
+            this.updateTouches(e);
             return MM.cancelEvent(e);
         },
 
         touchMoveMachine: function(e) {
-            var now = new Date().getTime();
             switch (e.touches.length) {
                 case 1:
                     this.onPanning(e.touches[0]);
@@ -843,61 +848,66 @@ if (!com) {
                     this.onPinching(e);
                     break;
             }
+            this.updateTouches(e);
             return MM.cancelEvent(e);
         },
 
         touchEndMachine: function(e) {
+                
             var now = new Date().getTime();
-            switch (e.changedTouches.length) {
-                case 1:
-                    // this.onPanned(e);
-                    break;
-                case 2:
-                    this.onPinched(e);
-                    break;
+            
+            // round zoom if we're done pinching 
+            if (e.touches.length == 0 && this.wasPinching) {
+                this.onPinched(this.lastPinchCenter);
             }
 
             // Look at each changed touch in turn.
             for (var i = 0; i < e.changedTouches.length; i += 1) {
-                var t = e.changedTouches[i];
-                var start = this.locations[t.identifier];
-                if (!start) return;
+                var t = e.changedTouches[i],
+                    loc = this.locations[t.identifier];
+                    
+                // if we didn't see this one (bug?)
+                // or if it was consumed by pinching already
+                // just skip to the next one
+                if (!loc || loc.wasPinch) {
+                    continue;
+                }
 
                 // we now know we have an event object and a
                 // matching touch that's just ended. Let's see
                 // what kind of event it is based on how long it
                 // lasted and how far it moved.
-                var time = now - start.time;
-                var travel = this.distance(t, start);
+                var pos = { x: t.screenX, y: t.screenY },                
+                    time = now - loc.time,
+                    travel = MM.Point.distance(pos, loc.startPos);
                 if (travel > this.maxTapDistance) {
                     // we will to assume that the drag has been handled separately
                 } else if (time > this.maxTapTime) {
-                    // close in time, but not in space: a hold
-                    this.onHold({
-                        x: t.screenX,
-                        y: t.screenY,
-                        end: now,
-                        duration: time
-                    });
+                    // close in space, but not in time: a hold
+                    pos.end = now;
+                    pos.duration = time;
+                    this.onHold(pos);
                 } else {
                     // close in both time and space: a tap
-                    this.onTap({
-                        x: t.screenX,
-                        y: t.screenY,
-                        time: now
-                    });
+                    pos.time = now;
+                    this.onTap(pos);
                 }
             }
 
-            // this.interruptTouches(events);
-
             // Weird, sometimes an end event doesn't get thrown
             // for a touch that nevertheless has disappeared.
-            // TODO
-            // if (e.touches.length === 0 && events.length >= 1) {
-            //     events.splice(0, events.length);
-            // }
-            this.locations = {};
+            // Still, this will eventually catch those ids:
+            
+            var validTouchIds = {};
+            for (var j = 0; j < e.touches.length; j++) {
+                validTouchIds[e.touches[j].identifier] = true;
+            }
+            for (var id in this.locations) {
+                if (!(id in validTouchIds)) {
+                    delete validTouchIds[id];
+                }
+            }
+            
             return MM.cancelEvent(e);
         },
 
@@ -910,6 +920,7 @@ if (!com) {
             if (this.taps.length &&
                 (tap.time - this.taps[0].time) < this.maxDoubleTapDelay) {
                 this.onDoubleTap(tap);
+                this.taps = [];
                 return;
             }
             this.taps = [tap];
@@ -918,73 +929,66 @@ if (!com) {
         // Handle a double tap by zooming in a single zoom level to a
         // round zoom.
         onDoubleTap: function(tap) {
-            // zoom in to a round number
-            var z = Math.floor(this.map.getZoom() + 2);
-            z = z - this.map.getZoom();
 
+            var z = this.map.getZoom(), // current zoom
+                tz = Math.round(z) + 1, // target zoom
+                dz = tz - z;            // desired delate
+            
+            // zoom in to a round number
             var p = new MM.Point(tap.x, tap.y);
-            this.map.zoomByAbout(z, p);
+            this.map.zoomByAbout(dz, p);
         },
 
         // Re-transform the actual map parent's CSS transformation
         onPanning: function(touch) {
-            this.map.panBy(
-                touch.screenX - this.locations[touch.identifier].screenX,
-                touch.screenY - this.locations[touch.identifier].screenY);
-
-            this.locations[touch.identifier] = {
-                screenX: touch.screenX,
-                screenY: touch.screenY,
-                time: +new Date()
-            };
+            var pos = { x: touch.screenX, y: touch.screenY },        
+                prev = this.locations[touch.identifier];
+            this.map.panBy(pos.x - prev.x, pos.y - prev.y);
         },
-
-        onPanned: function(touch) { },
 
         onPinching: function(e) {
+        
+            // use the first two touches and their previous positions
+            var t0 = e.touches[0],
+                t1 = e.touches[1],
+                p0 = new MM.Point(t0.screenX, t0.screenY),
+                p1 = new MM.Point(t1.screenX, t1.screenY),
+                l0 = this.locations[t0.identifier],
+                l1 = this.locations[t1.identifier];
+
+            // mark these touches so they aren't used as taps/holds
+            l0.wasPinch = true;
+            l1.wasPinch = true;
+                    
+            // scale about the center of these touches
+            var center = MM.Point.interpolate(p0, p1, 0.5);
+        
             this.map.zoomByAbout(
                 Math.log(e.scale) / Math.LN2 -
-                Math.log(this.locations[e.touches[0].identifier].scale) / Math.LN2,
-                new MM.Point(
-                    ((e.touches[0].screenX + e.touches[1].screenX) / 2),
-                    ((e.touches[0].screenY + e.touches[1].screenY) / 2))
-            );
+                Math.log(l0.scale) / Math.LN2,
+                center );
 
-            this.map.panBy(
-                ((e.touches[0].screenX +
-                  e.touches[1].screenX) / 2) -
+            // pan from the previous center of these touches
+            var prevCenter = MM.Point.interpolate(l0, l1, 0.5);
 
-                // centerpoint of previous x
-                ((this.locations[e.touches[0].identifier].screenX +
-                 this.locations[e.touches[1].identifier].screenX) / 2),
-
-                ((e.touches[0].screenY +
-                  e.touches[1].screenY) / 2) -
-
-                // centerpoint of previous y
-                ((this.locations[e.touches[0].identifier].screenY +
-                 this.locations[e.touches[1].identifier].screenY) / 2));
-
-            for (var i = 0; i < e.touches.length; i++) {
-                this.locations[e.touches[i].identifier] = {
-                    screenX: e.touches[i].screenX,
-                    screenY: e.touches[i].screenY,
-                    scale: e.scale,
-                    time: +new Date()
-                };
-            }
+            this.map.panBy( center.x - prevCenter.x,
+                            center.y - prevCenter.y );
+                            
+            this.wasPinching = true;        
+            this.lastPinchCenter = center;
         },
 
-        // When a pinch event ends, recalculate the zoom and center
-        // of the map.
-        onPinched: function(touch1, touch2) {
+        // When a pinch event ends, round the zoom of the map.
+        onPinched: function(p) {
             // TODO: easing
             if (this.options.snapToZoom) {
-                this.map.setZoom(Math.round(this.map.getZoom()));
+                var z = this.map.getZoom(), // current zoom
+                    tz = Math.round(z);     // target zoom
+                this.map.zoomByAbout(tz - z, p);
             }
+            this.wasPinching = false;
         }
-    };
-    // CallbackManager
+    };    // CallbackManager
     // ---------------
     // A general-purpose event binding manager used by `Map`
     // and `RequestManager`
