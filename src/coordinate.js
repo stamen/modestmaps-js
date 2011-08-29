@@ -22,10 +22,13 @@
                    " @" + this.zoom.toFixed(3) + ")";
         },
         // Quickly generate a string representation of this coordinate to
-        // index it in hashes.
+        // index it in hashes. 
         toKey: function() {
-            // Only works for 24 bit input numbers (up to 16777215).
-            return (1 << this.zoom) * ((1 << this.zoom) + this.row) + this.column;
+            // We've tried to use efficient hash functions here before but we took
+            // them out. Contributions welcome but watch out for collisions when the
+            // row or column are negative and check thoroughly (exhaustively) before
+            // committing.
+            return [ this.zoom, this.row, this.column ].join(',');
         },
         // Clone this object.
         copy: function() {
