@@ -1,0 +1,20 @@
+body {
+    font: 14px/20px Arial, Helvetica, sans;
+    color: #222;
+    background-color: white;
+}
+
+p {
+  margin:10px 0;
+}
+
+div.page {
+  width:700px;
+  margin:20px auto;
+}
+
+div.highlight {
+  padding:10px;
+  border:1px solid #aaa;
+  margin:10px 0;
+}
