@@ -93,7 +93,7 @@ function animateStep(c0,w0,c1,w1,V,rho) {
     var r0 = r(b(0)),
         r1 = r(b(1)),
         S = (r1-r0) / rho; // "distance"
-    
+
     function u(s) {
         var a = w0/sq(rho),
             b = a * cosh(r0) * tanh(rho*s + r0),
@@ -111,6 +111,7 @@ function animateStep(c0,w0,c1,w1,V,rho) {
     
         var k = w1 < w0 ? -1 : 1;
         S = Math.abs(Math.log(w1/w0)) / rho;
+        
         u = function(s) {
             return u0;
         }
@@ -119,9 +120,9 @@ function animateStep(c0,w0,c1,w1,V,rho) {
         }
     }
     
-    var t0 = Date.now();
+    var t0 = new Date().getTime();
     function tick() {
-        var t1 = Date.now();
+        var t1 = new Date().getTime();
         var frameInterval = t1;
         var t = (t1 - t0) / 1000.0;
         var s = V * t;
@@ -207,7 +208,8 @@ function searchCallback(rsp) {
         animateCenterZoom(l, z);
     }
     catch(e) {    
-        console.error(e);
+        alert('error coping with response, try again?');
+        //console.error(e);
         // TODO: what? reset map position/zoom, perhaps? show error?
     }
     var search = document.getElementById('search');    

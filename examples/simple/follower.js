@@ -18,10 +18,7 @@ com.modestmaps.Follower = function(map, location, content, dimensions)
     var follower = this;
     
     var callback = function(m, a) { return follower.draw(m); };
-    map.addCallback('panned', callback);
-    map.addCallback('zoomed', callback);
-    map.addCallback('centered', callback);
-    map.addCallback('extentset', callback);
+    map.addCallback('drawn', callback);
     
     this.div = document.createElement('div');
     this.div.style.position = 'absolute';

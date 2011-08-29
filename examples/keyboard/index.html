@@ -16,37 +16,56 @@
             MM.addEvent(map.parent, 'click', function(e) { map.parent.focus() });
             MM.addEvent(map.parent, 'keydown', this.getKeyDown());
             MM.addEvent(map.parent, 'keyup', this.getKeyUp());            
+            // tick every frame for time-based anim
+            this.prevT = new Date().getTime();
+            this.boundAnimate = MM.bind(this.animate, this);
+            this.speed = { x: 0, y: 0 };
+            MM.getFrame(this.boundAnimate);            
         },
         
         keyCount: 0,
         keysPressed: {},
         keyDown: null,
         keyUp: null,
-        theInterval: 0,
         trappedKeys: { 37: true, 38: true, 39: true, 40: true },
         animate: null,
+        prevT: 0,
+        acceleration: 25.0,
+        speed: null,
+        boundAnimate: null,
+        drag: 0.05,
 
-        getAnimate: function() {
-            if (!this.animate) {
-                var theHandler = this;
-                this.animate = function() {
-                    //window.console.log('animate');
-                    if (theHandler.keysPressed[37]) {
-                        theHandler.map.panBy(10,0);
-                    }
-                    if (theHandler.keysPressed[38]) {
-                        theHandler.map.panBy(0,10);
-                    }
-                    if (theHandler.keysPressed[39]) {
-                        theHandler.map.panBy(-10,0);
-                    }
-                    if (theHandler.keysPressed[40]) {
-                        theHandler.map.panBy(0,-10);
-                    }
-                };
+        animate: function(t) {
+            var dir = { x: 0, y: 0 };
+            if (this.keysPressed[37]) {
+                dir.x += 1;
             }
-            return this.animate;
-        },        
+            if (this.keysPressed[38]) {
+                dir.y += 1;
+            }
+            if (this.keysPressed[39]) {
+                dir.x -= 1;
+            }
+            if (this.keysPressed[40]) {
+                dir.y -= 1;
+            }
+            var dt = Math.max(0.001,(t - this.prevT) / 1000.0);
+            if (dir.x || dir.y) {
+                var len = Math.sqrt(dir.x*dir.x + dir.y*dir.y);
+                dir.x /= len;
+                dir.y /= len;
+                this.speed.x += dir.x * this.acceleration * dt;
+                this.speed.y += dir.y * this.acceleration * dt;                
+            }
+            else {
+                this.speed.x -= this.speed.x * this.drag;
+                this.speed.y -= this.speed.y * this.drag;
+            }
+            this.map.panBy(this.speed.x,this.speed.y);            
+            this.prevT = t;
+            // tick every frame for time-based anim accuracy
+            MM.getFrame(this.boundAnimate);
+        },
 
         getKeyDown: function() {
             if (!this.keyDown) {
@@ -55,9 +74,6 @@
                     if (!(e.keyCode in theHandler.keysPressed)) {
                         theHandler.keysPressed[e.keyCode] = true;
                         theHandler.keyCount++;
-                        if (!theHandler.theInterval) {
-                            theHandler.theInterval = setInterval(theHandler.getAnimate(), 20);
-                        }
                     }
                     if (e.keyCode in theHandler.trappedKeys) {
                       return MM.cancelEvent(e);
@@ -73,11 +89,6 @@
                 this.keyUp = function(e) {
                     theHandler.keyCount--;
                     delete theHandler.keysPressed[e.keyCode];
-                    if (theHandler.keyCount == 0 && theHandler.theInterval) {
-                        //window.console.log('clearing interval');
-                        clearInterval(theHandler.theInterval);
-                        delete theHandler.theInterval;
-                    }
                     if (e.keyCode in theHandler.trappedKeys) {
                       return MM.cancelEvent(e);
                     }
@@ -95,12 +106,48 @@ var map;
 
 function initMap() {
 
-    map = new MM.Map('map', 
-                      new MM.TemplatedMapProvider('http://tile.openstreetmap.org/{Z}/{X}/{Y}.png'), 
-                      null,
-                     [ new MM.KeyboardHandler() ]);
+    var provider = new MM.TemplatedMapProvider('http://oatile1.mqcdn.com/naip/{Z}/{X}/{Y}.jpg')
+    // new MM.TemplatedMapProvider('http://tile.openstreetmap.org/{Z}/{X}/{Y}.png')
 
-    map.setCenterZoom(new MM.Location(37.811530, -122.2666097), 14);
+    var keyHandler = new MM.KeyboardHandler();
+    
+    var dragSlider = document.getElementById('drag');
+    var dragValue = document.getElementById('dragvalue');
+    dragSlider.onchange = function() {
+        keyHandler.drag = parseFloat((dragSlider.value - dragSlider.min) / (dragSlider.max - dragSlider.min)) / 10.0;
+        dragValue.innerHTML = keyHandler.drag.toFixed(3);
+    };
+    dragValue.innerHTML = keyHandler.drag.toFixed(3);
+
+    map = new MM.Map('map', 
+                      provider, 
+                      null,
+                     [ keyHandler ]);
+
+    map.enablePyramidLoading = true;
+
+    map.setCenterZoom(new MM.Location(37.811530, -122.2666097), 10);
+
+    var zoomSlider = document.getElementById('zoom');
+    var zoomValue = document.getElementById('zoomvalue');
+    var targetZoom = map.getZoom();
+    zoomSlider.onchange = function() {
+        var sliderProp = (zoomSlider.value - zoomSlider.min) / (zoomSlider.max - zoomSlider.min);
+        targetZoom = sliderProp * 18.0; 
+        MM.getFrame(animateToZoom);
+    };
+    function animateToZoom() {
+        var currentZoom = map.getZoom();
+        var nextZoom = currentZoom + (targetZoom-currentZoom) * 0.2;
+        if (Math.abs(nextZoom - currentZoom) < 0.001) {
+            nextZoom = currentZoom;
+        } else {
+            MM.getFrame(animateToZoom);
+        }
+        map.setZoom(nextZoom);
+        zoomValue.innerHTML = nextZoom.toFixed(2);
+    }
+    zoomValue.innerHTML = targetZoom;
 
 }
 
@@ -121,9 +168,40 @@ html, body, #map {
   -webkit-user-drag: none;
   -moz-user-drag: none;
 }
+p {
+  font-family: sans-serif;
+  position: absolute;
+  margin: 0;
+  padding: 5px;
+  background: transparent;  
+  color: white;
+  text-shadow: 1px 2px 2px rgba(0,0,0,0.5);
+}
+a {
+  color: #ccf;
+}
+#instructions {
+  top: 15px;
+  left: 15px;
+}
+#credit {
+  bottom: 15px;
+  right: 15px;
+}
+#controls {
+  text-align: right;
+  top: 15px;
+  right: 15px;
+}
 </style>
 </head>
 <body onload="initMap()">
 <div id="map" tabindex="0"></div>
+<p id="instructions">Press and hold the arrow keys to pan around. Crazy but fun?</p>
+<p id="controls">
+drag <span id="dragvalue"></span>: <input id="drag" type="range" value="1000" min="0" max="2000"></input><br>
+zoom <span id="zoomvalue"></span>: <input id="zoom" type="range" value="10000" min="0" max="18000"></input>
+</p>
+<p id="credit">Built with <a href="http://github.com/stamen/modestmaps-js/">Modest Maps JS</a>. Tiles Courtesy of <a href="http://www.mapquest.com/" target="_blank">MapQuest</a> <img src="http://developer.mapquest.com/content/osm/mq_logo.png"></p>
 </body>
 </html>

@@ -6,22 +6,20 @@ if (!com) {
     }
 }
 
-com.modestmaps.Follower = function(map, location, content, dimensions)
+(function(MM){
+MM.Follower = function(map, location, content, dimensions)
 {
     this.coord = map.provider.locationCoordinate(location);
     
-    this.offset = new com.modestmaps.Point(0, 0);
-    this.dimensions = dimensions || new com.modestmaps.Point(100, 50);
-    this.padding = new com.modestmaps.Point(10, 10);
-    this.offset = new com.modestmaps.Point(0, -this.dimensions.y);
+    this.offset = new MM.Point(0, 0);
+    this.dimensions = dimensions || new MM.Point(100, 50);
+    this.padding = new MM.Point(10, 10);
+    this.offset = new MM.Point(0, -this.dimensions.y);
 
     var follower = this;
     
     var callback = function(m, a) { return follower.draw(m); };
-    map.addCallback('panned', callback);
-    map.addCallback('zoomed', callback);
-    map.addCallback('centered', callback);
-    map.addCallback('extentset', callback);
+    map.addCallback('drawn', callback);
     
     this.div = document.createElement('div');
     this.div.style.position = 'absolute';
@@ -32,9 +30,9 @@ com.modestmaps.Follower = function(map, location, content, dimensions)
     
     this.div.innerHTML = content;
     
-    com.modestmaps.addEvent(this.div, 'mousedown', function(e) {
+    MM.addEvent(this.div, 'mousedown', function(e) {
         if(!e) e = window.event;
-        return com.modestmaps.cancelEvent(e);
+        return MM.cancelEvent(e);
     });
     
     map.parent.appendChild(this.div);
@@ -42,7 +40,7 @@ com.modestmaps.Follower = function(map, location, content, dimensions)
     this.draw(map);
 }
 
-com.modestmaps.Follower.prototype = {
+MM.Follower.prototype = {
 
     div: null,
     coord: null,
@@ -79,9 +77,16 @@ com.modestmaps.Follower.prototype = {
 
         } else {
             this.div.style.display = 'block';
-            this.div.style.left = point.x + this.offset.x + 'px';
-            this.div.style.top = point.y + this.offset.y + 'px';
+            MM.moveElement(this.div, {
+                x: Math.round(point.x + this.offset.x),
+                y: Math.round(point.y + this.offset.y),
+                scale: 1,
+                width: this.dimensions.x,
+                height: this.dimensions.y
+            });
         }
     }
 
 };
+
+})(com.modestmaps);
