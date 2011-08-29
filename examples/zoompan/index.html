@@ -8,20 +8,22 @@
 var MM = com.modestmaps;
 var map;
 
-function initMap() {
+window.onload = function() {
 
     // http://blog.mapquest.com/2010/07/09/mapquest-opens-up/
     var template = 'http://{S}.mqcdn.com/tiles/1.0.0/osm/{Z}/{X}/{Y}.png';
     var subdomains = [ 'otile1', 'otile2', 'otile3', 'otile4'];
     var provider = new MM.TemplatedMapProvider(template, subdomains);
 
-    map = new MM.Map(document.body, provider); 
-    map.enablePyramidLoading = true;
+    map = new MM.Map('map', provider); 
+//    map.enablePyramidLoading = true;
 
     map.setCenterZoom(new MM.Location(37.811530, -122.2666097), 14);
 
+    setUpSearch();
+
     //animateCenterZoom(new MM.Location(37.770, -122.424), 16);
-    animateCenterZoom(new MM.Location(51.514, -0.113), 18);
+    //animateCenterZoom(new MM.Location(51.514, -0.113), 18);
 }
 
 function animateCenterZoom(l1, z1) {
@@ -69,7 +71,7 @@ function tanh(x) { return sinh(x) / cosh(x); }
 function animateStep(c0,w0,c1,w1,V,rho) {
 
     // see section 6 for user testing to derive these values (they can be tuned)
-    if (V === undefined) V = 2.0;      // section 6 suggests 0.9
+    if (V === undefined) V = 0.9;      // section 6 suggests 0.9
     if (rho === undefined) rho = 1.42; // section 6 suggests 1.42
 
     // simple interpolation of positions will be fine:
@@ -134,6 +136,7 @@ function animateStep(c0,w0,c1,w1,V,rho) {
         applyPos(pos, w(s));
         //console.log(Date.now() - frameInterval);
     }
+    
     MM.getFrame(tick);
 
 }
@@ -152,17 +155,85 @@ function applyPos(pos,w) {
     map.setCenterZoom(l,z);    
 }
 
+///////////////
+
+/////////////////////// search...
+
+function setUpSearch() {
+    var search = document.getElementById('search');
+    search.q.disabled = null;
+    search.submit.disabled = null;
+    
+    search.onsubmit = function() {
+        if (search.q.value && search.q.value.length > 0) {        
+            search.q.disabled = 'true';
+            search.submit.disabled = 'true';   
+            doSearch(search.q.value);
+        }
+        return false;
+    }
+}
+
+function doSearch(q) {
+    var script = document.createElement("script");
+    script.setAttribute("type", "text/javascript");
+    script.setAttribute("src", "http://dev.virtualearth.net"
+        + "/REST/V1/Locations"
+        + "?key=AmT-ZC3HPevQq5IBJ7v8qiDUxrojNaqbW1zBsKF0oMNEs53p7Nk5RlAuAmwSG7bg"
+        + "&query=" + encodeURIComponent(q)
+        + "&jsonp=searchCallback");
+    document.body.appendChild(script);
+}
+
+function searchCallback(rsp) {
+    try {
+        // console.log(rsp);
+    
+        var bbox = rsp.resourceSets[0].resources[0].bbox; // [s,w,n,e]
+
+        // TODO: don't just use the first one, see if there's one nearby to where we're already looking
+
+        // compute the extent in points, scale factor, and center
+        // -- borrowed from map.extent(), thanks Mike
+        var bl = map.locationPoint(new MM.Location(bbox[0], bbox[1])),
+            tr = map.locationPoint(new MM.Location(bbox[2], bbox[3])),
+            sizeActual = map.dimensions,
+            k = Math.max((tr.x - bl.x) / sizeActual.x, (bl.y - tr.y) / sizeActual.y),
+            l = map.pointLocation(new MM.Point((bl.x + tr.x) / 2, (bl.y + tr.y) / 2));
+    
+        // update the zoom level
+        var z = map.getZoom() - Math.log(k) / Math.log(2);
+        
+        animateCenterZoom(l, z);
+    }
+    catch(e) {    
+        console.error(e);
+        // TODO: what? reset map position/zoom, perhaps? show error?
+    }
+    var search = document.getElementById('search');    
+    search.q.disabled = null;
+    search.submit.disabled = null;
+}
+
 </script>
 <style type="text/css">
-html, body {
+html, body, #map {
   width: 100%;
   height: 100%;
   margin: 0;
   padding: 0;
-  border: 0
+  border: 0;
+  background: #000;
+}
+#search {
+    left: 15px;
+    top: 15px;
+    position: absolute;
 }
 </style>
 </head>
-<body onload="initMap()">
+<body>
+<div id="map"></div>
+<form id="search"><input type="search" size="32" name="q" placeholder="type a place name..." disabled/><button type="submit" name="submit" disabled>Go!</button></form>
 </body>
 </html>
