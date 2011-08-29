@@ -8,26 +8,25 @@
         return child;
     };
 
-    MM.getFrame = function () {
+    MM.getFrame = function (window) {
         // native animation frames
         // http://webstuff.nfshost.com/anim-timing/Overview.html
         // http://dev.chromium.org/developers/design-documents/requestanimationframe-implementation
-        return function(callback) {
-            (window.requestAnimationFrame  ||
-            window.webkitRequestAnimationFrame ||
-            window.mozRequestAnimationFrame    ||
-            window.oRequestAnimationFrame      ||
-            window.msRequestAnimationFrame     ||
-            function (callback) {
-                window.setTimeout(function () {
-                    callback(+new Date());
-                }, 10);
-            })(callback);
-        };
-    }();
+        return (window.requestAnimationFrame  ||
+                window.webkitRequestAnimationFrame ||
+                window.mozRequestAnimationFrame    ||
+                window.oRequestAnimationFrame      ||
+                window.msRequestAnimationFrame     ||
+                function (callback) {
+                    window.setTimeout(function () {
+                        callback(+new Date());
+                    }, 10);
+                });
+    }(this);
 
     // Inspired by LeafletJS
     MM.transformProperty = (function(props) {
+        if (!this.document) return; // node.js safety
         var style = document.documentElement.style;
         for (var i = 0; i < props.length; i++) {
             if (props[i] in style) {
@@ -62,12 +61,12 @@
         }
     };
 
-    MM._browser = (function() {
+    MM._browser = (function(window) {
         return {
             webkit: ('WebKitCSSMatrix' in window),
             webkit3d: ('WebKitCSSMatrix' in window) && ('m11' in new WebKitCSSMatrix())
         };
-    })();
+    })(this); // use this for node.js global
 
     MM.moveElement = function(el, point) {
         if (MM.transformProperty) {
