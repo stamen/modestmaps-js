@@ -32,8 +32,8 @@
             return this.projection.locationCoordinate(location);
         },
     
-        coordinateLocation: function(location) {
-            return this.projection.coordinateLocation(location);
+        coordinateLocation: function(coordinate) {
+            return this.projection.coordinateLocation(coordinate);
         },
         
         outerLimits: function() {
