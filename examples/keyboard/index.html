@@ -1,21 +1,25 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Modest Maps JS - Keyboard Tester</title>
+<title>Modest Maps JS - Throwable Test</title>
 <script type="text/javascript" src="../../modestmaps.js"></script>
 <script type="text/javascript">
 
 (function(MM){
 
-    MM.KeyboardHandler = function() { }
+    MM.ThrowableHandler = function() { }
 
-    MM.KeyboardHandler.prototype = {
+    MM.ThrowableHandler.prototype = {
 
         init: function(map) {
             this.map = map;
             MM.addEvent(map.parent, 'click', function(e) { map.parent.focus() });
-            MM.addEvent(map.parent, 'keydown', this.getKeyDown());
-            MM.addEvent(map.parent, 'keyup', this.getKeyUp());            
+            MM.addEvent(map.parent, 'keydown', MM.bind(this.keyDown, this));
+            MM.addEvent(map.parent, 'keyup', MM.bind(this.keyUp, this));
+            MM.addEvent(map.parent, 'mousedown', MM.bind(this.mouseDown, this));
+            MM.addEvent(map.parent, 'mousemove', MM.bind(this.mouseMove, this));
+            MM.addEvent(map.parent, 'mouseup', MM.bind(this.mouseUp, this));
+            MM.addEvent(map.parent, 'mousewheel', MM.bind(this.mouseWheel, this));
             // tick every frame for time-based anim
             this.prevT = new Date().getTime();
             this.boundAnimate = MM.bind(this.animate, this);
@@ -25,8 +29,6 @@
         
         keyCount: 0,
         keysPressed: {},
-        keyDown: null,
-        keyUp: null,
         trappedKeys: { 37: true, 38: true, 39: true, 40: true },
         animate: null,
         prevT: 0,
@@ -34,6 +36,11 @@
         speed: null,
         boundAnimate: null,
         drag: 0.05,
+        mouseDownPoint: null,
+        mousePoint: null,
+        mouseDownTime: 0,
+        zoomSpeed: 0,
+        zoomPoint: null,
 
         animate: function(t) {
             var dir = { x: 0, y: 0 };
@@ -57,45 +64,92 @@
                 this.speed.x += dir.x * this.acceleration * dt;
                 this.speed.y += dir.y * this.acceleration * dt;                
             }
+            else if (this.mousePoint && this.prevMousePoint) {
+                dir.x = this.mousePoint.x - this.prevMousePoint.x;
+                dir.y = this.mousePoint.y - this.prevMousePoint.y;
+                this.speed.x = dir.x;
+                this.speed.y = dir.y;
+            }
             else {
                 this.speed.x -= this.speed.x * this.drag;
                 this.speed.y -= this.speed.y * this.drag;
+                if (Math.abs(this.speed.x) < 0.001) {
+                    this.speed.x = 0;
+                }
+                if (Math.abs(this.speed.y) < 0.001) {
+                    this.speed.y = 0;
+                }
             }
-            this.map.panBy(this.speed.x,this.speed.y);            
+            if (this.speed.x || this.speed.y) {
+                this.map.panBy(this.speed.x,this.speed.y);            
+            }
+            if (this.zoomSpeed && this.zoomPoint) {
+                this.map.zoomByAbout(this.zoomSpeed * dt, this.zoomPoint);
+                this.zoomSpeed -= this.zoomSpeed * 0.125;
+                if (Math.abs(this.zoomSpeed) < 0.001) {
+                    this.zoomSpeed = 0;
+                }
+            }
             this.prevT = t;
             // tick every frame for time-based anim accuracy
             MM.getFrame(this.boundAnimate);
         },
 
-        getKeyDown: function() {
-            if (!this.keyDown) {
-                var theHandler = this;
-                this.keyDown = function(e) {
-                    if (!(e.keyCode in theHandler.keysPressed)) {
-                        theHandler.keysPressed[e.keyCode] = true;
-                        theHandler.keyCount++;
-                    }
-                    if (e.keyCode in theHandler.trappedKeys) {
-                      return MM.cancelEvent(e);
-                    }
-                }
+        keyDown: function(e) {
+            if (!(e.keyCode in this.keysPressed)) {
+                this.keysPressed[e.keyCode] = true;
+                this.keyCount++;
             }
-            return this.keyDown;
+            if (e.keyCode in this.trappedKeys) {
+              return MM.cancelEvent(e);
+            }
         },
     
-        getKeyUp: function() {
-            if (!this.keyUp) {
-                var theHandler = this;
-                this.keyUp = function(e) {
-                    theHandler.keyCount--;
-                    delete theHandler.keysPressed[e.keyCode];
-                    if (e.keyCode in theHandler.trappedKeys) {
-                      return MM.cancelEvent(e);
-                    }
-                }
+        keyUp: function(e) {
+            this.keyCount--;
+            delete this.keysPressed[e.keyCode];
+            if (e.keyCode in this.trappedKeys) {
+              return MM.cancelEvent(e);
             }
-            return this.keyUp;
         },
+        
+        mouseDown: function(e) {
+            this.mousePoint = this.prevMousePoint = MM.getMousePoint(e,this.map);
+            return MM.cancelEvent(e);            
+        },
+        
+        mouseMove: function(e) {
+            if (this.mousePoint) {
+                this.prevMousePoint = this.mousePoint;
+                this.mousePoint = MM.getMousePoint(e,this.map);
+                return MM.cancelEvent(e);            
+            }
+        },
+        
+        mouseUp: function(e) {
+            this.mousePoint = this.prevMousePoint = null;
+            return MM.cancelEvent(e);            
+        },
+        
+        mouseWheel: function(e) {
+            var delta = 0;
+
+            // normalize, just want direction
+            if (e.wheelDelta) {
+                delta = e.wheelDelta;
+            } else if (e.detail) {
+                delta = -e.detail;
+            }
+
+            if (Math.abs(delta) > 0) {
+                this.zoomPoint = MM.getMousePoint(e, this.map);
+                console.log(delta/100.0);
+                this.zoomSpeed += Math.max(-1, Math.min(delta/100.0, 1));
+            }
+
+            // Cancel the event so that the page doesn't scroll
+            return MM.cancelEvent(e);            
+        }
     
     };
 
@@ -109,24 +163,26 @@ function initMap() {
     var provider = new MM.TemplatedMapProvider('http://oatile1.mqcdn.com/naip/{Z}/{X}/{Y}.jpg')
     // new MM.TemplatedMapProvider('http://tile.openstreetmap.org/{Z}/{X}/{Y}.png')
 
-    var keyHandler = new MM.KeyboardHandler();
+    var handler = new MM.ThrowableHandler();
     
     var dragSlider = document.getElementById('drag');
     var dragValue = document.getElementById('dragvalue');
     dragSlider.onchange = function() {
-        keyHandler.drag = parseFloat((dragSlider.value - dragSlider.min) / (dragSlider.max - dragSlider.min)) / 10.0;
-        dragValue.innerHTML = keyHandler.drag.toFixed(3);
+        handler.drag = parseFloat((dragSlider.value - dragSlider.min) / (dragSlider.max - dragSlider.min)) / 10.0;
+        dragValue.innerHTML = handler.drag.toFixed(3);
     };
-    dragValue.innerHTML = keyHandler.drag.toFixed(3);
+    dragValue.innerHTML = handler.drag.toFixed(3);
 
     map = new MM.Map('map', 
                       provider, 
                       null,
-                     [ keyHandler ]);
+                     [ handler ]);
 
     map.enablePyramidLoading = true;
 
     map.setCenterZoom(new MM.Location(37.811530, -122.2666097), 10);
+
+    map.parent.focus();
 
     var zoomSlider = document.getElementById('zoom');
     var zoomValue = document.getElementById('zoomvalue');
@@ -197,7 +253,7 @@ a {
 </head>
 <body onload="initMap()">
 <div id="map" tabindex="0"></div>
-<p id="instructions">Press and hold the arrow keys to pan around. Crazy but fun?</p>
+<p id="instructions">Click/drag to throw the map, or press and hold the arrow keys to fly around.</p>
 <p id="controls">
 drag <span id="dragvalue"></span>: <input id="drag" type="range" value="1000" min="0" max="2000"></input><br>
 zoom <span id="zoomvalue"></span>: <input id="zoom" type="range" value="10000" min="0" max="18000"></input>
