@@ -10,8 +10,12 @@
 </head>
 <body>
 <div class='page'>
-  <h1>{{ page.title }}</h1>
-{{ content }}
+<h1><a href='{{ site.baseurl }}'>Modest Maps</a></h1>
+  {% include navigation.html %}
+  <h2>{{ page.title }}</h2>
+  <div class='content'>
+    {{ content }}
+  </div>
 </div>
 </body>
 </html>

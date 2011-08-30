@@ -1,16 +1,37 @@
 body {
-    font: 14px/20px Arial, Helvetica, sans;
-    color: #222;
-    background-color: white;
+  font: 14px/20px Arial, Helvetica, sans;
+  color: #222;
+  background-color: white;
 }
 
 p {
   margin:10px 0;
 }
 
+@font-face {
+  font-family:MuseoSans;
+  src: url('Rokkit-Regular.ttf');
+}
+
+
+h1 {
+  font: 20px/40px "MuseoSans", serif;
+}
+
 div.page {
   width:700px;
   margin:20px auto;
+}
+
+div.content {
+  width:600px;
+  float:right;
+}
+
+div.navigation {
+  width:90px;
+  padding-right:10px;
+  float:left;
 }
 
 div.highlight {
