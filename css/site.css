@@ -8,14 +8,32 @@ p {
   margin:10px 0;
 }
 
+a {
+  color:blue;
+}
+
 @font-face {
   font-family:MuseoSans;
   src: url('Rokkit-Regular.ttf');
 }
 
+div.header {
+  padding-left:100px;
+}
 
-h1 {
-  font: 20px/40px "MuseoSans", serif;
+h1, h1 a {
+  font: 30px/60px "MuseoSans", serif;
+  color:#7e7e7e;
+  text-decoration:none;
+}
+
+h1 a:hover {
+  color:#000;
+}
+
+h2 {
+  font-size:20px;
+  line-height:30px;
 }
 
 div.page {

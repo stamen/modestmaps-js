@@ -9,10 +9,10 @@ The methods of Map that convert to/from points work relative to the map's
 containing div element. This is used to locate the pixel within
 the map, starting at `(0, 0)` in the upper-lefthand corner.
 
-## API
+### API
 
-### Constructor
+#### Constructor
 
 {% highlight js %}new com.modestmaps.Point(x, y){% endhighlight %}
 
-### Class Methods
+#### Class Methods
