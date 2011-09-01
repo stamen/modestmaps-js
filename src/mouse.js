@@ -124,13 +124,6 @@
             MM.removeEvent(document, 'mouseup', this._mouseUp);
             MM.removeEvent(document, 'mousemove', this._mouseMove);
 
-            var inertia = 50;
-
-            var iv = {
-                x: (e.clientX - this.prevMouse.x) * (inertia / Math.min(+new Date() - this.prevMouse.t, 1)),
-                y: (e.clientY - this.prevMouse.y) * (inertia / Math.min(+new Date() - this.prevMouse.t, 1))
-            };
-
             this.prevMouse = null;
             this.map.parent.style.cursor = '';
 
