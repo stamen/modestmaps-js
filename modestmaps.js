@@ -333,6 +333,9 @@ if (!com) {
     // * FIXME: could be heavily optimized (lots of trig calls to cache)
     // * FIXME: could be inmproved for calculating a full path
     MM.Location.interpolate = function(l1, l2, f) {
+        if (l1.lat === l2.lat && l1.lon === l2.lon) {
+            return new MM.Location(l1.lat, l1.lon);
+        }
         var deg2rad = Math.PI / 180.0,
             lat1 = l1.lat * deg2rad,
             lon1 = l1.lon * deg2rad,
