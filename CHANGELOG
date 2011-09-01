@@ -8,6 +8,10 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment
     the major version." -- http://semver.org/
 
+v0.18.4
+- Fix Location.interpolate between the same location
+- Fix DragHandler - remove inertia code
+
 v0.18.3
 - enforce limits when zooming and panning so that map functions are correct
   when returning and before the deferred draw call using getFrame
