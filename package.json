@@ -9,9 +9,9 @@
   },
   "contributors": [
     "Mike Migurski <mike-fromsite@teczno.com>",
-    "Tom MacWright <macwright@gmail.com>"
+    "Tom MacWright <tom@macwright.org>"
   ],
-  "keywords": ["map", "geo"],
+  "keywords": ["map", "geo", "browser"],
   "main": "./modestmaps.js",
   "homepage": "https://github.com/stamen/modestmaps-js",
   "repositories": [{
