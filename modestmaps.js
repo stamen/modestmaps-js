@@ -1,8 +1,8 @@
 /*!
- * Modest Maps JS v0.18.3
+ * Modest Maps JS v0.18.4
  * http://modestmaps.com/
  *
- * Copyright (c) 2010 Stamen Design, All Rights Reserved.
+ * Copyright (c) 2011 Stamen Design, All Rights Reserved.
  *
  * Open source under the BSD License.
  * http://creativecommons.org/licenses/BSD/
@@ -1071,7 +1071,7 @@ if (!com) {
         this.maxOpenRequests = 4;
         this.requestQueue = [];
 
-        this.callbackManager = new MM.CallbackManager(this, [ 'requestcomplete' ]);
+        this.callbackManager = new MM.CallbackManager(this, ['requestcomplete']);
     };
 
     MM.RequestManager.prototype = {
@@ -1112,16 +1112,16 @@ if (!com) {
             this.clearExcept({});
         },
 
-        // Clear everything in the queue except for certain keys, speciied
+        // Clear everything in the queue except for certain ids, speciied
         // by an object of the form
         //
-        //     { key: throwawayvalue }
-        clearExcept: function(validKeys) {
+        //     { id: throwawayvalue }
+        clearExcept: function(validIds) {
 
             // clear things from the queue first...
             for (var i = 0; i < this.requestQueue.length; i++) {
                 var request = this.requestQueue[i];
-                if (request && !(request.key in validKeys)) {
+                if (request && !(request.id in validIds)) {
                     this.requestQueue[i] = null;
                 }
             }
@@ -1130,7 +1130,7 @@ if (!com) {
             var openRequests = this.loadingBay.childNodes;
             for (var j = openRequests.length-1; j >= 0; j--) {
                 var img = openRequests[j];
-                if (!(img.id in validKeys)) {
+                if (!(img.id in validIds)) {
                     this.loadingBay.removeChild(img);
                     this.openRequestCount--;
                     /* console.log(this.openRequestCount + " open requests"); */
@@ -1144,19 +1144,19 @@ if (!com) {
             // -- http://www.yuiblog.com/blog/2006/09/26/for-in-intrigue/
             for (var id in this.requestsById) {
                 if (this.requestsById.hasOwnProperty(id)) {
-                    if (!(id in validKeys)) {
+                    if (!(id in validIds)) {
                         var request = this.requestsById[id];
                         // whether we've done the request or not...
                         delete this.requestsById[id];
                         if (request !== null) {
-                            request = request.key = request.coord = request.url = null;
+                            request = request.id = request.coord = request.url = null;
                         }
                     }
                 }
             }
         },
 
-        // Given a tile key, check whether the RequestManager is currently
+        // Given a tile id, check whether the RequestManager is currently
         // requesting it and waiting for the result.
         hasRequest: function(id) {
             return (id in this.requestsById);
@@ -1164,18 +1164,17 @@ if (!com) {
 
         // * TODO: remove dependency on coord (it's for sorting, maybe call it data?)
         // * TODO: rename to requestImage once it's not tile specific
-        requestTile: function(key, coord, url) {
-            if (!(key in this.requestsById)) {
-                var request = { key: key, coord: coord.copy(), url: url };
+        requestTile: function(id, coord, url) {
+            if (!(id in this.requestsById)) {
+                var request = { id: id, coord: coord.copy(), url: url };
                 // if there's no url just make sure we don't request this image again
-                this.requestsById[key] = request;
+                this.requestsById[id] = request;
                 if (url) {
                     this.requestQueue.push(request);
                     /* console.log(this.requestQueue.length + ' pending requests'); */
                 }
             }
         },
-        
         getProcessQueue: function() {
             // let's only create this closure once...
             if (!this._processQueue) {
@@ -1186,7 +1185,6 @@ if (!com) {
             }
             return this._processQueue;
         },
-
         // Select images from the `requestQueue` and create image elements for
         // them, attaching their load events to the function returned by
         // `this.getLoadComplete()` so that they can be added to the map.
@@ -1199,7 +1197,6 @@ if (!com) {
             while (this.openRequestCount < this.maxOpenRequests && this.requestQueue.length > 0) {
                 var request = this.requestQueue.pop();
                 if (request) {
-                    
                     this.openRequestCount++;
                     /* console.log(this.openRequestCount + ' open requests'); */
 
@@ -1208,16 +1205,15 @@ if (!com) {
                     // http://tinyurl.com/y9wz2jj http://tinyurl.com/yes6rrt
                     var img = document.createElement('img');
 
-                    // FIXME: key is technically not unique in document if there
+                    // FIXME: id is technically not unique in document if there
                     // are two Maps but toKey is supposed to be fast so we're trying
                     // to avoid a prefix ... hence we can't use any calls to
                     // `document.getElementById()` to retrieve images
-                    img.id = request.key;
+                    img.id = request.id;
                     img.style.position = 'absolute';
                     // * FIXME: store this elsewhere to avoid scary memory leaks?
                     // * FIXME: call this 'data' not 'coord' so that RequestManager is less Tile-centric?
                     img.coord = request.coord;
-                    
                     // add it to the DOM in a hidden layer, this is a bit of a hack, but it's
                     // so that the event we get in image.onload has srcElement assigned in IE6
                     this.loadingBay.appendChild(img);
@@ -1226,7 +1222,7 @@ if (!com) {
                     img.src = request.url;
 
                     // keep things tidy
-                    request = request.key = request.coord = request.url = null;
+                    request = request.id = request.coord = request.url = null;
                 }
             }
         },
