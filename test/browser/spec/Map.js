@@ -1,8 +1,8 @@
-describe("Map", function() {
+describe('Map', function() {
   var map, div, sink;
 
   function Receiver() { }
-  Receiver.prototype.receive = function() { }
+  Receiver.prototype.receive = function() { };
 
   beforeEach(function() {
     sink = new Receiver();
@@ -19,17 +19,21 @@ describe("Map", function() {
     map.setCenterZoom(new com.modestmaps.Location(0, 0), 0);
   });
 
-  it("attaches itself to a parent div", function() {
+  it('attaches itself to a parent div', function() {
       expect(map.parent).toEqual(div);
   });
 
-  it("has a center coordinate", function() {
+  it('has set a proper zoom level', function() {
+      expect(map.getZoom()).toEqual(0);
+  });
+
+  it('has a center coordinate', function() {
       expect(typeof map.coordinate.row).toEqual('number');
       expect(typeof map.coordinate.column).toEqual('number');
       expect(typeof map.coordinate.zoom).toEqual('number');
   });
 
-  it("binds and calls drawn", function() {
+  it('binds and calls drawn', function() {
       spyOn(sink, 'receive');
       map.addCallback('drawn', sink.receive);
 
@@ -44,7 +48,7 @@ describe("Map", function() {
       });
   });
 
-  it("binds and calls zoomed", function() {
+  it('binds and calls zoomed', function() {
       spyOn(sink, 'receive');
       map.addCallback('zoomed', sink.receive);
 
@@ -59,7 +63,7 @@ describe("Map", function() {
       });
   });
 
-  it("binds and calls panned", function() {
+  it('binds and calls panned', function() {
       spyOn(sink, 'receive');
       map.addCallback('panned', sink.receive);
 
@@ -74,7 +78,7 @@ describe("Map", function() {
       });
   });
 
-  it("binds and calls resized", function() {
+  it('binds and calls resized', function() {
       spyOn(sink, 'receive');
       map.addCallback('resized', sink.receive);
 
