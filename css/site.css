@@ -23,12 +23,11 @@ div.header {
 
 h1, h1 a {
   font: 30px/60px "MuseoSans", serif;
-  color:#7e7e7e;
+  color:#000;
   text-decoration:none;
 }
 
 h1 a:hover {
-  color:#000;
 }
 
 h2 {
@@ -57,3 +56,8 @@ div.highlight {
   border:1px solid #aaa;
   margin:10px 0;
 }
+
+.map {
+  height:300px;
+}
+
