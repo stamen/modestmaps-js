@@ -2,13 +2,21 @@
 <h4>Manual</h4>
 <ul>
   {% for post in site.tags.manual %}
-    <li><a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a></li>
+  <li>
+  <a
+    class='{% if page.url contains post.url %}active{% endif %}'
+    href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a>
+  </li>
   {% endfor %}
 </ul>
 <h4>API</h4>
 <ul>
   {% for post in site.tags.api %}
-    <li><a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a></li>
+  <li>
+  <a
+    class='{% if page.url contains post.url %}active{% endif %}'
+    href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a>
+  </li>
   {% endfor %}
 </ul>
 </div>

@@ -12,12 +12,15 @@ interactive maps in their own projects. Modest Maps provides a core set of
 features in a tight, clean package, with plenty of hooks for
 additional functionality.
 
-{% highlight js %}
-var mm = com.modestmaps;
-
-var provider = new MM.TemplatedMapProvider(
-    'http://{S}.mqcdn.com/tiles/1.0.0/osm/{Z}/{X}/{Y}.png',
-    ['otile1', 'otile2', 'otile3', 'otile4']);
-
-var map = new com.modestmaps.Map('map', provider);
+<div class='live'>
+{% highlight html %}
+<div class='map' id='map-1'></div>
+<script type='text/javascript'>
+var template = 'http://d.tiles.mapbox.com/mapbox/2.0.0/' +
+    'mapbox.world-bright/{Z}/{X}/{Y}.png';
+var provider = new com.modestmaps.TemplatedMapProvider(template);
+var map = new com.modestmaps.Map('map-1', provider);
+map.setZoom(2);
+</script>
 {% endhighlight %}
+</div>
