@@ -50,13 +50,7 @@
             // FIXME: listeners like this will stop the map being removed cleanly?
             // when does removeEvent get called?
             var theMap = this;
-            MM.addEvent(window, 'resize', function(event) {
-                // don't call setSize here because it sets parent.style.width/height
-                // and setting the height breaks percentages and default styles
-                theMap.dimensions = new MM.Point(theMap.parent.offsetWidth, theMap.parent.offsetHeight);
-                theMap.draw();
-                theMap.dispatchCallback('resized', [theMap.dimensions]);
-            });
+            MM.addEvent(window, 'resize', this.windowResize());
         }
         else {
             this.parent.style.width = Math.round(dimensions.x) + 'px';
@@ -146,6 +140,20 @@
 
         dispatchCallback: function(event, message) {
             this.callbackManager.dispatchCallback(event, message);
+        },
+
+        windowResize: function() {
+            if (!this._windowResize) {
+                var theMap = this;
+                this._windowResize = function(event) {
+                    // don't call setSize here because it sets parent.style.width/height
+                    // and setting the height breaks percentages and default styles
+                    theMap.dimensions = new MM.Point(theMap.parent.offsetWidth, theMap.parent.offsetHeight);
+                    theMap.draw();
+                    theMap.dispatchCallback('resized', [theMap.dimensions]);
+                };
+            }
+            return this._windowResize;
         },
 
         // zooming
@@ -758,5 +766,13 @@
                 }
                 return r1 ? 1 : r2 ? -1 : 0;
             };
+        },
+
+        // Attempts to destroy all attachment a map has to a page
+        // and clear its memory usage.
+        destroy: function() {
+            this.requestManager.clear();
+            MM.removeEvent(window, 'resize', this.windowResize());
+            return this;
         }
     };

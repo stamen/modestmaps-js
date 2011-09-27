@@ -88,11 +88,14 @@
             for (var id in this.requestsById) {
                 if (this.requestsById.hasOwnProperty(id)) {
                     if (!(id in validIds)) {
-                        var request = this.requestsById[id];
+                        var requestToRemove = this.requestsById[id];
                         // whether we've done the request or not...
                         delete this.requestsById[id];
-                        if (request !== null) {
-                            request = request.id = request.coord = request.url = null;
+                        if (requestToRemove !== null) {
+                            requestToRemove =
+                                requestToRemove.id =
+                                requestToRemove.coord =
+                                requestToRemove.url = null;
                         }
                     }
                 }

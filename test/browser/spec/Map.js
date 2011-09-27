@@ -92,4 +92,9 @@ describe('Map', function() {
           expect(sink.receive).toHaveBeenCalledWith(map, [{ x: 200, y: 300}]);
       });
   });
+
+  it('can be cleanly destroyed', function() {
+      map.destroy();
+      expect(map.requestManager.openRequestCount).toEqual(0);
+  });
 });
