@@ -9,7 +9,12 @@ p {
 }
 
 a {
-  color:blue;
+  color:#542437;
+  text-decoration:none;
+}
+
+a:hover {
+  text-decoration:underline;
 }
 
 @font-face {
@@ -75,4 +80,20 @@ div.navigation ul li a {
 
 div.navigation ul li a.active {
   color:#000;
+}
+
+/* homepage */
+.implementations .item {
+  width:260px;
+  height:100px;
+  background:#F7EEF1;
+  border:1px solid #663b4c;
+  padding:10px;
+  margin:0 10px 10px 0;
+  float:left;
+}
+
+table th {
+  font: 12px/20px Arial, Helvetica, sans;
+  text-align:right;
 }
