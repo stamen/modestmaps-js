@@ -775,6 +775,7 @@
             for (var i = 0; i < this.eventHandlers.length; i++) {
                 this.eventHandlers[i].remove();
             }
+            this.parent.removeChild(this.layerParent);
             MM.removeEvent(window, 'resize', this.windowResize());
             return this;
         }
