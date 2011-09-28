@@ -13,15 +13,28 @@
         init: function(map, options) {
             this.map = map;
             options = options || {};
+
+            this._touchStartMachine = MM.bind(this.touchStartMachine, this);
+            this._touchMoveMachine = MM.bind(this.touchMoveMachine, this);
+            this._touchEndMachine = MM.bind(this.touchEndMachine, this);
             MM.addEvent(map.parent, 'touchstart',
-                MM.bind(this.touchStartMachine, this));
+                this._touchStartMachine);
             MM.addEvent(map.parent, 'touchmove',
-                MM.bind(this.touchMoveMachine, this));
+                this._touchMoveMachine);
             MM.addEvent(map.parent, 'touchend',
-                MM.bind(this.touchEndMachine, this));
+                this._touchEndMachine);
 
             this.options = {};
             this.options.snapToZoom = options.snapToZoom || true;
+        },
+
+        remove: function() {
+            MM.removeEvent(this.map.parent, 'touchstart',
+                this._touchStartMachine);
+            MM.removeEvent(this.map.parent, 'touchmove',
+                this._touchMoveMachine);
+            MM.removeEvent(this.map.parent, 'touchend',
+                this._touchEndMachine);
         },
 
         updateTouches: function(e) {
@@ -37,7 +50,7 @@
                     this.locations[t.identifier] = {
                         scale: e.scale,
                         startPos: { x: t.screenX, y: t.screenY },
-                        x: t.screenX, 
+                        x: t.screenX,
                         y: t.screenY,
                         time: new Date().getTime()
                     };
@@ -71,11 +84,9 @@
         },
 
         touchEndMachine: function(e) {
-                
             var now = new Date().getTime();
-            
-            // round zoom if we're done pinching 
-            if (e.touches.length == 0 && this.wasPinching) {
+            // round zoom if we're done pinching
+            if (e.touches.length === 0 && this.wasPinching) {
                 this.onPinched(this.lastPinchCenter);
             }
 
@@ -83,7 +94,6 @@
             for (var i = 0; i < e.changedTouches.length; i += 1) {
                 var t = e.changedTouches[i],
                     loc = this.locations[t.identifier];
-                    
                 // if we didn't see this one (bug?)
                 // or if it was consumed by pinching already
                 // just skip to the next one
@@ -95,7 +105,7 @@
                 // matching touch that's just ended. Let's see
                 // what kind of event it is based on how long it
                 // lasted and how far it moved.
-                var pos = { x: t.screenX, y: t.screenY },                
+                var pos = { x: t.screenX, y: t.screenY },
                     time = now - loc.time,
                     travel = MM.Point.distance(pos, loc.startPos);
                 if (travel > this.maxTapDistance) {
@@ -115,7 +125,7 @@
             // Weird, sometimes an end event doesn't get thrown
             // for a touch that nevertheless has disappeared.
             // Still, this will eventually catch those ids:
-            
+
             var validTouchIds = {};
             for (var j = 0; j < e.touches.length; j++) {
                 validTouchIds[e.touches[j].identifier] = true;
@@ -125,7 +135,7 @@
                     delete validTouchIds[id];
                 }
             }
-            
+
             return MM.cancelEvent(e);
         },
 
@@ -151,7 +161,6 @@
             var z = this.map.getZoom(), // current zoom
                 tz = Math.round(z) + 1, // target zoom
                 dz = tz - z;            // desired delate
-            
             // zoom in to a round number
             var p = new MM.Point(tap.x, tap.y);
             this.map.zoomByAbout(dz, p);
@@ -159,13 +168,12 @@
 
         // Re-transform the actual map parent's CSS transformation
         onPanning: function(touch) {
-            var pos = { x: touch.screenX, y: touch.screenY },        
+            var pos = { x: touch.screenX, y: touch.screenY },
                 prev = this.locations[touch.identifier];
             this.map.panBy(pos.x - prev.x, pos.y - prev.y);
         },
 
         onPinching: function(e) {
-        
             // use the first two touches and their previous positions
             var t0 = e.touches[0],
                 t1 = e.touches[1],
@@ -177,10 +185,10 @@
             // mark these touches so they aren't used as taps/holds
             l0.wasPinch = true;
             l1.wasPinch = true;
-                    
+
             // scale about the center of these touches
             var center = MM.Point.interpolate(p0, p1, 0.5);
-        
+
             this.map.zoomByAbout(
                 Math.log(e.scale) / Math.LN2 -
                 Math.log(l0.scale) / Math.LN2,
@@ -189,10 +197,9 @@
             // pan from the previous center of these touches
             var prevCenter = MM.Point.interpolate(l0, l1, 0.5);
 
-            this.map.panBy( center.x - prevCenter.x,
-                            center.y - prevCenter.y );
-                            
-            this.wasPinching = true;        
+            this.map.panBy(center.x - prevCenter.x,
+                           center.y - prevCenter.y);
+            this.wasPinching = true;
             this.lastPinchCenter = center;
         },
 

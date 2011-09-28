@@ -29,7 +29,12 @@
 
         init: function(map) {
             this.map = map;
-            MM.addEvent(map.parent, 'mousewheel', MM.bind(this.mouseWheel, this));
+            this._mouseWheel = MM.bind(this.mouseWheel, this);
+            MM.addEvent(map.parent, 'mousewheel', this._mouseWheel);
+        },
+
+        remove: function() {
+            MM.removeEvent(this.map.parent, 'mousewheel', this._mouseWheel);
         },
 
         mouseWheel: function(e) {
@@ -68,7 +73,12 @@
 
         init: function(map) {
             this.map = map;
-            MM.addEvent(map.parent, 'dblclick', this._doubleClick = MM.bind(this.doubleClick, this));
+            this._doubleClick = MM.bind(this.doubleClick, this);
+            MM.addEvent(map.parent, 'dblclick', this._doubleClick);
+        },
+
+        remove: function() {
+            MM.removeEvent(this.map.parent, 'dblclick', this._doubleClick);
         },
 
         doubleClick: function(e) {
@@ -94,7 +104,12 @@
 
         init: function(map) {
             this.map = map;
-            MM.addEvent(map.parent, 'mousedown', MM.bind(this.mouseDown, this));
+            this._mouseDown = MM.bind(this.mouseDown, this);
+            MM.addEvent(map.parent, 'mousedown', this._mouseDown);
+        },
+
+        remove: function() {
+            MM.removeEvent(this.map.parent, 'mousedown', this._mouseDown);
         },
 
         mouseDown: function(e) {
@@ -143,8 +158,15 @@
     MM.MouseHandler.prototype = {
         init: function(map) {
             this.map = map;
-            new MM.DragHandler(map);
-            new MM.DoubleClickHandler(map);
-            new MM.MouseWheelHandler(map);
+            this.handlers = [
+                new MM.DragHandler(map),
+                new MM.DoubleClickHandler(map),
+                new MM.MouseWheelHandler(map)
+            ];
+        },
+        remove: function() {
+            for (var i = 0; i < this.handlers.length; i++) {
+                this.handlers[i].remove();
+            }
         }
     };
