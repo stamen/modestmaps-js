@@ -375,11 +375,8 @@
             }
 
             // first provider or not we'll init/reset some values...
-
             this.tiles = {};
-
             this.tileCacheSize = 0;
-
             this.maxTileCacheSize = 64;
             this.recentTiles = [];
             this.recentTilesById = {};
@@ -425,36 +422,30 @@
             return coord;
         },
 
-        // Redraw the tiles on the map, reusing existing tiles.
-        draw: function() {
-
-            // make sure we're not too far in or out:
-            this.coordinate = this.enforceLimits(this.coordinate);
-
+        getCoords: function(coord, dimensions) {
             // if we're in between zoom levels, we need to choose the nearest:
-            var baseZoom = Math.round(this.coordinate.zoom);
+            var baseZoom = Math.round(coord.zoom);
+
+            var oldCoord = this.coordinate.copy();
+
+            this.coord = coord;
 
             // these are the top left and bottom right tile coordinates
             // we'll be loading everything in between:
             var startCoord = this.pointCoordinate(new MM.Point(0, 0)).zoomTo(baseZoom).container();
-            var endCoord = this.pointCoordinate(this.dimensions).zoomTo(baseZoom).container().right().down();
+            var endCoord = this.pointCoordinate(dimensions)
+                .zoomTo(baseZoom)
+                .container().right().down();
 
             var tilePadding = 0;
             if (tilePadding) {
                 startCoord = startCoord.left(tilePadding).up(tilePadding);
                 endCoord = endCoord.right(tilePadding).down(tilePadding);
             }
-
-            // tiles with invalid keys will be removed from visible layers
-            // requests for tiles with invalid keys will be canceled
-            // (this object maps from a tile key to a boolean)
-            var validTileKeys = { };
-
-            // make sure we have a container for tiles in the current layer
-            var thisLayer = this.createOrGetLayer(startCoord.zoom);
-
             // use this coordinate for generating keys, parents and children:
             var tileCoord = startCoord.copy();
+
+            var coords = [];
 
             for (tileCoord.column = startCoord.column;
                 tileCoord.column <= endCoord.column;
@@ -462,63 +453,92 @@
                 for (tileCoord.row = startCoord.row;
                     tileCoord.row <= endCoord.row;
                     tileCoord.row += 1) {
-                    var tileKey = tileCoord.toKey();
-                    validTileKeys[tileKey] = true;
-                    if (tileKey in this.tiles) {
-                        var tile = this.tiles[tileKey];
-                        // ensure it's in the DOM:
-                        if (tile.parentNode != thisLayer) {
-                            thisLayer.appendChild(tile);
-                        }
-                    } else {
-                        if (!this.requestManager.hasRequest(tileKey)) {
-                            var tileURL = this.provider.getTileUrl(tileCoord);
-                            this.requestManager.requestTile(tileKey, tileCoord, tileURL);
-                        }
-                        // look for a parent tile in our image cache
-                        var tileCovered = false;
-                        var maxStepsOut = tileCoord.zoom;
-                        for (var pz = 1; pz <= maxStepsOut; pz++) {
-                            var parentCoord = tileCoord.zoomBy(-pz).container();
-                            var parentKey = parentCoord.toKey();
+                    coords.push(tileCoord.copy());
+                }
+            }
 
-                            if (this.enablePyramidLoading) {
-                                // mark all parent tiles valid
-                                validTileKeys[parentKey] = true;
-                                var parentLayer = this.createOrGetLayer(parentCoord.zoom);
-                                /* parentLayer.coordinate = parentCoord.copy(); */
-                                if (parentKey in this.tiles) {
-                                    var parentTile = this.tiles[parentKey];
-                                    if (parentTile.parentNode != parentLayer) {
-                                        parentLayer.appendChild(parentTile);
-                                    }
-                                } else if (!this.requestManager.hasRequest(parentKey)) {
-                                    // force load of parent tiles we don't already have
-                                    this.requestManager.requestTile(parentKey, parentCoord,
-                                        this.provider.getTileUrl(parentCoord));
+            return coords;
+        },
+
+        // Redraw the tiles on the map, reusing existing tiles.
+        draw: function() {
+
+            // make sure we're not too far in or out:
+            this.coordinate = this.enforceLimits(this.coordinate);
+
+            // tiles with invalid keys will be removed from visible layers
+            // requests for tiles with invalid keys will be canceled
+            // (this object maps from a tile key to a boolean)
+            var validTileKeys = {};
+
+            var baseZoom = Math.round(this.coordinate.zoom);
+            var startCoord = this.pointCoordinate(new MM.Point(0, 0)).zoomTo(baseZoom).container();
+
+            // make sure we have a container for tiles in the current layer
+            var thisLayer = this.createOrGetLayer(startCoord.zoom);
+
+            // use this coordinate for generating keys, parents and children:
+            var tileCoord = null;
+            var coords = this.getCoords(this.coordinate, this.dimensions);
+
+            for (var i = 0; i < coords.length; i++) {
+                var tileKey = coords[i].toKey();
+                tileCoord = coords[i];
+                validTileKeys[tileKey] = true;
+                if (tileKey in this.tiles) {
+                    var tile = this.tiles[tileKey];
+                    // ensure it's in the DOM:
+                    if (tile.parentNode != thisLayer) {
+                        thisLayer.appendChild(tile);
+                    }
+                } else {
+                    if (!this.requestManager.hasRequest(tileKey)) {
+                        var tileURL = this.provider.getTileUrl(tileCoord);
+                        this.requestManager.requestTile(tileKey, tileCoord, tileURL);
+                    }
+                    // look for a parent tile in our image cache
+                    var tileCovered = false;
+                    var maxStepsOut = tileCoord.zoom;
+                    for (var pz = 1; pz <= maxStepsOut; pz++) {
+                        var parentCoord = tileCoord.zoomBy(-pz).container();
+                        var parentKey = parentCoord.toKey();
+
+                        if (this.enablePyramidLoading) {
+                            // mark all parent tiles valid
+                            validTileKeys[parentKey] = true;
+                            var parentLayer = this.createOrGetLayer(parentCoord.zoom);
+                            /* parentLayer.coordinate = parentCoord.copy(); */
+                            if (parentKey in this.tiles) {
+                                var parentTile = this.tiles[parentKey];
+                                if (parentTile.parentNode != parentLayer) {
+                                    parentLayer.appendChild(parentTile);
                                 }
-                            } else {
-                                // only mark it valid if we have it already
-                                if (parentKey in this.tiles) {
-                                    validTileKeys[parentKey] = true;
-                                    tileCovered = true;
-                                    break;
-                                }
+                            } else if (!this.requestManager.hasRequest(parentKey)) {
+                                // force load of parent tiles we don't already have
+                                this.requestManager.requestTile(parentKey, parentCoord,
+                                    this.provider.getTileUrl(parentCoord));
                             }
+                        } else {
+                            // only mark it valid if we have it already
+                            if (parentKey in this.tiles) {
+                                validTileKeys[parentKey] = true;
+                                tileCovered = true;
+                                break;
+                            }
+                        }
 
-                        }
-                        // if we didn't find a parent, look at the children:
-                        if (!tileCovered && !this.enablePyramidLoading) {
-                            var childCoord = tileCoord.zoomBy(1);
-                            // mark everything valid whether or not we have it:
-                            validTileKeys[childCoord.toKey()] = true;
-                            childCoord.column += 1;
-                            validTileKeys[childCoord.toKey()] = true;
-                            childCoord.row += 1;
-                            validTileKeys[childCoord.toKey()] = true;
-                            childCoord.column -= 1;
-                            validTileKeys[childCoord.toKey()] = true;
-                        }
+                    }
+                    // if we didn't find a parent, look at the children:
+                    if (!tileCovered && !this.enablePyramidLoading) {
+                        var childCoord = tileCoord.zoomBy(1);
+                        // mark everything valid whether or not we have it:
+                        validTileKeys[childCoord.toKey()] = true;
+                        childCoord.column += 1;
+                        validTileKeys[childCoord.toKey()] = true;
+                        childCoord.row += 1;
+                        validTileKeys[childCoord.toKey()] = true;
+                        childCoord.column -= 1;
+                        validTileKeys[childCoord.toKey()] = true;
                     }
                 }
             }
