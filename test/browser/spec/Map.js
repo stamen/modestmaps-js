@@ -78,12 +78,15 @@ describe('Map', function() {
       });
   });
 
+
   it('binds and calls resized', function() {
       spyOn(sink, 'receive');
       map.addCallback('resized', sink.receive);
 
       runs(function() {
-          map.setSize({ x: 200, y: 300});
+          map.setSize({
+              x: 200, y: 300
+          });
       });
 
       waits(500);
