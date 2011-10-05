@@ -1,7 +1,7 @@
 body {
   font: 13px/18px 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  background: #f9fafc;
   color: #404040;
+  background: #3f414d url(../images/bg.png) repeat 0 0;
   font-weight: normal;
   }
 
@@ -9,7 +9,6 @@ body {
   Typography
 -------------------------------------*/
 h1,h2,h3,h4,h5,h6 {
-  font-family: 'Century Schoolbook',Century,Georgia,Serif;
   margin: 0;
   font-weight: normal;
   }
@@ -114,7 +113,7 @@ table th {
   text-align:right;
   }
 .icon {
-  background-image: url(../graphics/sprite.png);
+  background-image: url(../images/sprite.png);
   background-repeat: no-repeat;
   display: block;
   text-indent: -999em;
@@ -129,7 +128,7 @@ table th {
   }
 .header {
   position: relative;
-  height: 100px;
+  height: 129px;
   }
   .header a.title {
     position: absolute;
@@ -141,8 +140,9 @@ table th {
   float: left;
   padding: 20px;
   }
-.navigation {
-  width: 240px;
+.sidebar {
+  width: 200px;
+  padding: 20px;
   float: left;
   }
 
@@ -150,13 +150,27 @@ table th {
   Global Style
 -------------------------------------*/
 .header a.title {
-  text-transform: uppercase;
+  background-position: 0 0;
+  width: 160px;
+  height: 60px;
   font-weight: bold;
-  color: #526da4;
+  font-size: 16px;
+  color: #fff;
   }
 .content {
   background: #fff;
-  -moz-box-shadow: 0 0 3px rgba(0,0,0,0.15);
-  -webkit-box-shadow: 0 0 3px rgba(0,0,0,0.15);
-  box-shadow: 0 0 3px rgba(0,0,0,0.15);
   }
+.sidebar {
+  color: #000;
+  }
+  .sidebar a {
+    font-weight: bold;
+    color: #fff;
+    }
+.item {
+  margin: 10px 0;
+  }
+  .item h4 {
+    font-size: 18px;
+    font-weight: bold;
+    }

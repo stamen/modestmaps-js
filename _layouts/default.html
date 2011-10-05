@@ -8,56 +8,56 @@
   <link href='{{  site.baseurl }}/css/pygments.css' rel='stylesheet' type='text/css' />
 </head>
 <body>
-<div class='page'>
-  <div class='header'>
-    <h1>{<a href='{{ site.baseurl }}/'>modest maps</a>}</h1>
-  </div>
-  {% include navigation.html %}
-  <h2>{{ page.title }}</h2>
-  <div class='content'>
-    {{ content }}
-  </div>
-  <div class='sidebar'>
-    <div class='item'>
-      <h4>Manual</h4>
-      <ul>
-        {% for post in site.tags.manual %}
-          <li><a href='{{ site.baseurl }}{{ post.url }}'>{{ post.title }}</a></li>
-        {% endfor %}
-      </ul>
+  <div class='limiter'>
+    <div class='header'>
+      <h1><a href='{{ site.baseurl }}/' class='title icon'>{ modest maps }</a></h1>
     </div>
-    <div class='item'>
-      <h4>API</h4>
-      <ul>
-        {% for post in site.tags.api %}
-          <li><a href='{{ site.baseurl }}{{ post.url }}'>{{ post.title }}</a></li>
-        {% endfor %}
-      </ul>
+    <div class='content'>
+      <h2>{{ page.title }}</h2>
+      {{ content }}
     </div>
-    <div class='item'>
-      <div class='option'>
-        <a href='https://github.com/RandomEtc/modestmaps-cinder'>modestmaps-cinder</a>
-        <p>Utilities in <a href='http://libcinder.org/'>Cinder</a>, a C++ library
-        for creative coding</p>
+    <div class='sidebar'>
+      <div class='item'>
+        <h4>Manual</h4>
+        <ul>
+          {% for post in site.tags.manual %}
+            <li><a href='{{ site.baseurl }}{{ post.url }}'>{{ post.title }}</a></li>
+          {% endfor %}
+        </ul>
       </div>
-      <div class='option'>
-        <a href='https://github.com/migurski/modestmaps-as3'>modestmaps-as3</a>
-        <p>An <a href='http://www.adobe.com/devnet/actionscript.html'>Actionscript 3</a>
-        library for Flash and Flex applications</p>
+      <div class='item'>
+        <h4>API</h4>
+        <ul>
+          {% for post in site.tags.api %}
+            <li><a href='{{ site.baseurl }}{{ post.url }}'>{{ post.title }}</a></li>
+          {% endfor %}
+        </ul>
       </div>
-      <div class='option'>
-        <a href='https://github.com/RandomEtc/modestmaps-processing'>modestmaps-processing</a>
-        <p>A <a href='http://www.processing.org/'>Processing</a> library for
-        creative coding in the Processing language</p>
-      </div>
-      <div class='option'>
-        <a href='https://github.com/RandomEtc/modestmaps-of'>modestmaps-of</a>
-        <p>Utilities in the <a href='http://www.openframeworks.cc/'>OpenFrameworks</a> library,
-        another C++ environment for visual code</p>
+      <div class='item'>
+        <h4>Implementations</h4>
+        <div class='option'>
+          <a href='https://github.com/RandomEtc/modestmaps-cinder'>modestmaps-cinder</a>
+          <p>Utilities in <a href='http://libcinder.org/'>Cinder</a>, a C++ library
+          for creative coding</p>
+        </div>
+        <div class='option'>
+          <a href='https://github.com/migurski/modestmaps-as3'>modestmaps-as3</a>
+          <p>An <a href='http://www.adobe.com/devnet/actionscript.html'>Actionscript 3</a>
+          library for Flash and Flex applications</p>
+        </div>
+        <div class='option'>
+          <a href='https://github.com/RandomEtc/modestmaps-processing'>modestmaps-processing</a>
+          <p>A <a href='http://www.processing.org/'>Processing</a> library for
+          creative coding in the Processing language</p>
+        </div>
+        <div class='option'>
+          <a href='https://github.com/RandomEtc/modestmaps-of'>modestmaps-of</a>
+          <p>Utilities in the <a href='http://www.openframeworks.cc/'>OpenFrameworks</a> library,
+          another C++ environment for visual code</p>
+        </div>
       </div>
     </div>
   </div>
-</div>
 <script src='{{ site.baseurl }}/js/ender.js'></script>
 <script src='{{ site.baseurl }}/js/modestmaps.js'></script>
 <script src='{{ site.baseurl }}/js/site.js'></script>
