@@ -36,17 +36,10 @@
         // if you don't specify dimensions we assume you want to fill the parent
         // unless the parent has no w/h, in which case we'll still use a default
         if (!dimensions) {
-            var w = this.parent.offsetWidth;
-            var h = this.parent.offsetHeight;
-            if (!w) {
-                w = 640;
-                this.parent.style.width = w + 'px';
-            }
-            if (!h) {
-                h = 480;
-                this.parent.style.height = h + 'px';
-            }
-            dimensions = new MM.Point(w, h);
+            dimensions = new MM.Point(
+                this.parent.offsetWidth,
+                this.parent.offsetHeight);
+
             // FIXME: listeners like this will stop the map being removed cleanly?
             // when does removeEvent get called?
             var theMap = this;
