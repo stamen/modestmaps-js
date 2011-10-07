@@ -8,6 +8,12 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment
     the major version." -- http://semver.org/
 
+v0.18.5
+- Address issue where display:none on parent affects size detection
+  (thanks @tmcw)
+- Remove arbitary default map size - parent size is used always unless
+  dimensions are specified. Use setSize to override at any time.
+
 v0.18.4
 - Fix Location.interpolate between the same location
 - Fix DragHandler - remove inertia code
