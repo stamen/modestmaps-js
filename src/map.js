@@ -39,7 +39,7 @@
             dimensions = new MM.Point(
                 this.parent.offsetWidth,
                 this.parent.offsetHeight);
-
+            this.autoSize = true;
             // FIXME: listeners like this will stop the map being removed cleanly?
             // when does removeEvent get called?
             var theMap = this;
@@ -52,6 +52,7 @@
             });
         }
         else {
+            this.autoSize = false;
             this.parent.style.width = Math.round(dimensions.x) + 'px';
             this.parent.style.height = Math.round(dimensions.y) + 'px';
         }
@@ -122,6 +123,8 @@
 
         callbackManager: null,
         eventHandlers: null,
+        
+        autoSize: null,
 
         toString: function() {
             return 'Map(#' + this.parent.id + ')';
@@ -143,10 +146,8 @@
 
         // zooming
         zoomBy: function(zoomOffset) {
-            var theMap = this;
             this.coordinate = this.enforceLimits(this.coordinate.zoomBy(zoomOffset));
-
-            MM.getFrame(function() { theMap.draw(); });
+            MM.getFrame(this.getRedraw());
             this.dispatchCallback('zoomed', zoomOffset);
             return this;
         },
@@ -167,27 +168,25 @@
 
         // panning
         panBy: function(dx, dy) {
-            var theMap = this;
             this.coordinate.column -= dx / this.provider.tileWidth;
             this.coordinate.row -= dy / this.provider.tileHeight;
 
             this.coordinate = this.enforceLimits(this.coordinate);
 
             // Defer until the browser is ready to draw.
-            MM.getFrame(function() { theMap.draw(); });
+            MM.getFrame(this.getRedraw());
             this.dispatchCallback('panned', [dx, dy]);
             return this;
         },
 
         /*
         panZoom: function(dx, dy, zoom) {
-            var theMap = this;
             this.coordinate.column -= dx / this.provider.tileWidth;
             this.coordinate.row -= dy / this.provider.tileHeight;
             this.coordinate = this.coordinate.zoomTo(zoom);
 
             // Defer until the browser is ready to draw.
-            MM.getFrame(function() { theMap.draw()});
+            MM.getFrame(this.getRedraw());
             this.dispatchCallback('panned', [dx, dy]);
             return this;
         },
@@ -426,6 +425,23 @@
 
             // if we're in between zoom levels, we need to choose the nearest:
             var baseZoom = Math.round(this.coordinate.zoom);
+
+            // if we don't have dimensions, check the parent size
+            if (this.dimensions.x <= 0 || this.dimensions.y <= 0) {
+                if (this.autoSize) {
+                    // maybe the parent size has changed?
+                    var w = this.parent.offsetWidth,
+                        h = this.parent.offsetHeight
+                    this.dimensions = new MM.Point(w,h);
+                    if (w <= 0 || h <= 0) {
+                        return;
+                    }
+                }
+                else {
+                    // the issue can only be corrected with setSize
+                    return;
+                }
+            }
 
             // these are the top left and bottom right tile coordinates
             // we'll be loading everything in between:
