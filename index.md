@@ -1,7 +1,9 @@
 ---
-title: Introduction
+title:
 layout: default
 ---
+
+<img src='images/js.png' class='left' alt='Javascript Logo' />
 
 __Modest Maps__ is a family of minimalist map APIs, targeting different platforms. The goal is to provide a minimal, extensible, customizable, and
 [free](http://www.opensource.org/licenses/bsd-license.php) basis for mapping.

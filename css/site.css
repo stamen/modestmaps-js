@@ -128,7 +128,7 @@ table th {
   }
 .header {
   position: relative;
-  height: 129px;
+  height: 130px;
   }
   .header a.title {
     position: absolute;
@@ -147,11 +147,20 @@ table th {
   }
 
 /*-----------------------------------
-  Global Style
+  Document Styling
 -------------------------------------*/
+.content img {
+  padding: 5px;
+  border: 1px solid #ccc;
+  }
+  img.left {
+    float: left;
+    margin: 0 10px 10px 0;
+    }
+
 .header a.title {
   background-position: 0 0;
-  width: 160px;
+  width: 165px;
   height: 60px;
   font-weight: bold;
   font-size: 16px;
