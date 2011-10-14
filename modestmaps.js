@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v0.18.5
+ * Modest Maps JS v0.19.0
  * http://modestmaps.com/
  *
  * Copyright (c) 2011 Stamen Design, All Rights Reserved.
@@ -1490,7 +1490,7 @@ if (!com) {
             return this;
         },
 
-        setExtent: function(locations) {
+        setExtent: function(locations, any) {
 
             var TL, BR;
             for (var i = 0; i < locations.length; i++) {
@@ -1519,7 +1519,7 @@ if (!com) {
             var hZoomDiff = Math.log(hFactor) / Math.log(2);
 
             // possible horizontal zoom to fit geographical extent in map width
-            var hPossibleZoom = TL.zoom - Math.ceil(hZoomDiff);
+            var hPossibleZoom = TL.zoom - (any ? hZoomDiff : Math.ceil(hZoomDiff));
 
             // multiplication factor between vertical span and map height
             var vFactor = (BR.row - TL.row) / (height / this.provider.tileHeight);
@@ -1528,7 +1528,7 @@ if (!com) {
             var vZoomDiff = Math.log(vFactor) / Math.log(2);
 
             // possible vertical zoom to fit geographical extent in map height
-            var vPossibleZoom = TL.zoom - Math.ceil(vZoomDiff);
+            var vPossibleZoom = TL.zoom - (any ? vZoomDiff : Math.ceil(vZoomDiff));
 
             // initial zoom to fit extent vertically and horizontally
             var initZoom = Math.min(hPossibleZoom, vPossibleZoom);

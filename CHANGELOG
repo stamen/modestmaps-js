@@ -8,6 +8,11 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment
     the major version." -- http://semver.org/
 
+v0.19.0
+- Adds a second parameter to `map.setExtent()` which, if true,
+  allows the extent set to place the map at a non-integer zoom level.
+  By default, `setEvent` will behave as before.
+
 v0.18.5
 - Address issue where display:none on parent affects size detection
   (thanks @tmcw)
