@@ -209,7 +209,7 @@
             return this;
         },
 
-        setExtent: function(locations) {
+        setExtent: function(locations, any) {
 
             var TL, BR;
             for (var i = 0; i < locations.length; i++) {
@@ -238,7 +238,7 @@
             var hZoomDiff = Math.log(hFactor) / Math.log(2);
 
             // possible horizontal zoom to fit geographical extent in map width
-            var hPossibleZoom = TL.zoom - Math.ceil(hZoomDiff);
+            var hPossibleZoom = TL.zoom - (any ? hZoomDiff : Math.ceil(hZoomDiff));
 
             // multiplication factor between vertical span and map height
             var vFactor = (BR.row - TL.row) / (height / this.provider.tileHeight);
@@ -247,7 +247,7 @@
             var vZoomDiff = Math.log(vFactor) / Math.log(2);
 
             // possible vertical zoom to fit geographical extent in map height
-            var vPossibleZoom = TL.zoom - Math.ceil(vZoomDiff);
+            var vPossibleZoom = TL.zoom - (any ? vZoomDiff : Math.ceil(vZoomDiff));
 
             // initial zoom to fit extent vertically and horizontally
             var initZoom = Math.min(hPossibleZoom, vPossibleZoom);
