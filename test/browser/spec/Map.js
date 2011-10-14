@@ -15,7 +15,7 @@ describe('Map', function() {
     var subdomains = [ '', 'a.', 'b.', 'c.' ];
     var provider = new com.modestmaps.TemplatedMapProvider(template, subdomains);
 
-    map = new com.modestmaps.Map(div, provider);
+    map = new com.modestmaps.Map(div, provider, new com.modestmaps.Point(400, 400));
     map.setCenterZoom(new com.modestmaps.Location(0, 0), 0);
   });
 
