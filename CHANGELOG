@@ -8,6 +8,10 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment
     the major version." -- http://semver.org/
 
+v0.19.1
+- Adds `map.getCoords(coord, dimensions)` for splitting out
+  tile position computing from tile loading
+
 v0.19.0
 - Adds a second parameter to `map.setExtent()` which, if true,
   allows the extent set to place the map at a non-integer zoom level.

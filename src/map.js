@@ -414,34 +414,18 @@
             return coord;
         },
 
+        // For a given coordinate and map dimensions, return
+        // an array of coordinates for tiles that will need loading
         getCoords: function(coord, dimensions) {
             // if we're in between zoom levels, we need to choose the nearest:
             var baseZoom = Math.round(coord.zoom);
 
-            var oldCoord = this.coordinate.copy();
-
-            this.coord = coord;
-
-            // if we don't have dimensions, check the parent size
-            if (this.dimensions.x <= 0 || this.dimensions.y <= 0) {
-                if (this.autoSize) {
-                    // maybe the parent size has changed?
-                    var w = this.parent.offsetWidth,
-                        h = this.parent.offsetHeight
-                    this.dimensions = new MM.Point(w,h);
-                    if (w <= 0 || h <= 0) {
-                        return;
-                    }
-                }
-                else {
-                    // the issue can only be corrected with setSize
-                    return;
-                }
-            }
-
             // these are the top left and bottom right tile coordinates
             // we'll be loading everything in between:
-            var startCoord = this.pointCoordinate(new MM.Point(0, 0)).zoomTo(baseZoom).container();
+            var startCoord = this.pointCoordinate(new MM.Point(0, 0))
+                .zoomTo(baseZoom)
+                .container();
+
             var endCoord = this.pointCoordinate(dimensions)
                 .zoomTo(baseZoom)
                 .container().right().down();
@@ -474,6 +458,23 @@
 
             // make sure we're not too far in or out:
             this.coordinate = this.enforceLimits(this.coordinate);
+            
+            // if we don't have dimensions, check the parent size
+            if (this.dimensions.x <= 0 || this.dimensions.y <= 0) {
+                if (this.autoSize) {
+                    // maybe the parent size has changed?
+                    var w = this.parent.offsetWidth,
+                        h = this.parent.offsetHeight;
+                    this.dimensions = new MM.Point(w,h);
+                    if (w <= 0 || h <= 0) {
+                        return;
+                    }
+                }
+                else {
+                    // the issue can only be corrected with setSize
+                    return;
+                }
+            }
 
             // tiles with invalid keys will be removed from visible layers
             // requests for tiles with invalid keys will be canceled
