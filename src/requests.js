@@ -1,7 +1,7 @@
     // RequestManager
     // --------------
     // an image loading queue
-    MM.RequestManager = function(parent) {
+    MM.RequestManager = function() {
 
         // The loading bay is a document fragment to optimize appending, since
         // the elements within are invisible. See
@@ -14,7 +14,9 @@
         this.maxOpenRequests = 4;
         this.requestQueue = [];
 
-        this.callbackManager = new MM.CallbackManager(this, ['requestcomplete']);
+        this.callbackManager = new MM.CallbackManager(this, [
+            'requestcomplete',
+            'requestadded']);
     };
 
     MM.RequestManager.prototype = {
@@ -65,6 +67,7 @@
             for (var i = 0; i < this.requestQueue.length; i++) {
                 var request = this.requestQueue[i];
                 if (request && !(request.id in validIds)) {
+                    theManager.dispatchCallback('requestcleared', this.requestQueue[i]);
                     this.requestQueue[i] = null;
                 }
             }
@@ -111,6 +114,7 @@
             if (!(id in this.requestsById)) {
                 var request = { id: id, coord: coord.copy(), url: url };
                 // if there's no url just make sure we don't request this image again
+                this.dispatchCallback('requestadded', request);
                 this.requestsById[id] = request;
                 if (url) {
                     this.requestQueue.push(request);

@@ -59,7 +59,7 @@
 
         this.dimensions = dimensions;
 
-        this.requestManager = new MM.RequestManager(this.parent);
+        this.requestManager = new MM.RequestManager();
         this.requestManager.addCallback('requestcomplete', this.getTileComplete());
 
         this.layers = {};
