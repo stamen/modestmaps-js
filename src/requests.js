@@ -1,7 +1,7 @@
     // RequestManager
     // --------------
     // an image loading queue
-    MM.RequestManager = function(parent) {
+    MM.RequestManager = function() {
 
         // The loading bay is a document fragment to optimize appending, since
         // the elements within are invisible. See
