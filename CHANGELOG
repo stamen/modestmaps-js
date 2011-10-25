@@ -8,6 +8,10 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment
     the major version." -- http://semver.org/
 
+v0.20.0
+- Adds `map.destroy()` method, and in that process, allows all
+  handlers to be removable with a `.remove()` function.
+
 v0.19.1
 - Removes unused 'parent' argument to `com.modestmaps.RequestManager`
 
