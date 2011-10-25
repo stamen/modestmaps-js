@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v0.18.4
+ * Modest Maps JS v0.19.1
  * http://modestmaps.com/
  *
  * Copyright (c) 2011 Stamen Design, All Rights Reserved.
@@ -664,7 +664,12 @@ if (!com) {
 
         init: function(map) {
             this.map = map;
-            MM.addEvent(map.parent, 'mousewheel', MM.bind(this.mouseWheel, this));
+            this._mouseWheel = MM.bind(this.mouseWheel, this);
+            MM.addEvent(map.parent, 'mousewheel', this._mouseWheel);
+        },
+
+        remove: function() {
+            MM.removeEvent(this.map.parent, 'mousewheel', this._mouseWheel);
         },
 
         mouseWheel: function(e) {
@@ -703,7 +708,12 @@ if (!com) {
 
         init: function(map) {
             this.map = map;
-            MM.addEvent(map.parent, 'dblclick', this._doubleClick = MM.bind(this.doubleClick, this));
+            this._doubleClick = MM.bind(this.doubleClick, this);
+            MM.addEvent(map.parent, 'dblclick', this._doubleClick);
+        },
+
+        remove: function() {
+            MM.removeEvent(this.map.parent, 'dblclick', this._doubleClick);
         },
 
         doubleClick: function(e) {
@@ -729,7 +739,12 @@ if (!com) {
 
         init: function(map) {
             this.map = map;
-            MM.addEvent(map.parent, 'mousedown', MM.bind(this.mouseDown, this));
+            this._mouseDown = MM.bind(this.mouseDown, this);
+            MM.addEvent(map.parent, 'mousedown', this._mouseDown);
+        },
+
+        remove: function() {
+            MM.removeEvent(this.map.parent, 'mousedown', this._mouseDown);
         },
 
         mouseDown: function(e) {
@@ -778,9 +793,16 @@ if (!com) {
     MM.MouseHandler.prototype = {
         init: function(map) {
             this.map = map;
-            new MM.DragHandler(map);
-            new MM.DoubleClickHandler(map);
-            new MM.MouseWheelHandler(map);
+            this.handlers = [
+                new MM.DragHandler(map),
+                new MM.DoubleClickHandler(map),
+                new MM.MouseWheelHandler(map)
+            ];
+        },
+        remove: function() {
+            for (var i = 0; i < this.handlers.length; i++) {
+                this.handlers[i].remove();
+            }
         }
     };
     MM.TouchHandler = function() { };
@@ -798,15 +820,28 @@ if (!com) {
         init: function(map, options) {
             this.map = map;
             options = options || {};
+
+            this._touchStartMachine = MM.bind(this.touchStartMachine, this);
+            this._touchMoveMachine = MM.bind(this.touchMoveMachine, this);
+            this._touchEndMachine = MM.bind(this.touchEndMachine, this);
             MM.addEvent(map.parent, 'touchstart',
-                MM.bind(this.touchStartMachine, this));
+                this._touchStartMachine);
             MM.addEvent(map.parent, 'touchmove',
-                MM.bind(this.touchMoveMachine, this));
+                this._touchMoveMachine);
             MM.addEvent(map.parent, 'touchend',
-                MM.bind(this.touchEndMachine, this));
+                this._touchEndMachine);
 
             this.options = {};
             this.options.snapToZoom = options.snapToZoom || true;
+        },
+
+        remove: function() {
+            MM.removeEvent(this.map.parent, 'touchstart',
+                this._touchStartMachine);
+            MM.removeEvent(this.map.parent, 'touchmove',
+                this._touchMoveMachine);
+            MM.removeEvent(this.map.parent, 'touchend',
+                this._touchEndMachine);
         },
 
         updateTouches: function(e) {
@@ -822,7 +857,7 @@ if (!com) {
                     this.locations[t.identifier] = {
                         scale: e.scale,
                         startPos: { x: t.screenX, y: t.screenY },
-                        x: t.screenX, 
+                        x: t.screenX,
                         y: t.screenY,
                         time: new Date().getTime()
                     };
@@ -856,11 +891,9 @@ if (!com) {
         },
 
         touchEndMachine: function(e) {
-                
             var now = new Date().getTime();
-            
-            // round zoom if we're done pinching 
-            if (e.touches.length == 0 && this.wasPinching) {
+            // round zoom if we're done pinching
+            if (e.touches.length === 0 && this.wasPinching) {
                 this.onPinched(this.lastPinchCenter);
             }
 
@@ -868,7 +901,6 @@ if (!com) {
             for (var i = 0; i < e.changedTouches.length; i += 1) {
                 var t = e.changedTouches[i],
                     loc = this.locations[t.identifier];
-                    
                 // if we didn't see this one (bug?)
                 // or if it was consumed by pinching already
                 // just skip to the next one
@@ -880,7 +912,7 @@ if (!com) {
                 // matching touch that's just ended. Let's see
                 // what kind of event it is based on how long it
                 // lasted and how far it moved.
-                var pos = { x: t.screenX, y: t.screenY },                
+                var pos = { x: t.screenX, y: t.screenY },
                     time = now - loc.time,
                     travel = MM.Point.distance(pos, loc.startPos);
                 if (travel > this.maxTapDistance) {
@@ -900,7 +932,7 @@ if (!com) {
             // Weird, sometimes an end event doesn't get thrown
             // for a touch that nevertheless has disappeared.
             // Still, this will eventually catch those ids:
-            
+
             var validTouchIds = {};
             for (var j = 0; j < e.touches.length; j++) {
                 validTouchIds[e.touches[j].identifier] = true;
@@ -910,7 +942,7 @@ if (!com) {
                     delete validTouchIds[id];
                 }
             }
-            
+
             return MM.cancelEvent(e);
         },
 
@@ -936,7 +968,6 @@ if (!com) {
             var z = this.map.getZoom(), // current zoom
                 tz = Math.round(z) + 1, // target zoom
                 dz = tz - z;            // desired delate
-            
             // zoom in to a round number
             var p = new MM.Point(tap.x, tap.y);
             this.map.zoomByAbout(dz, p);
@@ -944,13 +975,12 @@ if (!com) {
 
         // Re-transform the actual map parent's CSS transformation
         onPanning: function(touch) {
-            var pos = { x: touch.screenX, y: touch.screenY },        
+            var pos = { x: touch.screenX, y: touch.screenY },
                 prev = this.locations[touch.identifier];
             this.map.panBy(pos.x - prev.x, pos.y - prev.y);
         },
 
         onPinching: function(e) {
-        
             // use the first two touches and their previous positions
             var t0 = e.touches[0],
                 t1 = e.touches[1],
@@ -962,10 +992,10 @@ if (!com) {
             // mark these touches so they aren't used as taps/holds
             l0.wasPinch = true;
             l1.wasPinch = true;
-                    
+
             // scale about the center of these touches
             var center = MM.Point.interpolate(p0, p1, 0.5);
-        
+
             this.map.zoomByAbout(
                 Math.log(e.scale) / Math.LN2 -
                 Math.log(l0.scale) / Math.LN2,
@@ -974,10 +1004,9 @@ if (!com) {
             // pan from the previous center of these touches
             var prevCenter = MM.Point.interpolate(l0, l1, 0.5);
 
-            this.map.panBy( center.x - prevCenter.x,
-                            center.y - prevCenter.y );
-                            
-            this.wasPinching = true;        
+            this.map.panBy(center.x - prevCenter.x,
+                           center.y - prevCenter.y);
+            this.wasPinching = true;
             this.lastPinchCenter = center;
         },
 
@@ -991,7 +1020,8 @@ if (!com) {
             }
             this.wasPinching = false;
         }
-    };    // CallbackManager
+    };
+    // CallbackManager
     // ---------------
     // A general-purpose event binding manager used by `Map`
     // and `RequestManager`
@@ -1058,7 +1088,7 @@ if (!com) {
     // RequestManager
     // --------------
     // an image loading queue
-    MM.RequestManager = function(parent) {
+    MM.RequestManager = function() {
 
         // The loading bay is a document fragment to optimize appending, since
         // the elements within are invisible. See
@@ -1320,23 +1350,17 @@ if (!com) {
         // if you don't specify dimensions we assume you want to fill the parent
         // unless the parent has no w/h, in which case we'll still use a default
         if (!dimensions) {
-            var w = this.parent.offsetWidth;
-            var h = this.parent.offsetHeight;
-            if (!w) {
-                w = 640;
-                this.parent.style.width = w + 'px';
-            }
-            if (!h) {
-                h = 480;
-                this.parent.style.height = h + 'px';
-            }
-            dimensions = new MM.Point(w, h);
+            dimensions = new MM.Point(
+                this.parent.offsetWidth,
+                this.parent.offsetHeight);
+            this.autoSize = true;
             // FIXME: listeners like this will stop the map being removed cleanly?
             // when does removeEvent get called?
             var theMap = this;
             MM.addEvent(window, 'resize', this.windowResize());
         }
         else {
+            this.autoSize = false;
             this.parent.style.width = Math.round(dimensions.x) + 'px';
             this.parent.style.height = Math.round(dimensions.y) + 'px';
         }
@@ -1407,6 +1431,8 @@ if (!com) {
 
         callbackManager: null,
         eventHandlers: null,
+        
+        autoSize: null,
 
         toString: function() {
             return 'Map(#' + this.parent.id + ')';
@@ -1442,10 +1468,8 @@ if (!com) {
 
         // zooming
         zoomBy: function(zoomOffset) {
-            var theMap = this;
             this.coordinate = this.enforceLimits(this.coordinate.zoomBy(zoomOffset));
-
-            MM.getFrame(function() { theMap.draw(); });
+            MM.getFrame(this.getRedraw());
             this.dispatchCallback('zoomed', zoomOffset);
             return this;
         },
@@ -1466,27 +1490,25 @@ if (!com) {
 
         // panning
         panBy: function(dx, dy) {
-            var theMap = this;
             this.coordinate.column -= dx / this.provider.tileWidth;
             this.coordinate.row -= dy / this.provider.tileHeight;
 
             this.coordinate = this.enforceLimits(this.coordinate);
 
             // Defer until the browser is ready to draw.
-            MM.getFrame(function() { theMap.draw(); });
+            MM.getFrame(this.getRedraw());
             this.dispatchCallback('panned', [dx, dy]);
             return this;
         },
 
         /*
         panZoom: function(dx, dy, zoom) {
-            var theMap = this;
             this.coordinate.column -= dx / this.provider.tileWidth;
             this.coordinate.row -= dy / this.provider.tileHeight;
             this.coordinate = this.coordinate.zoomTo(zoom);
 
             // Defer until the browser is ready to draw.
-            MM.getFrame(function() { theMap.draw()});
+            MM.getFrame(this.getRedraw());
             this.dispatchCallback('panned', [dx, dy]);
             return this;
         },
@@ -1509,7 +1531,7 @@ if (!com) {
             return this;
         },
 
-        setExtent: function(locations) {
+        setExtent: function(locations, any) {
 
             var TL, BR;
             for (var i = 0; i < locations.length; i++) {
@@ -1538,7 +1560,7 @@ if (!com) {
             var hZoomDiff = Math.log(hFactor) / Math.log(2);
 
             // possible horizontal zoom to fit geographical extent in map width
-            var hPossibleZoom = TL.zoom - Math.ceil(hZoomDiff);
+            var hPossibleZoom = TL.zoom - (any ? hZoomDiff : Math.ceil(hZoomDiff));
 
             // multiplication factor between vertical span and map height
             var vFactor = (BR.row - TL.row) / (height / this.provider.tileHeight);
@@ -1547,7 +1569,7 @@ if (!com) {
             var vZoomDiff = Math.log(vFactor) / Math.log(2);
 
             // possible vertical zoom to fit geographical extent in map height
-            var vPossibleZoom = TL.zoom - Math.ceil(vZoomDiff);
+            var vPossibleZoom = TL.zoom - (any ? vZoomDiff : Math.ceil(vZoomDiff));
 
             // initial zoom to fit extent vertically and horizontally
             var initZoom = Math.min(hPossibleZoom, vPossibleZoom);
@@ -1725,6 +1747,23 @@ if (!com) {
 
             // if we're in between zoom levels, we need to choose the nearest:
             var baseZoom = Math.round(this.coordinate.zoom);
+
+            // if we don't have dimensions, check the parent size
+            if (this.dimensions.x <= 0 || this.dimensions.y <= 0) {
+                if (this.autoSize) {
+                    // maybe the parent size has changed?
+                    var w = this.parent.offsetWidth,
+                        h = this.parent.offsetHeight
+                    this.dimensions = new MM.Point(w,h);
+                    if (w <= 0 || h <= 0) {
+                        return;
+                    }
+                }
+                else {
+                    // the issue can only be corrected with setSize
+                    return;
+                }
+            }
 
             // these are the top left and bottom right tile coordinates
             // we'll be loading everything in between:
@@ -2056,6 +2095,10 @@ if (!com) {
         // and clear its memory usage.
         destroy: function() {
             this.requestManager.clear();
+            for (var i = 0; i < this.eventHandlers.length; i++) {
+                this.eventHandlers[i].remove();
+            }
+            this.parent.removeChild(this.layerParent);
             MM.removeEvent(window, 'resize', this.windowResize());
             return this;
         }
