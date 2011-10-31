@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v0.20.0
+ * Modest Maps JS v0.21.0
  * http://modestmaps.com/
  *
  * Copyright (c) 2011 Stamen Design, All Rights Reserved.
@@ -1442,14 +1442,17 @@ if (!com) {
 
         addCallback: function(event, callback) {
             this.callbackManager.addCallback(event, callback);
+            return this;
         },
 
         removeCallback: function(event, callback) {
             this.callbackManager.removeCallback(event, callback);
+            return this;
         },
 
         dispatchCallback: function(event, message) {
             this.callbackManager.dispatchCallback(event, message);
+            return this;
         },
 
         windowResize: function() {
