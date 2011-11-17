@@ -69,6 +69,8 @@
             this.parent.style.height = Math.round(dimensions.y) + 'px';
         }
 
+        this.dimensions = dimensions;
+        
         this.enablePyramidLoading = false;
 
         this.callbackManager = new MM.CallbackManager(this, [
@@ -207,7 +209,7 @@
 
         setCenterZoom: function(location, zoom) {
             this.coordinate = this.provider.locationCoordinate(location).zoomTo(parseFloat(zoom) || 0);
-            this.draw();
+            MM.getFrame(this.getRedraw());
             this.dispatchCallback('centered', [location, zoom]);
             return this;
         },
