@@ -2,11 +2,77 @@ Modest Maps JS Changelog.
 
 Following the semantic versioning recommendation best we can:
 
-   "Consider a version format of X.Y.Z (Major.Minor.Patch). 
-    Bug fixes not affecting the API increment the patch version, 
-    backwards compatible API additions/changes increment the 
-    minor version, and backwards incompatible API changes increment 
+   "Consider a version format of X.Y.Z (Major.Minor.Patch).
+    Bug fixes not affecting the API increment the patch version,
+    backwards compatible API additions/changes increment the
+    minor version, and backwards incompatible API changes increment
     the major version." -- http://semver.org/
+
+v0.21.0
+- Returns `this` from `map.addCallback()`, `map.removeCallback()`,
+  and `map.dispatchCallback()`
+
+v0.20.0
+- Adds `map.destroy()` method, and in that process, allows all
+  handlers to be removable with a `.remove()` function.
+
+v0.19.1
+- Removes unused 'parent' argument to `com.modestmaps.RequestManager`
+
+v0.19.0
+- Adds a second parameter to `map.setExtent()` which, if true,
+  allows the extent set to place the map at a non-integer zoom level.
+  By default, `setEvent` will behave as before.
+
+v0.18.5
+- Address issue where display:none on parent affects size detection
+  (thanks @tmcw)
+- Remove arbitary default map size - parent size is used always unless
+  dimensions are specified. Use setSize to override at any time.
+
+v0.18.4
+- Fix Location.interpolate between the same location
+- Fix DragHandler - remove inertia code
+
+v0.18.3
+- enforce limits when zooming and panning so that map functions are correct
+  when returning and before the deferred draw call using getFrame
+
+v0.18.2
+- revert to @tmcw's original getFrame (simpler version broke in Chrome)
+
+v0.18.1
+- revert Coordinate.toKey to string joining
+- fix up utils.js functions so that tests run again
+- modify double-tap thresholds and adjust onPinched behavior
+- a few more cleanups in TouchHandler (mainly to use MM.Point functions)
+
+v0.18.0
+- many tiny formatting/syntax fixes; thx JSHint!
+- MM.moveElement is used for tile positioning
+- MM.moveElement detects and uses CSS transforms wherever possible
+- MM.bind is used for function binding instead of awkward closures
+- MM.getFrame is used to request redraws
+- MM.getFrame uses provisional requestAnimationFrame implementations if possible
+- TouchHandler is in the default build of modestmaps.js
+- Coordinate.toKey() is clever again ;)
+
+Thanks to @tmcw for the majority of these contributions. They were contributed
+on a branch, hence only one minor version number bump. As far as we know this 
+should all be backwards compatible. If we're mistaken, please file an issue at
+https://github.com/stamen/modestmaps-js/issues
+
+Note also that we've now got fairly decent node.js support for the core MM.js
+classes, and there's an example of how to use Modest Maps with node-canvas to
+render static map images from a tiled data source. "npm install modestmaps" for
+node.js fans :)
+
+v0.17.0
+- Mouse handlers refactor: while MouseHandler is still available for adding
+  all handlers to the map, double-click, zoomwheel, and drag handlers are
+  available individually.
+- Broken images that result from image loading errors are no longer added to
+  the map.
 
 v0.16.1
 - Unimplemented abstract methods throw exceptions instead of calling `alert()`
@@ -94,7 +160,7 @@ v0.10.2
 
 v0.10.1
  - fixed tile sorting for in-between zoom levels
- - fixed tile position in onload handler 
+ - fixed tile position in onload handler
 
 v0.10.0
  - tidied up initial coord/position maths, now supports arbitrary zoom levels (with seams)
@@ -122,10 +188,10 @@ May 2010, pre-semver
  + optional interaction (factored out mouse handling... enables touch or keyboard later)
  + made a touch handler for iphads
  + made a TemplatedMapProvider
- + made a demo that accepts a URL template for a map provider 
+ + made a demo that accepts a URL template for a map provider
  + started to work towards jslint conformance
  + started to move to 80 character line length where practical
- + made a demo with two maps, synchronized 
+ + made a demo with two maps, synchronized
  + jslint fixes, 80 char lines, better sorting, removed createOverlay
  + templated providers wrap around in longitude by default
  + added a demo keyboard handler

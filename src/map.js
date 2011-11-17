@@ -16,6 +16,9 @@
 
         if (typeof parent == 'string') {
             parent = document.getElementById(parent);
+            if (!parent) {
+                throw 'The ID provided to modest maps could not be found.';
+            }
         }
         this.parent = parent;
 
@@ -26,32 +29,9 @@
         this.parent.style.overflow = 'hidden';
 
         var position = MM.getStyle(this.parent, 'position');
-        if (position != "relative" && position != "absolute") {
+        if (position != 'relative' && position != 'absolute') {
             this.parent.style.position = 'relative';
         }
-
-        this.setupDimensions(dimensions);
-                                
-        // TODO: is it sensible to do this (could be more than one map on a page)
-        /*
-        // add a style element so layer/tile styles can be class-based
-        // thanks to http://www.phpied.com/dynamic-script-and-style-elements-in-ie/
-        var css = document.createElement('style');
-        css.setAttribute("type", "text/css");
-        var def = "div.modestmaps-layer {"
-            + "position: absolute;"
-            + "top: 0px; left: 0px;"
-            + "width: 100%; height: 100%;"
-            + "margin: 0; padding: 0; border: 0;"
-        + "}";
-        if (css.styleSheet) { // IE
-            css.styleSheet.cssText = def;
-        } else { // the world
-            css.appendChild(document.createTextNode(def));
-        }
-        document.getElementsByTagName('head')[0].appendChild(ss1);
-        this.parent.appendChild(css);
-        */
 
         this.layers = [];
         
@@ -70,17 +50,41 @@
         // the first provider in the list gets to decide about projections and geometry
         this.provider = this.layers[0].provider;
 
-        this.coordinate = new MM.Coordinate(0.5,0.5,0);
+        this.coordinate = new MM.Coordinate(0.5, 0.5, 0);
+
+        // if you don't specify dimensions we assume you want to fill the parent
+        // unless the parent has no w/h, in which case we'll still use a default
+        if (!dimensions) {
+            dimensions = new MM.Point(
+                this.parent.offsetWidth,
+                this.parent.offsetHeight);
+            this.autoSize = true;
+            var theMap = this;
+            // use destroy to get rid of this handler from the DOM            
+            MM.addEvent(window, 'resize', this.windowResize());
+        }
+        else {
+            this.autoSize = false;
+            this.parent.style.width = Math.round(dimensions.x) + 'px';
+            this.parent.style.height = Math.round(dimensions.y) + 'px';
+        }
+
         this.enablePyramidLoading = false;
 
-        this.callbackManager = new MM.CallbackManager(this, [ 'zoomed', 'panned', 'centered', 'extentset', 'resized', 'drawn' ]);
+        this.callbackManager = new MM.CallbackManager(this, [
+            'zoomed',
+            'panned',
+            'centered',
+            'extentset',
+            'resized',
+            'drawn'
+        ]);
 
         // set up handlers last so that all required attributes/functions are in place if needed
         if (eventHandlers === undefined) {
             this.eventHandlers = [];
             this.eventHandlers.push(new MM.MouseHandler(this));
-        }
-        else {
+        } else {
             this.eventHandlers = eventHandlers;
             if (eventHandlers instanceof Array) {
                 for (var i = 0; i < eventHandlers.length; i++) {
@@ -88,111 +92,113 @@
                 }
             }
         }
-        
+
     };
-    
+
     MM.Map.prototype = {
-    
+
         parent: null,
         provider: null,
         dimensions: null,
         coordinate: null,
+
     
         levels: null,
         layers: null,
     
         callbackManager: null,        
+
         eventHandlers: null,
-    
+        
+        autoSize: null,
+
         toString: function() {
             return 'Map(#' + this.parent.id + ')';
         },
         
-        // setup
-        
-        setupDimensions: function(dimensions)
-        {
-            // if you don't specify dimensions we assume you want to fill the parent
-            // unless the parent has no w/h, in which case we'll still use a default
-            if (!dimensions) {
-                var w = this.parent.offsetWidth;
-                var h = this.parent.offsetHeight;
-                if (!w) {
-                    w = 640;
-                    this.parent.style.width = w+'px';
-                }
-                if (!h) {
-                    h = 480;
-                    this.parent.style.height = h+'px';
-                }        
-                dimensions = new MM.Point(w, h);
-                // FIXME: listeners like this will stop the map being removed cleanly?
-                // when does removeEvent get called?
+        // callbacks...
+
+        addCallback: function(event, callback) {
+            this.callbackManager.addCallback(event, callback);
+            return this;
+        },
+
+        removeCallback: function(event, callback) {
+            this.callbackManager.removeCallback(event, callback);
+            return this;
+        },
+
+        dispatchCallback: function(event, message) {
+            this.callbackManager.dispatchCallback(event, message);
+            return this;
+        },
+
+        windowResize: function() {
+            if (!this._windowResize) {
                 var theMap = this;
-                MM.addEvent(window, 'resize', function(event) {
+                this._windowResize = function(event) {
                     // don't call setSize here because it sets parent.style.width/height
                     // and setting the height breaks percentages and default styles
                     theMap.dimensions = new MM.Point(theMap.parent.offsetWidth, theMap.parent.offsetHeight);
                     theMap.draw();
-                    theMap.dispatchCallback('resized', [ theMap.dimensions ]);
-                });
+                    theMap.dispatchCallback('resized', [theMap.dimensions]);
+                };
             }
-            else {
-                this.parent.style.width = Math.round(dimensions.x)+'px';
-                this.parent.style.height = Math.round(dimensions.y)+'px';
-            }
-    
-            this.dimensions = dimensions;
-        },
-        
-        // callbacks...
-        
-        addCallback: function(event, callback) {
-            this.callbackManager.addCallback(event,callback);
+            return this._windowResize;
         },
 
-        removeCallback: function(event, callback) {
-            this.callbackManager.removeCallback(event,callback);
-        },
-        
-        dispatchCallback: function(event, message) {
-            this.callbackManager.dispatchCallback(event,message);
-        },
-    
         // zooming
-        
         zoomBy: function(zoomOffset) {
-            this.coordinate = this.coordinate.zoomBy(zoomOffset);
-            this.draw();
+            this.coordinate = this.enforceLimits(this.coordinate.zoomBy(zoomOffset));
+            MM.getFrame(this.getRedraw());
             this.dispatchCallback('zoomed', zoomOffset);
             return this;
         },
 
-        zoomIn:  function()  { return this.zoomBy(1); },
+        zoomIn: function()  { return this.zoomBy(1); },
         zoomOut: function()  { return this.zoomBy(-1); },
         setZoom: function(z) { return this.zoomBy(z - this.coordinate.zoom); },
 
         zoomByAbout: function(zoomOffset, point) {
             var location = this.pointLocation(point);
-            this.zoomBy(zoomOffset);
+
+            this.coordinate = this.enforceLimits(this.coordinate.zoomBy(zoomOffset));
             var newPoint = this.locationPoint(location);
+
+            this.dispatchCallback('zoomed', zoomOffset);
             return this.panBy(point.x - newPoint.x, point.y - newPoint.y);
         },
 
         // panning
-
         panBy: function(dx, dy) {
             this.coordinate.column -= dx / this.provider.tileWidth;
             this.coordinate.row -= dy / this.provider.tileHeight;
-            this.draw();
+
+            this.coordinate = this.enforceLimits(this.coordinate);
+
+            // Defer until the browser is ready to draw.
+            MM.getFrame(this.getRedraw());
             this.dispatchCallback('panned', [dx, dy]);
             return this;
         },
 
-        panLeft:  function() { return this.panBy(100,0); },
-        panRight: function() { return this.panBy(-100,0); },
-        panDown:  function() { return this.panBy(0,-100); },
-        panUp:    function() { return this.panBy(0,100); },
+        /*
+        panZoom: function(dx, dy, zoom) {
+            this.coordinate.column -= dx / this.provider.tileWidth;
+            this.coordinate.row -= dy / this.provider.tileHeight;
+            this.coordinate = this.coordinate.zoomTo(zoom);
+
+            // Defer until the browser is ready to draw.
+            MM.getFrame(this.getRedraw());
+            this.dispatchCallback('panned', [dx, dy]);
+            return this;
+        },
+        */
+
+        panLeft: function() { return this.panBy(100, 0); },
+        panRight: function() { return this.panBy(-100, 0); },
+        panDown: function() { return this.panBy(0, -100); },
+        panUp: function() { return this.panBy(0, 100); },
 
         // positioning
         setCenter: function(location) {
@@ -206,7 +212,7 @@
             return this;
         },
 
-        setExtent: function(locations) {
+        setExtent: function(locations, any) {
 
             var TL, BR;
             for (var i = 0; i < locations.length; i++) {
@@ -224,44 +230,45 @@
                     BR = coordinate.copy();
                 }
             }
-            
+
             var width = this.dimensions.x + 1;
-            var height = this.dimensions.y + 1; 
-            
+            var height = this.dimensions.y + 1;
+
             // multiplication factor between horizontal span and map width
             var hFactor = (BR.column - TL.column) / (width / this.provider.tileWidth);
-        
+
             // multiplication factor expressed as base-2 logarithm, for zoom difference
             var hZoomDiff = Math.log(hFactor) / Math.log(2);
-                
+
             // possible horizontal zoom to fit geographical extent in map width
-            var hPossibleZoom = TL.zoom - Math.ceil(hZoomDiff);
-                
+            var hPossibleZoom = TL.zoom - (any ? hZoomDiff : Math.ceil(hZoomDiff));
+
             // multiplication factor between vertical span and map height
             var vFactor = (BR.row - TL.row) / (height / this.provider.tileHeight);
-                
+
             // multiplication factor expressed as base-2 logarithm, for zoom difference
             var vZoomDiff = Math.log(vFactor) / Math.log(2);
-                
+
             // possible vertical zoom to fit geographical extent in map height
-            var vPossibleZoom = TL.zoom - Math.ceil(vZoomDiff);
-                
+            var vPossibleZoom = TL.zoom - (any ? vZoomDiff : Math.ceil(vZoomDiff));
+
             // initial zoom to fit extent vertically and horizontally
             var initZoom = Math.min(hPossibleZoom, vPossibleZoom);
-        
+
             // additionally, make sure it's not outside the boundaries set by provider limits
             // this also catches Infinity stuff
             initZoom = Math.min(initZoom, this.provider.outerLimits()[1].zoom);
             initZoom = Math.max(initZoom, this.provider.outerLimits()[0].zoom);
-        
+
             // coordinate of extent center
             var centerRow = (TL.row + BR.row) / 2;
             var centerColumn = (TL.column + BR.column) / 2;
             var centerZoom = TL.zoom;
-            
+
             this.coordinate = new MM.Coordinate(centerRow, centerColumn, centerZoom).zoomTo(initZoom);
-            this.draw();
-    
+            this.draw(); // draw calls enforceLimits 
+            // (if you switch to getFrame, call enforceLimits first)
+
             this.dispatchCallback('extentset', locations);
             return this;
         },
@@ -278,22 +285,22 @@
             this.parent.style.width = Math.round(this.dimensions.x) + 'px';
             this.parent.style.height = Math.round(this.dimensions.y) + 'px';
             this.draw();
-            this.dispatchCallback('resized', [ this.dimensions ]);
+            this.dispatchCallback('resized', [this.dimensions]);
             return this;
         },
 
         // projecting points on and off screen
         coordinatePoint: function(coord) {
             // Return an x, y point on the map image for a given coordinate.
-            if(coord.zoom != this.coordinate.zoom) {
+            if (coord.zoom != this.coordinate.zoom) {
                 coord = coord.zoomTo(this.coordinate.zoom);
             }
 
             // distance from the center of the map
-            var point = new MM.Point(this.dimensions.x/2, this.dimensions.y/2);
+            var point = new MM.Point(this.dimensions.x / 2, this.dimensions.y / 2);
             point.x += this.provider.tileWidth * (coord.column - this.coordinate.column);
             point.y += this.provider.tileHeight * (coord.row - this.coordinate.row);
-            
+
             return point;
         },
 
@@ -302,8 +309,8 @@
         pointCoordinate: function(point) {
             // new point coordinate reflecting distance from map center, in tile widths
             var coord = this.coordinate.copy();
-            coord.column += (point.x - this.dimensions.x/2) / this.provider.tileWidth;
-            coord.row += (point.y - this.dimensions.y/2) / this.provider.tileHeight;
+            coord.column += (point.x - this.dimensions.x / 2) / this.provider.tileWidth;
+            coord.row += (point.y - this.dimensions.y / 2) / this.provider.tileHeight;
 
             return coord;
         },
@@ -317,12 +324,12 @@
         pointLocation: function(point) {
             return this.provider.coordinateLocation(this.pointCoordinate(point));
         },
-        
+
         // inspecting
-    
+
         getExtent: function() {
             var extent = [];
-            extent.push(this.pointLocation(new MM.Point(0,0)));
+            extent.push(this.pointLocation(new MM.Point(0, 0)));
             extent.push(this.pointLocation(this.dimensions));
             return extent;
         },
@@ -339,34 +346,29 @@
         
         // layers
         
-        getProviders: function()
-        {
+        getProviders: function() {
             var providers = [];
             
-            for(var i = 0; i < this.layers.length; i++)
-            {
+            for(var i = 0; i < this.layers.length; i++) {
                 providers.push(this.layers[i].provider);
             }
             
             return providers;
         },
         
-        getProviderAt: function(index)
-        {
+        getProviderAt: function(index) {
             return this.layers[index].provider;
         },
         
-        setProviderAt: function(index, provider)
-        {
-            if(index < 0 || index >= this.layers.length)
+        setProviderAt: function(index, provider) {
+            if(index < 0 || index >= this.layers.length) {
                 throw new Error('invalid index in setProviderAt(): ' + index);
-
+            }
             // pass it on.
             this.layers[index].setProvider(provider);
         },
         
-        insertProviderAt: function(index, provider)
-        {
+        insertProviderAt: function(index, provider) {
             var layer = new MM.Layer(this, provider);
             
             if(index < 0 || index > this.layers.length)
@@ -382,8 +384,8 @@
                 other.parent.parentNode.insertBefore(layer.parent, other.parent);
                 this.layers.splice(index, 0, layer);
             }
-            
-            this.draw();
+
+            MM.getFrame(this.getRedraw());
         },
         
         removeProviderAt: function(index)
@@ -422,18 +424,6 @@
             this.layers[i] = layer2;
             this.layers[j] = layer1;
         },
-    
-        // stats
-        
-        /*
-        getStats: function() {
-            return {
-                'Request Queue Length': this.requestManager.requestQueue.length,
-                'Open Request Count': this.requestManager.requestCount,
-                'Tile Cache Size': this.tileCacheSize,
-                'Tiles On Screen': this.parent.getElementsByTagName('img').length
-            };        
-        },*/
         
         // limits
         
@@ -452,42 +442,6 @@
                 else if (coord.zoom > maxZoom) {
                     coord = coord.zoomTo(maxZoom);
                 }
-                
-                /*                 
-                // this generally does the *intended* thing,
-                // but it's not always desired behavior so it's disabled for now
-                
-                var topLeftLimit = limits[0].zoomTo(coord.zoom);
-                var bottomRightLimit = limits[1].zoomTo(coord.zoom);
-                var currentTopLeft = this.pointCoordinate(new MM.Point(0,0));
-                var currentBottomRight = this.pointCoordinate(this.dimensions);
-                
-                if (bottomRightLimit.row - topLeftLimit.row < currentBottomRight.row - currentTopLeft.row) {
-                    // if the limit is smaller than the current view center it
-                    coord.row = (bottomRightLimit.row + topLeftLimit.row) / 2;
-                }
-                else {
-                    if (currentTopLeft.row < topLeftLimit.row) {
-                        coord.row += topLeftLimit.row - currentTopLeft.row;
-                    }
-                    else if (currentBottomRight.row > bottomRightLimit.row) {
-                        coord.row -= currentBottomRight.row - bottomRightLimit.row;
-                    }
-                }
-                if (bottomRightLimit.column - topLeftLimit.column < currentBottomRight.column - currentTopLeft.column) {
-                    // if the limit is smaller than the current view, center it
-                    coord.column = (bottomRightLimit.column + topLeftLimit.column) / 2;                    
-                }
-                else {
-                    if (currentTopLeft.column < topLeftLimit.column) {
-                        coord.column += topLeftLimit.column - currentTopLeft.column;
-                    }
-                    else if (currentBottomRight.column > bottomRightLimit.column) {
-                        coord.column -= currentBottomRight.column - bottomRightLimit.column;
-                    }
-                }
-                */
-                
             }
             return coord;
         },
@@ -495,17 +449,54 @@
         // rendering    
         
         // Redraw the tiles on the map, reusing existing tiles.
-        draw: function()
-        {
+        draw: function() {
             // make sure we're not too far in or out:
             this.coordinate = this.enforceLimits(this.coordinate);
 
             // draw layers one by one
-            for(var i = 0; i < this.layers.length; i++)
-            {
+            for(var i = 0; i < this.layers.length; i++) {
                 this.layers[i].draw();
             }
 
-            this.dispatchCallback('drawn');
+            MM.getFrame(this.getRedraw());
+        },
+
+        _redrawTimer: undefined,
+
+        requestRedraw: function() {
+            // we'll always draw within 1 second of this request,
+            // sometimes faster if there's already a pending redraw
+            // this is used when a new tile arrives so that we clear
+            // any parent/child tiles that were only being displayed
+            // until the tile loads at the right zoom level
+            if (!this._redrawTimer) {
+                this._redrawTimer = setTimeout(this.getRedraw(), 1000);
+            }
+        },
+
+        _redraw: null,
+
+        getRedraw: function() {
+            // let's only create this closure once...
+            if (!this._redraw) {
+                var theMap = this;
+                this._redraw = function() {
+                    theMap.draw();
+                    theMap._redrawTimer = 0;
+                };
+            }
+            return this._redraw;
+        },
+
+        // Attempts to destroy all attachment a map has to a page
+        // and clear its memory usage.
+        destroy: function() {
+            this.requestManager.clear();
+            for (var i = 0; i < this.eventHandlers.length; i++) {
+                this.eventHandlers[i].remove();
+            }
+            this.parent.removeChild(this.layerParent);
+            MM.removeEvent(window, 'resize', this.windowResize());
+            return this;
         }
     };

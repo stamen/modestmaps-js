@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 <head>
 <title>Modest Maps JS</title>
@@ -22,29 +23,34 @@
 <p>The above div is a map initialized like so:</p>
 <pre id="src">
 // "import" the namespace
-var mm = com.modestmaps;
+var MM = com.modestmaps;
 
-var provider = new mm.BlueMarbleProvider();
+var provider = new MM.BlueMarbleProvider();
 
-map = new mm.Map('map', provider, new mm.Point(1000,600))
+map = new MM.Map('map', provider, new MM.Point(1024,512))
 
-map.setCenterZoom(new mm.Location(37.811530, -122.2666097), 5);
+map.setCenterZoom(new MM.Location(20.0, 0), 2);
 
-jsonFlickrApi = function(rsp) {
+window.jsonFlickrApi = function(rsp) {
     var photos = rsp.photos.photo;
-    console.log(photos.length);
     for (var i = 0; i < photos.length; i++) {
-        var photo = photos[i];
-        var url = [ 'http://farm', photo.farm, '.static.flickr.com/', photo.server, '/', photo.id, '_', photo.secret, '_s.jpg' ].join('');    
-        var html = "<" + "img src='" + url + "'" + ">";
-        var location = new mm.Location(photo.latitude, photo.longitude);
-        var dimensions = new mm.Point(75, 75);
-        var f = new mm.Follower(map, location, html, dimensions);
+        var p = photos[i];
+        var url = [ 'http://farm', p.farm, '.static.flickr.com/', p.server, '/', p.id, '_', p.secret, '_s.jpg' ].join('');    
+        var html = "<" + "img src='" + url + "'" + ">"; // weird for 'eval', sorry
+        var location = new MM.Location(p.latitude, p.longitude);
+        var dimensions = new MM.Point(75, 75);
+        var f = new MM.Follower(map, location, html, dimensions);
     }
 }
 
 var script = document.createElement('script');
-script.src = 'http://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=a96cbef093a8c0280d3aed4e0c004d4c&tags=clouds&extras=geo&has_geo&format=json';
+script.src = 'http://api.flickr.com/services/rest/?'+
+               'method=flickr.photos.search&'+
+               'api_key=a96cbef093a8c0280d3aed4e0c004d4c&'+
+               'tags=clouds&'+
+               'extras=geo&'+
+               'has_geo=1&'+
+               'format=json';
 document.getElementsByTagName('head')[0].appendChild(script);
 
 </pre>

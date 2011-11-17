@@ -6,26 +6,20 @@
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <title>Modest Maps JS - Touch Tester</title>
         <script type="text/javascript" src="../../modestmaps.js"></script>
-        <script type="text/javascript" src="touch.js"></script>
         <script type="text/javascript">
-            
             var map;
-            
             function initMap() {
-            
                 var template = 'http://{S}tile.openstreetmap.org/{Z}/{X}/{Y}.png';
                 var subdomains = [ '', 'a.', 'b.', 'c.' ];
                 var provider = new com.modestmaps.TemplatedMapProvider(template, subdomains);
-            
-                map = new com.modestmaps.Map('map', 
-                                             provider, 
-                                             null,
-                                             [ new com.modestmaps.TouchHandler() ]);
-            
+                map = new com.modestmaps.Map('map',
+                  provider,
+                  null, [
+                    new com.modestmaps.TouchHandler(),
+                    new com.modestmaps.MouseHandler()
+                  ]);
                 map.setCenterZoom(new com.modestmaps.Location(37.811530, -122.2666097), 14);
-            
             }
-            
         </script>
         <style type="text/css">
             html, body, #map {
@@ -35,10 +29,25 @@
                 padding: 0;
                 border: 0;
             }
+            .map-tile {
+              opacity:0;
+            }
+            .map-tile-loaded {
+              -webkit-animation-name: 'fade-in';
+              -webkit-animation-timing-function: ease-in;
+              -webkit-animation-duration: 0.2s;
+            }
+            @-webkit-keyframes fade-in {
+              from {
+                opacity: 0;
+              }
+              to {
+                opacity: 1;
+              }
+            }
         </style>
     </head>
     <body onload="initMap()">
-        <div id="map">
-        </div>
+        <div id="map"></div>
     </body>
 </html>

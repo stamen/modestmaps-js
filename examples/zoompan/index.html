@@ -1,25 +1,29 @@
+<!DOCTYPE html>
 <html>
 <head>
 <title>Modest Maps JS - Smooth Efficient Zooming and Panning</title>
 <script type="text/javascript" src="../../modestmaps.js"></script>
 <script type="text/javascript">
 
+var MM = com.modestmaps;
 var map;
 
-function initMap() {
+window.onload = function() {
 
     // http://blog.mapquest.com/2010/07/09/mapquest-opens-up/
     var template = 'http://{S}.mqcdn.com/tiles/1.0.0/osm/{Z}/{X}/{Y}.png';
     var subdomains = [ 'otile1', 'otile2', 'otile3', 'otile4'];
-    var provider = new com.modestmaps.TemplatedMapProvider(template, subdomains);
+    var provider = new MM.TemplatedMapProvider(template, subdomains);
 
-    map = new com.modestmaps.Map('map', provider); 
-    map.enablePyramidLoading = true;
+    map = new MM.Map('map', provider); 
+//    map.enablePyramidLoading = true;
 
-    map.setCenterZoom(new com.modestmaps.Location(37.811530, -122.2666097), 14);
+    map.setCenterZoom(new MM.Location(37.811530, -122.2666097), 14);
 
-    //animateCenterZoom(new com.modestmaps.Location(37.770, -122.424), 16);
-    animateCenterZoom(new com.modestmaps.Location(51.514, -0.113), 18);
+    setUpSearch();
+
+    //animateCenterZoom(new MM.Location(37.770, -122.424), 16);
+    //animateCenterZoom(new MM.Location(51.514, -0.113), 18);
 }
 
 function animateCenterZoom(l1, z1) {
@@ -31,7 +35,7 @@ function animateCenterZoom(l1, z1) {
         c1 = { x: end.column, y: end.row };
 
     // how much world can we see at zoom 0?
-    var topLeft = map.pointCoordinate(new com.modestmaps.Point(0,0)).zoomTo(0);
+    var topLeft = map.pointCoordinate(new MM.Point(0,0)).zoomTo(0);
     var bottomRight = map.pointCoordinate(map.dimensions).zoomTo(0);
     var w0 = Math.max(bottomRight.column-topLeft.column, bottomRight.row-topLeft.row);
 
@@ -67,7 +71,7 @@ function tanh(x) { return sinh(x) / cosh(x); }
 function animateStep(c0,w0,c1,w1,V,rho) {
 
     // see section 6 for user testing to derive these values (they can be tuned)
-    if (V === undefined) V = 2.0;      // section 6 suggests 0.9
+    if (V === undefined) V = 0.9;      // section 6 suggests 0.9
     if (rho === undefined) rho = 1.42; // section 6 suggests 1.42
 
     // simple interpolation of positions will be fine:
@@ -89,7 +93,7 @@ function animateStep(c0,w0,c1,w1,V,rho) {
     var r0 = r(b(0)),
         r1 = r(b(1)),
         S = (r1-r0) / rho; // "distance"
-    
+
     function u(s) {
         var a = w0/sq(rho),
             b = a * cosh(r0) * tanh(rho*s + r0),
@@ -107,6 +111,7 @@ function animateStep(c0,w0,c1,w1,V,rho) {
     
         var k = w1 < w0 ? -1 : 1;
         S = Math.abs(Math.log(w1/w0)) / rho;
+        
         u = function(s) {
             return u0;
         }
@@ -115,30 +120,34 @@ function animateStep(c0,w0,c1,w1,V,rho) {
         }
     }
     
-    var t0 = Date.now();
-    var interval = setInterval(function() {
-        var t1 = Date.now();
+    var t0 = new Date().getTime();
+    function tick() {
+        var t1 = new Date().getTime();
         var frameInterval = t1;
         var t = (t1 - t0) / 1000.0;
         var s = V * t;
         if (s > S) {
             s = S;
-            clearInterval(interval);
+        }
+        else {
+            MM.getFrame(tick);
         }
         var us = u(s);
         var pos = lerp2(c0,c1,(us-u0)/(u1-u0));
         applyPos(pos, w(s));
-        console.log(Date.now() - frameInterval);
-    }, 100);
+        //console.log(Date.now() - frameInterval);
+    }
+    
+    MM.getFrame(tick);
 
 }
 
 function applyPos(pos,w) {
-    var c = new com.modestmaps.Coordinate(pos.y,pos.x,0);
+    var c = new MM.Coordinate(pos.y,pos.x,0);
     var l = map.provider.coordinateLocation(c);
 
     // how much world can we see at zoom 0?
-    var topLeft = map.pointCoordinate(new com.modestmaps.Point(0,0)).zoomTo(0);
+    var topLeft = map.pointCoordinate(new MM.Point(0,0)).zoomTo(0);
     var bottomRight = map.pointCoordinate(map.dimensions).zoomTo(0);
     var w0 = Math.max(bottomRight.column-topLeft.column, bottomRight.row-topLeft.row);    
 
@@ -147,21 +156,86 @@ function applyPos(pos,w) {
     map.setCenterZoom(l,z);    
 }
 
+///////////////
+
+/////////////////////// search...
+
+function setUpSearch() {
+    var search = document.getElementById('search');
+    search.q.disabled = null;
+    search.submit.disabled = null;
+    
+    search.onsubmit = function() {
+        if (search.q.value && search.q.value.length > 0) {        
+            search.q.disabled = 'true';
+            search.submit.disabled = 'true';   
+            doSearch(search.q.value);
+        }
+        return false;
+    }
+}
+
+function doSearch(q) {
+    var script = document.createElement("script");
+    script.setAttribute("type", "text/javascript");
+    script.setAttribute("src", "http://dev.virtualearth.net"
+        + "/REST/V1/Locations"
+        + "?key=AmT-ZC3HPevQq5IBJ7v8qiDUxrojNaqbW1zBsKF0oMNEs53p7Nk5RlAuAmwSG7bg"
+        + "&query=" + encodeURIComponent(q)
+        + "&jsonp=searchCallback");
+    document.body.appendChild(script);
+}
+
+function searchCallback(rsp) {
+    try {
+        // console.log(rsp);
+    
+        var bbox = rsp.resourceSets[0].resources[0].bbox; // [s,w,n,e]
+
+        // TODO: don't just use the first one, see if there's one nearby to where we're already looking
+
+        // compute the extent in points, scale factor, and center
+        // -- borrowed from map.extent(), thanks Mike
+        var bl = map.locationPoint(new MM.Location(bbox[0], bbox[1])),
+            tr = map.locationPoint(new MM.Location(bbox[2], bbox[3])),
+            sizeActual = map.dimensions,
+            k = Math.max((tr.x - bl.x) / sizeActual.x, (bl.y - tr.y) / sizeActual.y),
+            l = map.pointLocation(new MM.Point((bl.x + tr.x) / 2, (bl.y + tr.y) / 2));
+    
+        // update the zoom level
+        var z = map.getZoom() - Math.log(k) / Math.log(2);
+        
+        animateCenterZoom(l, z);
+    }
+    catch(e) {    
+        alert('error coping with response, try again?');
+        //console.error(e);
+        // TODO: what? reset map position/zoom, perhaps? show error?
+    }
+    var search = document.getElementById('search');    
+    search.q.disabled = null;
+    search.submit.disabled = null;
+}
+
 </script>
 <style type="text/css">
-body {
-  margin: 0;
-  padding: 0;
-  border: 0
-}
-#map {
+html, body, #map {
   width: 100%;
   height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: #000;
+}
+#search {
+    left: 15px;
+    top: 15px;
+    position: absolute;
 }
 </style>
 </head>
-<body onload="initMap()">
-  <div id="map">
-  </div>
+<body>
+<div id="map"></div>
+<form id="search"><input type="search" size="32" name="q" placeholder="type a place name..." disabled/><button type="submit" name="submit" disabled>Go!</button></form>
 </body>
 </html>

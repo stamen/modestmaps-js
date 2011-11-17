@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 <head>
 <title>Modest Maps JS</title>
@@ -7,11 +8,11 @@
     var map;
     function initMap() {
         // "import" the namespace
-        var mm = com.modestmaps;
+        var MM = com.modestmaps;
         
-        var provider = new mm.TileCacheMapProvider('http://bucket.root.cnet.stamen.com.s3.amazonaws.com/12_sig_avg_4/{Z}/{X}/{Y}.png');        
-        map = new mm.Map('map', provider)
-        map.setCenterZoom(new mm.Location(37.804656, -122.263606), 14);
+        var provider = new MM.TileCacheMapProvider('http://bucket.root.cnet.stamen.com.s3.amazonaws.com/12_sig_avg_4/{Z}/{X}/{Y}.png');        
+        map = new MM.Map('map', provider)
+        map.setCenterZoom(new MM.Location(37.804656, -122.263606), 14);
     }
 </script>
 </head>

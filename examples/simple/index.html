@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 <head>
 <title>Modest Maps JS</title>
@@ -20,18 +21,18 @@
 <p>The above div is a map initialized like so:</p>
 <pre id="src">
 // "import" the namespace
-var mm = com.modestmaps;
+var MM = com.modestmaps;
 
-var provider = new mm.MapProvider(function(coord) {
+var provider = new MM.MapProvider(function(coord) {
     var img = parseInt(coord.zoom) +'-r'+ parseInt(coord.row) +'-c'+ parseInt(coord.column) + '.jpg';
     return 'http://osm-bayarea.s3.amazonaws.com/' + img;
 });
 
-map = new mm.Map('map', provider, new mm.Point(640,480))
+map = new MM.Map('map', provider, new MM.Point(900,900))
 
-var f = new mm.Follower(map, new mm.Location(37.811530, -122.2666097), '&#xB0; Broadway and Grand');
+var f = new MM.Follower(map, new MM.Location(37.811530, -122.2666097), '&#xB0; Broadway and Grand');
 
-map.setCenterZoom(new mm.Location(37.811530, -122.2666097), 14);
+map.setCenterZoom(new MM.Location(37.811530, -122.2666097), 14);
 </pre>
 <p>Hands up who wants overlays?</p>
 <div id="log"></div>

@@ -1,8 +1,8 @@
 /*!
- * Modest Maps JS v0.16.1
+ * Modest Maps JS v0.21.0-layers
  * http://modestmaps.com/
  *
- * Copyright (c) 2010 Stamen Design, All Rights Reserved.
+ * Copyright (c) 2011 Stamen Design, All Rights Reserved.
  *
  * Open source under the BSD License.
  * http://creativecommons.org/licenses/BSD/
