@@ -24,7 +24,7 @@
             window.getLayer0 = function() { console.log(['got layers 0:', map.getLayerAt(0)]) }
             window.getLayer1 = function() { console.log(['got layers 1:', map.getLayerAt(1)]) }
             window.setLayer0 = function() { map.setLayerAt(0, osm) }
-            window.addLayer1 = function() { map.insertLayerAt(1, mq) }
+            window.insertLayer1 = function() { map.insertLayerAt(1, mq) }
             window.remLayer1 = function() { map.removeLayerAt(1) }
             window.swap01 = function() { map.swapLayers(0, 1) }
             
@@ -52,7 +52,7 @@
         <button onclick="getLayer0();">get 1st layer</button>
         <button onclick="getLayer1();">get 2nd layer</button>
         <button onclick="setLayer0();">set 1st layer</button>
-        <button onclick="addLayer1();">add layer</button>
+        <button onclick="insertLayer1();">insert layer</button>
         <button onclick="remLayer1();">remove 2nd layer</button>
         <button onclick="swap01();">swap first two layer</button>
     </p>

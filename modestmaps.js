@@ -1904,7 +1904,8 @@ var mm = com.modestmaps = {
     //  * `parent` (required DOM element)
     //      Can also be an ID of a DOM element
     //  * `layerOrLayers` (required MM.Layer or Array of MM.Layers)
-    //      each one must implement draw() and have a .parent DOM element and a .map property
+    //      each one must implement draw(), destroy(), have a .parent DOM element and a .map property
+    //      (an array of URL templates or MM.MapProviders is also acceptable)
     //  * `dimensions` (optional Point)
     //      Size of map to create
     //  * `eventHandlers` (optional Array)
@@ -1931,25 +1932,13 @@ var mm = com.modestmaps = {
             this.parent.style.position = 'relative';
         }
 
-        if(layerOrLayers instanceof Array) {
-            this.layers = layerOrLayers;
-        } else {
-            this.layers = [ layerOrLayers ];
+        this.layers = [];
+        if(!(layerOrLayers instanceof Array)) {
+            layerOrLayers = [ layerOrLayers ];
         }
         
-        // HACK for 0.x.y - stare at @RandomEtc
-        for (var i = 0; i < this.layers.length; i++) {
-            if (!this.layers[i].hasOwnProperty('draw')) {
-                if (typeof this.layers[i] == 'string') {
-                    // probably a template string
-                    this.layers[i] = new MM.Layer(new MM.TemplatedMapProvider(this.layers[i]));
-                } else {
-                    // probably a MapProvider
-                    this.layers[i] = new MM.Layer(this.layers[i]);
-                }
-            }
-            this.parent.appendChild(this.layers[i].parent);
-            this.layers[i].map = this; // TODO: remove map from MM.Layer
+        for (var i = 0; i < layerOrLayers.length; i++) {
+            this.addLayer(layerOrLayers[i]);
         }
 
         // the first provider in the list gets to decide about projections and geometry
@@ -2264,33 +2253,87 @@ var mm = com.modestmaps = {
         },
 
         // layers
+        
+        // HACK for 0.x.y - stare at @RandomEtc 
+        // this method means we can also pass a URL template or a MapProvider to addLayer
+        coerceLayer: function(layerish) {
+            if (!('draw' in layerish && typeof layerish.draw == 'function')) {
+                if (typeof layerish == 'string') {
+                    // probably a template string
+                    layerish = new MM.Layer(new MM.TemplatedMapProvider(layerish));
+                } else {
+                    // probably a MapProvider
+                    layerish = new MM.Layer(layerish);
+                }
+            }
+            return layerish;
+        },
+        
+        // return a copy of the layers array
         getLayers: function() {
-            return this.layers;
+            return this.layers.slice();
         },
 
+        // return the layer at the given index
         getLayerAt: function(index) {
             return this.layers[index];
         },
-
-        addLayerAt: function(index, layer) {
-            if(index < 0 || index >= this.layers.length) {
-                throw new Error('invalid index in setLayer(): ' + index);
+        
+        // put the given layer on top of all the others
+        addLayer: function(layer) {
+            layer = this.coerceLayer(layer);
+            this.layers.push(layer);
+            this.parent.appendChild(layer.parent); // TODO: make sure layer.parent doesn't already have a parentNode?
+            layer.map = this; // TODO: remove map property from MM.Layer?
+            return this;
+        },
+        
+        // find the given layer and remove it
+        removeLayer: function(layer) {
+            for (var i = 0; i < this.layers.length; i++) {
+                if (layer == this.layers[i]) {
+                    this.removeLayerAt(i);
+                    break;
+                }
             }
-            if (this.layers[index]) {
-                this.layers[index].destroy()
-            }
-            // pass it on.
-            this.layers[index] = layer;
-            this.parent.appendChild(layer.parent);
-            layer.map = this; // TODO: remove map property from MM.Layer            
-            MM.getFrame(this.getRedraw());
+            return this;
         },
 
+        // replace the current layer at the given index with the given layer
+        setLayerAt: function(index, layer) {
+            
+            if(index < 0 || index >= this.layers.length) {
+                throw new Error('invalid index in setLayerAt(): ' + index);
+            }
+
+            layer = this.coerceLayer(layer);
+
+            if (this.layers[index] != layer) {
+
+                // clear existing layer at this index
+                if (index < this.layers.length) {
+                    this.layers[index].destroy()
+                }
+    
+                // pass it on.
+                this.layers[index] = layer;
+                this.parent.appendChild(layer.parent);
+                layer.map = this; // TODO: remove map property from MM.Layer            
+    
+                MM.getFrame(this.getRedraw());
+            }
+            
+            return this;
+        },
+
+        // put the given layer at the given index, moving others if necessary
         insertLayerAt: function(index, layer) {
 
             if(index < 0 || index > this.layers.length) {
-                throw new Error('invalid index in insertLayer(): ' + index);
+                throw new Error('invalid index in insertLayerAt(): ' + index);
             }
+
+            layer = this.coerceLayer(layer);
 
             if(index == this.layers.length) {
                 // it just gets tacked on to the end
@@ -2304,10 +2347,13 @@ var mm = com.modestmaps = {
             }
 
             layer.map = this; // TODO: remove map property from MM.Layer
+            
             MM.getFrame(this.getRedraw());
+            
+            return this;
         },
 
-        // TODO: clear request queue?
+        // remove the layer at the given index, call .destroy() on the layer
         removeLayerAt: function(index) {
             if(index < 0 || index >= this.layers.length) {
                 throw new Error('invalid index in removeLayer(): ' + index);
@@ -2316,15 +2362,15 @@ var mm = com.modestmaps = {
             // gone baby gone.
             var old = this.layers[index];
             this.layers.splice(index, 1);
-            old.destroy();            
+            old.destroy();
+            
+            return this;
         },
 
+        // switch the stacking order of two layers, by index
         swapLayers: function(i, j) {
-            if(i < 0 || i >= this.layers.length) {
-                throw new Error('invalid index in swapLayers(): ' + index);
-            }
 
-            if(j < 0 || j >= this.layers.length) {
+            if(i < 0 || i >= this.layers.length || j < 0 || j >= this.layers.length) {
                 throw new Error('invalid index in swapLayers(): ' + index);
             }
 
@@ -2344,6 +2390,8 @@ var mm = com.modestmaps = {
             // now do it to the layers array
             this.layers[i] = layer2;
             this.layers[j] = layer1;
+            
+            return this;
         },
 
         // limits
