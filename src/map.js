@@ -37,11 +37,9 @@
         
         if(providers instanceof Array) {
             // we were actually passed a list of providers
-            for(var i = 0; i < providers.length; i++)
-            {
+            for(var i = 0; i < providers.length; i++) {
                 this.layers.push(new MM.Layer(this, providers[i]));
             }
-        
         } else {
             // we were probably passed a single provider
             this.layers.push(new MM.Layer(this, providers));
@@ -373,13 +371,13 @@
         insertProviderAt: function(index, provider) {
             var layer = new MM.Layer(this, provider);
             
-            if(index < 0 || index > this.layers.length)
+            if(index < 0 || index > this.layers.length) {
                 throw new Error('invalid index in insertProviderAt(): ' + index);
+            }
             
             if(index == this.layers.length) {
                 // it just gets tacked on to the end
                 this.layers.push(layer);
-            
             } else {
                 // it needs to get slipped in amongst the others
                 var other = this.layers[index];
@@ -390,10 +388,10 @@
             MM.getFrame(this.getRedraw());
         },
         
-        removeProviderAt: function(index)
-        {
-            if(index < 0 || index >= this.layers.length)
+        removeProviderAt: function(index) {
+            if(index < 0 || index >= this.layers.length) {
                 throw new Error('invalid index in removeProviderAt(): ' + index);
+            }
             
             // gone baby gone.
             var old = this.layers[index];
@@ -401,13 +399,14 @@
             this.layers.splice(index, 1);
         },
         
-        swapProviders: function(i, j)
-        {
-            if(i < 0 || i >= this.layers.length)
+        swapProviders: function(i, j) {
+            if(i < 0 || i >= this.layers.length) {
                 throw new Error('invalid index in removeProviderAt(): ' + index);
+            }
             
-            if(j < 0 || j >= this.layers.length)
+            if(j < 0 || j >= this.layers.length) {
                 throw new Error('invalid index in removeProviderAt(): ' + index);
+            }
             
             var layer1 = this.layers[i],
                 layer2 = this.layers[j],
@@ -431,8 +430,7 @@
         
         // Prevent the user from navigating the map outside the `outerLimits`
         // of the map's provider.
-        enforceLimits: function(coord)
-        {
+        enforceLimits: function(coord) {
             coord = coord.copy();
             var limits = this.provider.outerLimits();
             if (limits) {

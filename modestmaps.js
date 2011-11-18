@@ -1370,8 +1370,7 @@ if (!com) {
 
     //////////////////////////// Layer
 
-    MM.Layer = function(map, provider)
-    {
+    MM.Layer = function(map, provider) {
         this.parent = document.createElement('div');
         this.parent.style.cssText = 'position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; margin: 0; padding: 0; z-index: 0';
 
@@ -1403,14 +1402,11 @@ if (!com) {
         
         _tileComplete: null,
         
-        getTileComplete: function()
-        {
-            if(!this._tileComplete)
-            {
+        getTileComplete: function() {
+            if(!this._tileComplete) {
                 var theLayer = this;
 
-                this._tileComplete = function(manager, tile)
-                {
+                this._tileComplete = function(manager, tile) {
                     // cache the tile itself:
                     theLayer.tiles[tile.id] = tile;
                     theLayer.tileCacheSize++;
@@ -1456,8 +1452,7 @@ if (!com) {
             return this._tileComplete;
         },
         
-        draw: function()
-        {
+        draw: function() {
             // if we're in between zoom levels, we need to choose the nearest:
             var baseZoom = Math.round(this.map.coordinate.zoom);
 
@@ -1477,14 +1472,11 @@ if (!com) {
             // use this coordinate for generating keys, parents and children:
             var tileCoord = startCoord.copy();
             
-            for(tileCoord.column = startCoord.column; tileCoord.column <= endCoord.column; tileCoord.column++)
-            {
-                for(tileCoord.row = startCoord.row; tileCoord.row <= endCoord.row; tileCoord.row++)
-                {
+            for(tileCoord.column = startCoord.column; tileCoord.column <= endCoord.column; tileCoord.column++) {
+                for(tileCoord.row = startCoord.row; tileCoord.row <= endCoord.row; tileCoord.row++) {
                     var validKeys = this.inventoryVisibleTile(levelElement, tileCoord);
                     
-                    while(validKeys.length)
-                    {
+                    while(validKeys.length) {
                         validTileKeys[validKeys.pop()] = true;
                     }
                 }
@@ -1493,10 +1485,8 @@ if (!com) {
             // i from i to zoom-5 are levels that would be scaled too big,
             // i from zoom+2 to levels.length are levels that would be 
             // scaled too small (and tiles would be too numerous)                
-            for(var name in this.levels)
-            {
-                if(this.levels.hasOwnProperty(name))
-                {
+            for(var name in this.levels) {
+                if(this.levels.hasOwnProperty(name)) {
                     var zoom = parseInt(name,10);
 
                     if (zoom >= startCoord.zoom-5 && zoom < startCoord.zoom+2) {
@@ -1507,8 +1497,7 @@ if (!com) {
                     level.style.display = 'none';
                     var visibleTiles = this.tileElementsInLevel(level);
 
-                    while(visibleTiles.length)
-                    {
+                    while(visibleTiles.length) {
                         this.provider.releaseTile(visibleTiles[0].coord);
                         this.requestManager.clearRequest(visibleTiles[0].coord.toKey());
                         level.removeChild(visibleTiles[0]);
@@ -1521,8 +1510,7 @@ if (!com) {
             var minLevel = startCoord.zoom-5;
             var maxLevel = startCoord.zoom+2;
 
-            for(var zoom = minLevel; zoom < maxLevel; zoom++)
-            {
+            for(var zoom = minLevel; zoom < maxLevel; zoom++) {
                 this.adjustVisibleLevel(this.levels[zoom], zoom, validTileKeys);
             }
     
@@ -1543,16 +1531,14 @@ if (!com) {
         *
         * Return a list of valid (i.e. loadable?) tile keys.
         */
-        inventoryVisibleTile: function(layer_element, tile_coord)
-        {
+        inventoryVisibleTile: function(layer_element, tile_coord) {
             var tile_key = tile_coord.toKey(),
                 valid_tile_keys = [tile_key];
 
            /*
             * Check that the needed tile already exists someplace - add it to the DOM if it does.
             */
-            if(tile_key in this.tiles)
-            {
+            if(tile_key in this.tiles) {
                 var tile = this.tiles[tile_key];
 
                 // ensure it's in the DOM:
@@ -1567,8 +1553,7 @@ if (!com) {
            /*
             * Check that the needed tile has even been requested at all.
             */
-            if(!this.requestManager.hasRequest(tile_key))
-            {
+            if(!this.requestManager.hasRequest(tile_key)) {
                 var tile = this.provider.getTile(tile_coord);
                 
                 if(typeof tile == 'string') {
@@ -1583,8 +1568,7 @@ if (!com) {
             var tileCovered = false;
             var maxStepsOut = tile_coord.zoom;
 
-            for(var pz = 1; pz <= maxStepsOut; pz++)
-            {
+            for(var pz = 1; pz <= maxStepsOut; pz++) {
                 var parent_coord = tile_coord.zoomBy(-pz).container();
                 var parent_key = parent_coord.toKey();
                 
@@ -1640,8 +1624,7 @@ if (!com) {
             return valid_tile_keys;
         },
         
-        tileElementsInLevel: function(level)
-        {
+        tileElementsInLevel: function(level) {
             var tiles = [];
             
             for(var tile = level.firstChild; tile; tile = tile.nextSibling)
@@ -1659,8 +1642,7 @@ if (!com) {
         * For a given level, adjust visibility as a whole and discard individual
         * tiles based on values in valid_tile_keys from inventoryVisibleTile().
         */
-        adjustVisibleLevel: function(level, zoom, valid_tile_keys)
-        {
+        adjustVisibleLevel: function(level, zoom, valid_tile_keys) {
             // for tracking time of tile usage:
             var now = new Date().getTime();
         
@@ -1686,8 +1668,7 @@ if (!com) {
             var center = new MM.Point(this.map.dimensions.x/2, this.map.dimensions.y/2);
             var tiles = this.tileElementsInLevel(level);
             
-            while(tiles.length)
-            {
+            while(tiles.length) {
                 var tile = tiles.pop();
 
                 if(!valid_tile_keys[tile.id]) {
@@ -1713,8 +1694,7 @@ if (!com) {
             }
         },
         
-        createOrGetLevel: function(zoom)
-        {
+        createOrGetLevel: function(zoom) {
             if(zoom in this.levels)
             {
                 return this.levels[zoom];
@@ -1730,13 +1710,11 @@ if (!com) {
             return level;
         },
         
-        addTileImage: function(key, coord, url)
-        {
+        addTileImage: function(key, coord, url) {
             this.requestManager.requestTile(key, coord, url);
         },
         
-        addTileElement: function(key, coordinate, element)
-        {
+        addTileElement: function(key, coordinate, element) {
             // Expected in draw()
             element.id = key;
             element.coord = coordinate.copy();
@@ -1756,8 +1734,7 @@ if (!com) {
             this.positionTile(element);
         },
         
-        positionTile: function(tile)
-        {
+        positionTile: function(tile) {
             // position this tile (avoids a full draw() call):
             var theCoord = this.map.coordinate.zoomTo(tile.coord.zoom);
             var scale = Math.pow(2, this.map.coordinate.zoom - tile.coord.zoom);
@@ -1790,8 +1767,7 @@ if (!com) {
         
         _redrawTimer: undefined,
         
-        requestRedraw: function()
-        {
+        requestRedraw: function() {
             // we'll always draw within 1 second of this request,
             // sometimes faster if there's already a pending redraw
             // this is used when a new tile arrives so that we clear
@@ -1804,8 +1780,7 @@ if (!com) {
     
         _redraw: null,
         
-        getRedraw: function()
-        {
+        getRedraw: function() {
             // let's only create this closure once...
             if (!this._redraw) {
                 var theMap = this;
@@ -1821,21 +1796,18 @@ if (!com) {
          * keeps cache below max size
          * (called every time we receive a new tile and add it to the cache)
          */
-        checkCache: function()
-        {
+        checkCache: function() {
             var numTilesOnScreen = this.parent.getElementsByTagName('img').length;
             var maxTiles = Math.max(numTilesOnScreen, this.maxTileCacheSize);
             
-            if(this.tileCacheSize > maxTiles)
-            {
+            if(this.tileCacheSize > maxTiles) {
                 // sort from newest (highest) to oldest (lowest)
                 this.recentTiles.sort(function(t1, t2) {
                     return t2.lastTouchedTime < t1.lastTouchedTime ? -1 : t2.lastTouchedTime > t1.lastTouchedTime ? 1 : 0;
                 });            
             }
 
-            while(this.tileCacheSize > maxTiles)
-            {
+            while(this.tileCacheSize > maxTiles) {
                 // delete the oldest record
                 var tileRecord = this.recentTiles.pop();
                 var now = new Date().getTime();
@@ -1855,10 +1827,8 @@ if (!com) {
             }
         },
      
-        setProvider: function(newProvider)
-        {
-            if(newProvider.hasOwnProperty('getTileUrl'))
-            {
+        setProvider: function(newProvider) {
+            if(newProvider.hasOwnProperty('getTileUrl')) {
                 newProvider = new MM.TilePaintingProvider(newProvider);
             }
 
@@ -1866,18 +1836,14 @@ if (!com) {
         
             // if we already have a provider the we'll need to
             // clear the DOM, cancel requests and redraw
-            if(!firstProvider)
-            {
+            if(!firstProvider) {
                 this.requestManager.clear();
                 
-                for(var name in this.levels)
-                {
-                    if(this.levels.hasOwnProperty(name))
-                    {
+                for(var name in this.levels) {
+                    if(this.levels.hasOwnProperty(name)) {
                         var level = this.levels[name];
 
-                        while(level.firstChild)
-                        {
+                        while(level.firstChild) {
                             this.provider.releaseTile(level.firstChild.coord);
                             level.removeChild(level.firstChild);
                         }
@@ -1898,8 +1864,7 @@ if (!com) {
 
             this.provider = newProvider;
 
-            if(!firstProvider)
-            {
+            if(!firstProvider) {
                 this.draw();
             }
         },
@@ -1907,12 +1872,10 @@ if (!com) {
         // compares manhattan distance from center of 
         // requested tiles to current map center
         // NB:- requested tiles are *popped* from queue, so we do a descending sort
-        getCenterDistanceCompare: function()
-        {
+        getCenterDistanceCompare: function() {
             var theCoord = this.map.coordinate.zoomTo(Math.round(this.map.coordinate.zoom));
 
-            return function(r1, r2)
-            {
+            return function(r1, r2) {
                 if (r1 && r2)
                 {
                     var c1 = r1.coord;
@@ -1972,11 +1935,9 @@ if (!com) {
         
         if(providers instanceof Array) {
             // we were actually passed a list of providers
-            for(var i = 0; i < providers.length; i++)
-            {
+            for(var i = 0; i < providers.length; i++) {
                 this.layers.push(new MM.Layer(this, providers[i]));
             }
-        
         } else {
             // we were probably passed a single provider
             this.layers.push(new MM.Layer(this, providers));
@@ -2004,6 +1965,8 @@ if (!com) {
             this.parent.style.height = Math.round(dimensions.y) + 'px';
         }
 
+        this.dimensions = dimensions;
+        
         this.enablePyramidLoading = false;
 
         this.callbackManager = new MM.CallbackManager(this, [
@@ -2142,7 +2105,7 @@ if (!com) {
 
         setCenterZoom: function(location, zoom) {
             this.coordinate = this.provider.locationCoordinate(location).zoomTo(parseFloat(zoom) || 0);
-            this.draw();
+            MM.getFrame(this.getRedraw());
             this.dispatchCallback('centered', [location, zoom]);
             return this;
         },
@@ -2306,13 +2269,13 @@ if (!com) {
         insertProviderAt: function(index, provider) {
             var layer = new MM.Layer(this, provider);
             
-            if(index < 0 || index > this.layers.length)
+            if(index < 0 || index > this.layers.length) {
                 throw new Error('invalid index in insertProviderAt(): ' + index);
+            }
             
             if(index == this.layers.length) {
                 // it just gets tacked on to the end
                 this.layers.push(layer);
-            
             } else {
                 // it needs to get slipped in amongst the others
                 var other = this.layers[index];
@@ -2323,10 +2286,10 @@ if (!com) {
             MM.getFrame(this.getRedraw());
         },
         
-        removeProviderAt: function(index)
-        {
-            if(index < 0 || index >= this.layers.length)
+        removeProviderAt: function(index) {
+            if(index < 0 || index >= this.layers.length) {
                 throw new Error('invalid index in removeProviderAt(): ' + index);
+            }
             
             // gone baby gone.
             var old = this.layers[index];
@@ -2334,13 +2297,14 @@ if (!com) {
             this.layers.splice(index, 1);
         },
         
-        swapProviders: function(i, j)
-        {
-            if(i < 0 || i >= this.layers.length)
+        swapProviders: function(i, j) {
+            if(i < 0 || i >= this.layers.length) {
                 throw new Error('invalid index in removeProviderAt(): ' + index);
+            }
             
-            if(j < 0 || j >= this.layers.length)
+            if(j < 0 || j >= this.layers.length) {
                 throw new Error('invalid index in removeProviderAt(): ' + index);
+            }
             
             var layer1 = this.layers[i],
                 layer2 = this.layers[j],
@@ -2364,8 +2328,7 @@ if (!com) {
         
         // Prevent the user from navigating the map outside the `outerLimits`
         // of the map's provider.
-        enforceLimits: function(coord)
-        {
+        enforceLimits: function(coord) {
             coord = coord.copy();
             var limits = this.provider.outerLimits();
             if (limits) {
