@@ -164,13 +164,13 @@
             this.checkCache();
         },
 
-       /**
-        * For a given tile coordinate in a given level element, ensure that it's
-        * correctly represented in the DOM including potentially-overlapping
-        * parent and child tiles for pyramid loading.
-        *
-        * Return a list of valid (i.e. loadable?) tile keys.
-        */
+        /**
+         * For a given tile coordinate in a given level element, ensure that it's
+         * correctly represented in the DOM including potentially-overlapping
+         * parent and child tiles for pyramid loading.
+         *
+         * Return a list of valid (i.e. loadable?) tile keys.
+         */
         inventoryVisibleTile: function(layer_element, tile_coord) {
             var tile_key = tile_coord.toKey(),
                 valid_tile_keys = [tile_key];
@@ -270,10 +270,10 @@
             return tiles;
         },
 
-       /**
-        * For a given level, adjust visibility as a whole and discard individual
-        * tiles based on values in valid_tile_keys from inventoryVisibleTile().
-        */
+        /**
+         * For a given level, adjust visibility as a whole and discard individual
+         * tiles based on values in valid_tile_keys from inventoryVisibleTile().
+         */
         adjustVisibleLevel: function(level, zoom, valid_tile_keys) {
             // for tracking time of tile usage:
             var now = new Date().getTime();

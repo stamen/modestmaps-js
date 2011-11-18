@@ -128,21 +128,6 @@ if (!com) {
         return false;
     };
 
-    // see http://ejohn.org/apps/jselect/event.html for the originals
-    MM.addEvent = function(obj, type, fn) {
-        if (obj.attachEvent) {
-            obj['e'+type+fn] = fn;
-            obj[type+fn] = function(){ obj['e'+type+fn](window.event); };
-            obj.attachEvent('on'+type, obj[type+fn]);
-        }
-        else {
-            obj.addEventListener(type, fn, false);
-            if (type == 'mousewheel') {
-                obj.addEventListener('DOMMouseScroll', fn, false);
-            }
-        }
-    };
-
     // From underscore.js
     MM.bind = function(func, obj) {
         var slice = Array.prototype.slice;
@@ -156,16 +141,29 @@ if (!com) {
         };
     };
 
-    MM.removeEvent = function( obj, type, fn ) {
-        if ( obj.detachEvent ) {
-            obj.detachEvent('on'+type, obj[type+fn]);
-            obj[type+fn] = null;
+    // see http://ejohn.org/apps/jselect/event.html for the originals
+    MM.addEvent = function(obj, type, fn) {
+        if (obj.addEventListener) {
+            obj.addEventListener(type, fn, false);
+            if (type == 'mousewheel') {
+                obj.addEventListener('DOMMouseScroll', fn, false);
+            }
+        } else if (obj.attachEvent) {
+            obj['e'+type+fn] = fn;
+            obj[type+fn] = function(){ obj['e'+type+fn](window.event); };
+            obj.attachEvent('on'+type, obj[type+fn]);
         }
-        else {
+    };
+
+    MM.removeEvent = function( obj, type, fn ) {
+        if (obj.removeEventListener) {
             obj.removeEventListener(type, fn, false);
             if (type == 'mousewheel') {
                 obj.removeEventListener('DOMMouseScroll', fn, false);
             }
+        } else if (obj.detachEvent) {
+            obj.detachEvent('on'+type, obj[type+fn]);
+            obj[type+fn] = null;
         }
     };
 
@@ -1530,13 +1528,13 @@ if (!com) {
             this.checkCache();
         },
 
-       /**
-        * For a given tile coordinate in a given level element, ensure that it's
-        * correctly represented in the DOM including potentially-overlapping
-        * parent and child tiles for pyramid loading.
-        *
-        * Return a list of valid (i.e. loadable?) tile keys.
-        */
+        /**
+         * For a given tile coordinate in a given level element, ensure that it's
+         * correctly represented in the DOM including potentially-overlapping
+         * parent and child tiles for pyramid loading.
+         *
+         * Return a list of valid (i.e. loadable?) tile keys.
+         */
         inventoryVisibleTile: function(layer_element, tile_coord) {
             var tile_key = tile_coord.toKey(),
                 valid_tile_keys = [tile_key];
@@ -1636,10 +1634,10 @@ if (!com) {
             return tiles;
         },
 
-       /**
-        * For a given level, adjust visibility as a whole and discard individual
-        * tiles based on values in valid_tile_keys from inventoryVisibleTile().
-        */
+        /**
+         * For a given level, adjust visibility as a whole and discard individual
+         * tiles based on values in valid_tile_keys from inventoryVisibleTile().
+         */
         adjustVisibleLevel: function(level, zoom, valid_tile_keys) {
             // for tracking time of tile usage:
             var now = new Date().getTime();
