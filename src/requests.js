@@ -55,15 +55,12 @@
             this.clearExcept({});
         },
         
-        clearRequest: function(id)
-        {
-            if(id in this.requestsById)
-            {
+        clearRequest: function(id) {
+            if(id in this.requestsById) {
                 delete this.requestsById[id];
             }
             
-            for(var i = 0; i < this.requestQueue.length; i++)
-            {
+            for(var i = 0; i < this.requestQueue.length; i++) {
                 var request = this.requestQueue[i];
 
                 if(request && request.key == id)
