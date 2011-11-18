@@ -9,16 +9,23 @@
  *
  * Versioned using Semantic Versioning (v.major.minor.patch)
  * See CHANGELOG and http://semver.org/ for more details.
- * 
+ *
  */
 
-// namespacing!
+var previous_mm = mm;
+
+// namespacing for backwards-compatibility
 if (!com) {
-    var com = { };
-    if (!com.modestmaps) {
-        com.modestmaps = {};
-    }
+    var com = {};
+    if (!com.modestmaps) com.modestmaps = {};
 }
+
+var mm = com.modestmaps = {
+  noConflict: function() {
+    mm = previous_mm;
+    return this;
+  }
+};
 
 (function(MM) {
     // Make inheritance bearable: clone one level of properties
@@ -2421,4 +2428,4 @@ if (!com) {
           Coordinate: MM.Coordinate
       };
     }
-})(com.modestmaps);
+})(mm);
