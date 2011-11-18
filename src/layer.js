@@ -1,11 +1,14 @@
 
     // Layer
 
-    MM.Layer = function(map, provider) {
-        this.parent = document.createElement('div');
+    MM.Layer = function(map, provider, parent) {
+        this.parent = parent || document.createElement('div');
         this.parent.style.cssText = 'position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; margin: 0; padding: 0; z-index: 0';
 
-        map.parent.appendChild(this.parent);
+        // only append our parent to the map's parent if it doesn't have one
+        if (!this.parent.parentNode) {
+            map.parent.appendChild(this.parent);
+        }
 
         this.map = map;
         this.levels = {};
