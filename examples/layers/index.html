@@ -14,7 +14,7 @@
                 bg = new mm.TemplatedMapProvider('http://acetate.geoiq.com/tiles/terrain/{Z}/{X}/{Y}.png'+bust),
                 fg = new mm.TemplatedMapProvider('http://acetate.geoiq.com/tiles/acetate-fg/{Z}/{X}/{Y}.png'+bust),
                 osm = new mm.TemplatedMapProvider('http://tile.openstreetmap.org/{Z}/{X}/{Y}.png'+bust),
-                ocm = new mm.TemplatedMapProvider('http://c.tile.opencyclemap.org/cycle/{Z}/{X}/{Y}.png'+bust);
+                mq = new mm.TemplatedMapProvider('http://otile1.mqcdn.com/tiles/1.0.0/osm/{Z}/{X}/{Y}.jpg'+bust);
             
             var map = new mm.Map('map', [bg, fg], new mm.Point(800, 360));
         
@@ -24,7 +24,7 @@
             window.getprovider0 = function() { console.log(['got provider 0:', map.getProviderAt(0)]) }
             window.getprovider1 = function() { console.log(['got provider 1:', map.getProviderAt(1)]) }
             window.setprovider0 = function() { map.setProviderAt(0, osm) }
-            window.addprovider1 = function() { map.insertProviderAt(1, ocm) }
+            window.addprovider1 = function() { map.insertProviderAt(1, mq) }
             window.remprovider1 = function() { map.removeProviderAt(1) }
             window.swap01 = function() { map.swapProviders(0, 1) }
             
