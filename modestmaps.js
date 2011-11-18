@@ -1419,8 +1419,12 @@ if (!com) {
                     // position this tile (avoids a full draw() call):
                     var theCoord = theLayer.map.coordinate.zoomTo(tile.coord.zoom);
                     var scale = Math.pow(2, theLayer.map.coordinate.zoom - tile.coord.zoom);
-                    var tx = ((theLayer.map.dimensions.x/2) + (tile.coord.column - theCoord.column) * theLayer.provider.tileWidth * scale);
-                    var ty = ((theLayer.map.dimensions.y/2) + (tile.coord.row - theCoord.row) * theLayer.provider.tileHeight * scale);
+                    var tx = ((theLayer.map.dimensions.x/2) +
+                        (tile.coord.column - theCoord.column) *
+                        theLayer.provider.tileWidth * scale);
+                    var ty = ((theLayer.map.dimensions.y/2) +
+                        (tile.coord.row - theCoord.row) *
+                        theLayer.provider.tileHeight * scale);
 
                     MM.moveElement(tile, {
                         x: Math.round(tx),
@@ -1458,8 +1462,10 @@ if (!com) {
 
             // these are the top left and bottom right tile coordinates
             // we'll be loading everything in between:
-            var startCoord = this.map.pointCoordinate(new MM.Point(0,0)).zoomTo(baseZoom).container();
-            var endCoord = this.map.pointCoordinate(this.map.dimensions).zoomTo(baseZoom).container().right().down();
+            var startCoord = this.map.pointCoordinate(new MM.Point(0,0))
+                .zoomTo(baseZoom).container();
+            var endCoord = this.map.pointCoordinate(this.map.dimensions)
+                .zoomTo(baseZoom).container().right().down();
 
             // tiles with invalid keys will be removed from visible levels
             // requests for tiles with invalid keys will be canceled
@@ -1729,10 +1735,12 @@ if (!com) {
             var theCoord = this.map.coordinate.zoomTo(tile.coord.zoom);
 
             tile.style.position = 'absolute';
-            
+
             MM.moveElement(tile, {
-                x: Math.round((this.map.dimensions.x/2) + (tile.coord.column - theCoord.column) * this.provider.tileWidth * scale),
-                y: Math.round((this.map.dimensions.y/2) + (tile.coord.row - theCoord.row) * this.provider.tileHeight * scale),
+                x: Math.round((this.map.dimensions.x/2) +
+                    (tile.coord.column - theCoord.column) * this.provider.tileWidth * scale),
+                y: Math.round((this.map.dimensions.y/2) +
+                    (tile.coord.row - theCoord.row) * this.provider.tileHeight * scale),
                 scale: Math.pow(2, this.map.coordinate.zoom - tile.coord.zoom),
                 // TODO: pass only scale or only w/h
                 width: this.provider.tileWidth,
@@ -1918,7 +1926,7 @@ if (!com) {
         }
 
         this.layers = [];
-        
+
         if(providers instanceof Array) {
             // we were actually passed a list of providers
             for(var i = 0; i < providers.length; i++) {
@@ -1928,7 +1936,7 @@ if (!com) {
             // we were probably passed a single provider
             this.layers.push(new MM.Layer(this, providers));
         }
-        
+
         // the first provider in the list gets to decide about projections and geometry
         this.provider = this.layers[0].provider;
 
@@ -1942,7 +1950,7 @@ if (!com) {
                 this.parent.offsetHeight);
             this.autoSize = true;
             var theMap = this;
-            // use destroy to get rid of this handler from the DOM            
+            // use destroy to get rid of this handler from the DOM
             MM.addEvent(window, 'resize', this.windowResize());
         } else {
             this.autoSize = false;
@@ -1951,7 +1959,7 @@ if (!com) {
         }
 
         this.dimensions = dimensions;
-        
+
         this.enablePyramidLoading = false;
 
         this.callbackManager = new MM.CallbackManager(this, [
@@ -1985,20 +1993,20 @@ if (!com) {
         dimensions: null,
         coordinate: null,
 
-    
+
         levels: null,
         layers: null,
-    
-        callbackManager: null,        
+
+        callbackManager: null,
 
         eventHandlers: null,
-        
+
         autoSize: null,
 
         toString: function() {
             return 'Map(#' + this.parent.id + ')';
         },
-        
+
         // callbacks...
 
         addCallback: function(event, callback) {
@@ -2149,7 +2157,7 @@ if (!com) {
             var centerZoom = TL.zoom;
 
             this.coordinate = new MM.Coordinate(centerRow, centerColumn, centerZoom).zoomTo(initZoom);
-            this.draw(); // draw calls enforceLimits 
+            this.draw(); // draw calls enforceLimits
             // (if you switch to getFrame, call enforceLimits first)
 
             this.dispatchCallback('extentset', locations);
@@ -2226,23 +2234,23 @@ if (!com) {
         getZoom: function() {
             return this.coordinate.zoom;
         },
-        
+
         // layers
-        
+
         getProviders: function() {
             var providers = [];
-            
+
             for(var i = 0; i < this.layers.length; i++) {
                 providers.push(this.layers[i].provider);
             }
-            
+
             return providers;
         },
-        
+
         getProviderAt: function(index) {
             return this.layers[index].provider;
         },
-        
+
         setProviderAt: function(index, provider) {
             if(index < 0 || index >= this.layers.length) {
                 throw new Error('invalid index in setProviderAt(): ' + index);
@@ -2250,14 +2258,14 @@ if (!com) {
             // pass it on.
             this.layers[index].setProvider(provider);
         },
-        
+
         insertProviderAt: function(index, provider) {
             var layer = new MM.Layer(this, provider);
-            
+
             if(index < 0 || index > this.layers.length) {
                 throw new Error('invalid index in insertProviderAt(): ' + index);
             }
-            
+
             if(index == this.layers.length) {
                 // it just gets tacked on to the end
                 this.layers.push(layer);
@@ -2270,48 +2278,48 @@ if (!com) {
 
             MM.getFrame(this.getRedraw());
         },
-        
+
         // TODO: clear request queue?
         removeProviderAt: function(index) {
             if(index < 0 || index >= this.layers.length) {
                 throw new Error('invalid index in removeProviderAt(): ' + index);
             }
-            
+
             // gone baby gone.
             var old = this.layers[index];
             old.parent.parentNode.removeChild(old.parent);
             this.layers.splice(index, 1);
         },
-        
+
         swapProviders: function(i, j) {
             if(i < 0 || i >= this.layers.length) {
                 throw new Error('invalid index in removeProviderAt(): ' + index);
             }
-            
+
             if(j < 0 || j >= this.layers.length) {
                 throw new Error('invalid index in removeProviderAt(): ' + index);
             }
-            
+
             var layer1 = this.layers[i],
                 layer2 = this.layers[j],
                 dummy = document.createElement('div');
-            
+
             // kick layer2 out, replace it with the dummy.
             this.parent.replaceChild(dummy, layer2.parent);
-            
+
             // put layer2 back in and kick layer1 out
             this.parent.replaceChild(layer2.parent, layer1.parent);
-            
+
             // put layer1 back in and ditch the dummy
             this.parent.replaceChild(layer1.parent, dummy);
-            
+
             // now do it to the layers array
             this.layers[i] = layer2;
             this.layers[j] = layer1;
         },
-        
+
         // limits
-        
+
         // Prevent the user from navigating the map outside the `outerLimits`
         // of the map's provider.
         enforceLimits: function(coord) {
@@ -2329,9 +2337,9 @@ if (!com) {
             }
             return coord;
         },
-        
+
         // rendering
-        
+
         // Redraw the tiles on the map, reusing existing tiles.
         draw: function() {
             // make sure we're not too far in or out:
