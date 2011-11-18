@@ -453,6 +453,22 @@
             // make sure we're not too far in or out:
             this.coordinate = this.enforceLimits(this.coordinate);
 
+            // if we don't have dimensions, check the parent size
+            if (this.dimensions.x <= 0 || this.dimensions.y <= 0) {
+                if (this.autoSize) {
+                    // maybe the parent size has changed?
+                    var w = this.parent.offsetWidth,
+                        h = this.parent.offsetHeight
+                    this.dimensions = new MM.Point(w,h);
+                    if (w <= 0 || h <= 0) {
+                        return;
+                    }
+                } else {
+                    // the issue can only be corrected with setSize
+                    return;
+                }
+            }
+
             // draw layers one by one
             for(var i = 0; i < this.layers.length; i++) {
                 this.layers[i].draw();

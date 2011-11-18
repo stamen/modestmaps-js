@@ -1405,8 +1405,8 @@ if (!com) {
         getTileComplete: function() {
             if(!this._tileComplete) {
                 var theLayer = this;
-
                 this._tileComplete = function(manager, tile) {
+                
                     // cache the tile itself:
                     theLayer.tiles[tile.id] = tile;
                     theLayer.tileCacheSize++;
@@ -1416,7 +1416,6 @@ if (!com) {
                         id: tile.id, 
                         lastTouchedTime: new Date().getTime() 
                     };
-
                     theLayer.recentTilesById[tile.id] = record;
                     theLayer.recentTiles.push(record);                        
 
@@ -1425,17 +1424,21 @@ if (!com) {
                     var scale = Math.pow(2, theLayer.map.coordinate.zoom - tile.coord.zoom);
                     var tx = ((theLayer.map.dimensions.x/2) + (tile.coord.column - theCoord.column) * theLayer.provider.tileWidth * scale);
                     var ty = ((theLayer.map.dimensions.y/2) + (tile.coord.row - theCoord.row) * theLayer.provider.tileHeight * scale);
-                    tile.style.left = Math.round(tx) + 'px'; 
-                    tile.style.top = Math.round(ty) + 'px'; 
 
-                    // using style here and not raw width/height for ipad/iphone scaling
-                    // see examples/touch/test.html                    
-                    tile.style.width = Math.ceil(theLayer.provider.tileWidth * scale) + 'px';
-                    tile.style.height = Math.ceil(theLayer.provider.tileHeight * scale) + 'px';
+                    MM.moveElement(tile, {
+                        x: Math.round(tx),
+                        y: Math.round(ty),
+                        scale: scale,
+                        // TODO: pass only scale or only w/h
+                        width: theLayer.provider.tileWidth,
+                        height: theLayer.provider.tileHeight
+                    });
 
                     // add tile to its level
                     var theLevel = theLayer.levels[tile.coord.zoom];
                     theLevel.appendChild(tile);                    
+                    // Support style transition if available.
+                    tile.className = 'map-tile-loaded';
 
                     // ensure the level is visible if it's still the current level
                     if (Math.round(theLayer.map.coordinate.zoom) == tile.coord.zoom) {
@@ -1555,10 +1558,8 @@ if (!com) {
             */
             if(!this.requestManager.hasRequest(tile_key)) {
                 var tile = this.provider.getTile(tile_coord);
-                
                 if(typeof tile == 'string') {
                     this.addTileImage(tile_key, tile_coord, tile);
-                
                 } else {
                     this.addTileElement(tile_key, tile_coord, tile);
                 }
@@ -1625,16 +1626,14 @@ if (!com) {
         },
         
         tileElementsInLevel: function(level) {
+            // this is somewhat future proof, we're looking for DOM elements
+            // not necessarily <img> elements
             var tiles = [];
-            
-            for(var tile = level.firstChild; tile; tile = tile.nextSibling)
-            {
-                if(tile.nodeType == 1)
-                {
+            for(var tile = level.firstChild; tile; tile = tile.nextSibling) {
+                if(tile.nodeType == 1) {
                     tiles.push(tile);
                 }
-            }
-            
+            }            
             return tiles;
         },
         
@@ -1675,19 +1674,19 @@ if (!com) {
                     this.provider.releaseTile(tile.coord);
                     this.requestManager.clearRequest(tile.coord.toKey());
                     level.removeChild(tile);
-                
                 } else {
                     // position tiles
-                    var tx = center.x + (tile.coord.column - theCoord.column) * tileWidth;
-                    var ty = center.y + (tile.coord.row - theCoord.row) * tileHeight;
-                    tile.style.left = Math.round(tx) + 'px'; 
-                    tile.style.top = Math.round(ty) + 'px'; 
-
-                    // using style here and not raw width/height for ipad/iphone scaling
-                    // see examples/touch/test.html
-                    tile.style.width = Math.ceil(tileWidth) + 'px';
-                    tile.style.height = Math.ceil(tileHeight) + 'px';
-
+                    MM.moveElement(tile, {
+                        x: Math.round(center.x +
+                            (tile.coord.column - theCoord.column) * tileWidth),
+                        y: Math.round(center.y +
+                            (tile.coord.row - theCoord.row) * tileHeight),
+                        scale: scale,
+                        // TODO: pass only scale or only w/h
+                        width: this.provider.tileWidth,
+                        height: this.provider.tileHeight
+                    });
+                    
                     // log last-touched-time of currently cached tiles
                     this.recentTilesById[tile.id].lastTouchedTime = now;
                 }
@@ -1783,10 +1782,10 @@ if (!com) {
         getRedraw: function() {
             // let's only create this closure once...
             if (!this._redraw) {
-                var theMap = this;
+                var theLayer = this;
                 this._redraw = function() {
-                    theMap.draw();
-                    theMap._redrawTimer = 0;
+                    theLayer.draw();
+                    theLayer._redrawTimer = 0;
                 };
             }
             return this._redraw;
@@ -2350,6 +2349,22 @@ if (!com) {
         draw: function() {
             // make sure we're not too far in or out:
             this.coordinate = this.enforceLimits(this.coordinate);
+
+            // if we don't have dimensions, check the parent size
+            if (this.dimensions.x <= 0 || this.dimensions.y <= 0) {
+                if (this.autoSize) {
+                    // maybe the parent size has changed?
+                    var w = this.parent.offsetWidth,
+                        h = this.parent.offsetHeight
+                    this.dimensions = new MM.Point(w,h);
+                    if (w <= 0 || h <= 0) {
+                        return;
+                    }
+                } else {
+                    // the issue can only be corrected with setSize
+                    return;
+                }
+            }
 
             // draw layers one by one
             for(var i = 0; i < this.layers.length; i++) {

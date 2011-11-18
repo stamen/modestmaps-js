@@ -189,10 +189,8 @@
             */
             if(!this.requestManager.hasRequest(tile_key)) {
                 var tile = this.provider.getTile(tile_coord);
-                
                 if(typeof tile == 'string') {
                     this.addTileImage(tile_key, tile_coord, tile);
-                
                 } else {
                     this.addTileElement(tile_key, tile_coord, tile);
                 }
@@ -259,16 +257,14 @@
         },
         
         tileElementsInLevel: function(level) {
+            // this is somewhat future proof, we're looking for DOM elements
+            // not necessarily <img> elements
             var tiles = [];
-            
-            for(var tile = level.firstChild; tile; tile = tile.nextSibling)
-            {
-                if(tile.nodeType == 1)
-                {
+            for(var tile = level.firstChild; tile; tile = tile.nextSibling) {
+                if(tile.nodeType == 1) {
                     tiles.push(tile);
                 }
-            }
-            
+            }            
             return tiles;
         },
         
@@ -309,19 +305,19 @@
                     this.provider.releaseTile(tile.coord);
                     this.requestManager.clearRequest(tile.coord.toKey());
                     level.removeChild(tile);
-                
                 } else {
                     // position tiles
-                    var tx = center.x + (tile.coord.column - theCoord.column) * tileWidth;
-                    var ty = center.y + (tile.coord.row - theCoord.row) * tileHeight;
-                    tile.style.left = Math.round(tx) + 'px'; 
-                    tile.style.top = Math.round(ty) + 'px'; 
-
-                    // using style here and not raw width/height for ipad/iphone scaling
-                    // see examples/touch/test.html
-                    tile.style.width = Math.ceil(tileWidth) + 'px';
-                    tile.style.height = Math.ceil(tileHeight) + 'px';
-
+                    MM.moveElement(tile, {
+                        x: Math.round(center.x +
+                            (tile.coord.column - theCoord.column) * tileWidth),
+                        y: Math.round(center.y +
+                            (tile.coord.row - theCoord.row) * tileHeight),
+                        scale: scale,
+                        // TODO: pass only scale or only w/h
+                        width: this.provider.tileWidth,
+                        height: this.provider.tileHeight
+                    });
+                    
                     // log last-touched-time of currently cached tiles
                     this.recentTilesById[tile.id].lastTouchedTime = now;
                 }
