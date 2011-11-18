@@ -9,16 +9,23 @@
  *
  * Versioned using Semantic Versioning (v.major.minor.patch)
  * See CHANGELOG and http://semver.org/ for more details.
- * 
+ *
  */
 
-// namespacing!
+var previous_mm = mm;
+
+// namespacing for backwards-compatibility
 if (!com) {
-    var com = { };
-    if (!com.modestmaps) {
-        com.modestmaps = {};
-    }
+    var com = {};
+    if (!com.modestmaps) com.modestmaps = {};
 }
+
+var mm = com.modestmaps = {
+  noConflict: function() {
+    mm = previous_mm;
+    return this;
+  }
+};
 
 (function(MM) {
     // Make inheritance bearable: clone one level of properties
@@ -128,21 +135,6 @@ if (!com) {
         return false;
     };
 
-    // see http://ejohn.org/apps/jselect/event.html for the originals
-    MM.addEvent = function(obj, type, fn) {
-        if (obj.attachEvent) {
-            obj['e'+type+fn] = fn;
-            obj[type+fn] = function(){ obj['e'+type+fn](window.event); };
-            obj.attachEvent('on'+type, obj[type+fn]);
-        }
-        else {
-            obj.addEventListener(type, fn, false);
-            if (type == 'mousewheel') {
-                obj.addEventListener('DOMMouseScroll', fn, false);
-            }
-        }
-    };
-
     // From underscore.js
     MM.bind = function(func, obj) {
         var slice = Array.prototype.slice;
@@ -156,16 +148,29 @@ if (!com) {
         };
     };
 
-    MM.removeEvent = function( obj, type, fn ) {
-        if ( obj.detachEvent ) {
-            obj.detachEvent('on'+type, obj[type+fn]);
-            obj[type+fn] = null;
+    // see http://ejohn.org/apps/jselect/event.html for the originals
+    MM.addEvent = function(obj, type, fn) {
+        if (obj.addEventListener) {
+            obj.addEventListener(type, fn, false);
+            if (type == 'mousewheel') {
+                obj.addEventListener('DOMMouseScroll', fn, false);
+            }
+        } else if (obj.attachEvent) {
+            obj['e'+type+fn] = fn;
+            obj[type+fn] = function(){ obj['e'+type+fn](window.event); };
+            obj.attachEvent('on'+type, obj[type+fn]);
         }
-        else {
+    };
+
+    MM.removeEvent = function( obj, type, fn ) {
+        if (obj.removeEventListener) {
             obj.removeEventListener(type, fn, false);
             if (type == 'mousewheel') {
                 obj.removeEventListener('DOMMouseScroll', fn, false);
             }
+        } else if (obj.detachEvent) {
+            obj.detachEvent('on'+type, obj[type+fn]);
+            obj[type+fn] = null;
         }
     };
 
@@ -558,42 +563,40 @@ if (!com) {
 
     MM.MapProvider.prototype = {
         // defaults to Google-y Mercator style maps
-        projection: new MM.MercatorProjection( 0, 
-                        MM.deriveTransformation(-Math.PI,  Math.PI, 0, 0, 
-                                                 Math.PI,  Math.PI, 1, 0, 
-                                                -Math.PI, -Math.PI, 0, 1) ),
-                    
+        projection: new MM.MercatorProjection(0,
+            MM.deriveTransformation(-Math.PI,  Math.PI, 0, 0,
+                Math.PI,  Math.PI, 1, 0,
+                -Math.PI, -Math.PI, 0, 1)),
+
         tileWidth: 256,
         tileHeight: 256,
-        
+
         // these are limits for available *tiles*
         // panning limits will be different (since you can wrap around columns)
         // but if you put Infinity in here it will screw up sourceCoordinate
         topLeftOuterLimit: new MM.Coordinate(0,0,0),
         bottomRightInnerLimit: new MM.Coordinate(1,1,0).zoomTo(18),
-        
+
         getTileUrl: function(coordinate) {
             throw "Abstract method not implemented by subclass.";
         },
 
-        getTile: function(coordinate)
-        {
+        getTile: function(coordinate) {
             throw "Abstract method not implemented by subclass.";
         },
-        
-        releaseTile: function(element)
-        {
+
+        releaseTile: function(element) {
             throw "Abstract method not implemented by subclass.";
         },
-        
+
         locationCoordinate: function(location) {
             return this.projection.locationCoordinate(location);
         },
-    
+
         coordinateLocation: function(coordinate) {
             return this.projection.coordinateLocation(coordinate);
         },
-        
+
         outerLimits: function() {
             return [ this.topLeftOuterLimit.copy(),
                      this.bottomRightInnerLimit.copy() ];
@@ -605,7 +608,7 @@ if (!com) {
             this.topLeftOuterLimit = this.topLeftOuterLimit.zoomTo(minZoom);
             this.bottomRightInnerLimit = this.bottomRightInnerLimit.zoomTo(maxZoom);
         },
-    
+
         sourceCoordinate: function(coord) {
             var TL = this.topLeftOuterLimit.zoomTo(coord.zoom);
             var BR = this.bottomRightInnerLimit.zoomTo(coord.zoom);
@@ -623,52 +626,49 @@ if (!com) {
             return new MM.Coordinate(coord.row, wrappedColumn, coord.zoom);
         }
     };
-    
+
     // A simple tileprovider builder that supports `XYZ`-style tiles.
     MM.TemplatedMapProvider = function(template, subdomains)
     {
-        var getTileUrl = function(coordinate)
-        {
+        var getTileUrl = function(coordinate) {
             coordinate = this.sourceCoordinate(coordinate);
             if (!coordinate) {
                 return null;
             }
             var base = template;
             if (subdomains && subdomains.length && base.indexOf("{S}") >= 0) {
-                var subdomain = parseInt(coordinate.zoom + coordinate.row + coordinate.column, 10) % subdomains.length;
+                var subdomain = parseInt(coordinate.zoom +
+                    coordinate.row + coordinate.column, 10) % subdomains.length;
                 base = base.replace('{S}', subdomains[subdomain]);
             }
             return base
                 .replace('{Z}', coordinate.zoom.toFixed(0))
                 .replace('{X}', coordinate.column.toFixed(0))
                 .replace('{Y}', coordinate.row.toFixed(0));
-        }
-    
+        };
+
         MM.MapProvider.call(this, getTileUrl);
     };
 
     MM.extend(MM.TemplatedMapProvider, MM.MapProvider);
-    
+
    /**
     * Possible new kind of provider that deals in elements.
     */
-    MM.TilePaintingProvider = function(template_provider)
-    {
+    MM.TilePaintingProvider = function(template_provider) {
         this.template_provider = template_provider;
-    }
-    
+    };
+
     MM.TilePaintingProvider.prototype = {
-    
-        getTile: function(coord)
-        {
+
+        getTile: function(coord) {
             return this.template_provider.getTileUrl(coord);
         },
-        
-        releaseTile: function(coord)
-        {
+
+        releaseTile: function(coord) {
         }
-    }
-    
+    };
+
     MM.extend(MM.TilePaintingProvider, MM.MapProvider);
     // Event Handlers
     // --------------
@@ -1367,13 +1367,10 @@ if (!com) {
 
     // Layer
 
-    MM.Layer = function(map, provider) {
+    MM.Layer = function(provider) {
         this.parent = document.createElement('div');
         this.parent.style.cssText = 'position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; margin: 0; padding: 0; z-index: 0';
 
-        map.parent.appendChild(this.parent);
-
-        this.map = map;
         this.levels = {};
 
         this.requestManager = new MM.RequestManager(this.parent);
@@ -1384,7 +1381,7 @@ if (!com) {
 
     MM.Layer.prototype = {
 
-        map: null,
+        map: null, // TODO: remove
         parent: null,
         tiles: null,
         levels: null,
@@ -1530,13 +1527,13 @@ if (!com) {
             this.checkCache();
         },
 
-       /**
-        * For a given tile coordinate in a given level element, ensure that it's
-        * correctly represented in the DOM including potentially-overlapping
-        * parent and child tiles for pyramid loading.
-        *
-        * Return a list of valid (i.e. loadable?) tile keys.
-        */
+        /**
+         * For a given tile coordinate in a given level element, ensure that it's
+         * correctly represented in the DOM including potentially-overlapping
+         * parent and child tiles for pyramid loading.
+         *
+         * Return a list of valid (i.e. loadable?) tile keys.
+         */
         inventoryVisibleTile: function(layer_element, tile_coord) {
             var tile_key = tile_coord.toKey(),
                 valid_tile_keys = [tile_key];
@@ -1636,10 +1633,10 @@ if (!com) {
             return tiles;
         },
 
-       /**
-        * For a given level, adjust visibility as a whole and discard individual
-        * tiles based on values in valid_tile_keys from inventoryVisibleTile().
-        */
+        /**
+         * For a given level, adjust visibility as a whole and discard individual
+         * tiles based on values in valid_tile_keys from inventoryVisibleTile().
+         */
         adjustVisibleLevel: function(level, zoom, valid_tile_keys) {
             // for tracking time of tile usage:
             var now = new Date().getTime();
@@ -1887,6 +1884,15 @@ if (!com) {
                 }
                 return r1 ? 1 : r2 ? -1 : 0;
             };
+        },
+        
+        destroy: function() {
+            this.requestManager.clear();
+            this.requestManager.removeCallback('requestcomplete', this.getTileComplete());
+            // TODO: does requestManager need a destroy function too?
+            this.provider = null;
+            this.parent.parentNode.removeChild(this.parent);        
+            this.map = null;
         }
 
     };
@@ -1897,14 +1903,14 @@ if (!com) {
     //
     //  * `parent` (required DOM element)
     //      Can also be an ID of a DOM element
-    //  * `providers` (required MapProvider or array)
-    //      Provides tile URLs and map projections, can be an array of providers.
+    //  * `layerOrLayers` (required MM.Layer or Array of MM.Layers)
+    //      each one must implement draw() and have a .parent DOM element and a .map property
     //  * `dimensions` (optional Point)
     //      Size of map to create
     //  * `eventHandlers` (optional Array)
     //      If empty or null MouseHandler will be used
     //      Otherwise, each handler will be called with init(map)
-    MM.Map = function(parent, providers, dimensions, eventHandlers) {
+    MM.Map = function(parent, layerOrLayers, dimensions, eventHandlers) {
 
         if (typeof parent == 'string') {
             parent = document.getElementById(parent);
@@ -1925,16 +1931,25 @@ if (!com) {
             this.parent.style.position = 'relative';
         }
 
-        this.layers = [];
-
-        if(providers instanceof Array) {
-            // we were actually passed a list of providers
-            for(var i = 0; i < providers.length; i++) {
-                this.layers.push(new MM.Layer(this, providers[i]));
-            }
+        if(layerOrLayers instanceof Array) {
+            this.layers = layerOrLayers;
         } else {
-            // we were probably passed a single provider
-            this.layers.push(new MM.Layer(this, providers));
+            this.layers = [ layerOrLayers ];
+        }
+        
+        // HACK for 0.x.y - stare at @RandomEtc
+        for (var i = 0; i < this.layers.length; i++) {
+            if (!this.layers[i].hasOwnProperty('draw')) {
+                if (typeof this.layers[i] == 'string') {
+                    // probably a template string
+                    this.layers[i] = new MM.Layer(new MM.TemplatedMapProvider(this.layers[i]));
+                } else {
+                    // probably a MapProvider
+                    this.layers[i] = new MM.Layer(this.layers[i]);
+                }
+            }
+            this.parent.appendChild(this.layers[i].parent);
+            this.layers[i].map = this; // TODO: remove map from MM.Layer
         }
 
         // the first provider in the list gets to decide about projections and geometry
@@ -1993,8 +2008,6 @@ if (!com) {
         dimensions: null,
         coordinate: null,
 
-
-        levels: null,
         layers: null,
 
         callbackManager: null,
@@ -2217,12 +2230,19 @@ if (!com) {
         },
 
         // inspecting
-
         getExtent: function() {
             var extent = [];
             extent.push(this.pointLocation(new MM.Point(0, 0)));
             extent.push(this.pointLocation(this.dimensions));
             return extent;
+        },
+
+        extent: function(locations, any) {
+            if (locations) {
+                return this.setExtent(locations, any);
+            } else {
+                return this.getExtent();
+            }
         },
 
         // Get the current centerpoint of the map, returning a `Location`
@@ -2235,69 +2255,77 @@ if (!com) {
             return this.coordinate.zoom;
         },
 
-        // layers
-
-        getProviders: function() {
-            var providers = [];
-
-            for(var i = 0; i < this.layers.length; i++) {
-                providers.push(this.layers[i].provider);
+        zoom: function(zoom) {
+            if (zoom !== undefined) {
+                return this.setZoom(zoom);
+            } else {
+                return this.getZoom();
             }
-
-            return providers;
         },
 
-        getProviderAt: function(index) {
-            return this.layers[index].provider;
+        // layers
+        getLayers: function() {
+            return this.layers;
         },
 
-        setProviderAt: function(index, provider) {
+        getLayerAt: function(index) {
+            return this.layers[index];
+        },
+
+        addLayerAt: function(index, layer) {
             if(index < 0 || index >= this.layers.length) {
-                throw new Error('invalid index in setProviderAt(): ' + index);
+                throw new Error('invalid index in setLayer(): ' + index);
+            }
+            if (this.layers[index]) {
+                this.layers[index].destroy()
             }
             // pass it on.
-            this.layers[index].setProvider(provider);
+            this.layers[index] = layer;
+            this.parent.appendChild(layer.parent);
+            layer.map = this; // TODO: remove map property from MM.Layer            
+            MM.getFrame(this.getRedraw());
         },
 
-        insertProviderAt: function(index, provider) {
-            var layer = new MM.Layer(this, provider);
+        insertLayerAt: function(index, layer) {
 
             if(index < 0 || index > this.layers.length) {
-                throw new Error('invalid index in insertProviderAt(): ' + index);
+                throw new Error('invalid index in insertLayer(): ' + index);
             }
 
             if(index == this.layers.length) {
                 // it just gets tacked on to the end
                 this.layers.push(layer);
+                this.parent.appendChild(layer.parent);
             } else {
                 // it needs to get slipped in amongst the others
                 var other = this.layers[index];
-                other.parent.parentNode.insertBefore(layer.parent, other.parent);
+                this.parent.insertBefore(layer.parent, other.parent);
                 this.layers.splice(index, 0, layer);
             }
 
+            layer.map = this; // TODO: remove map property from MM.Layer
             MM.getFrame(this.getRedraw());
         },
 
         // TODO: clear request queue?
-        removeProviderAt: function(index) {
+        removeLayerAt: function(index) {
             if(index < 0 || index >= this.layers.length) {
-                throw new Error('invalid index in removeProviderAt(): ' + index);
+                throw new Error('invalid index in removeLayer(): ' + index);
             }
 
             // gone baby gone.
             var old = this.layers[index];
-            old.parent.parentNode.removeChild(old.parent);
             this.layers.splice(index, 1);
+            old.destroy();            
         },
 
-        swapProviders: function(i, j) {
+        swapLayers: function(i, j) {
             if(i < 0 || i >= this.layers.length) {
-                throw new Error('invalid index in removeProviderAt(): ' + index);
+                throw new Error('invalid index in swapLayers(): ' + index);
             }
 
             if(j < 0 || j >= this.layers.length) {
-                throw new Error('invalid index in removeProviderAt(): ' + index);
+                throw new Error('invalid index in swapLayers(): ' + index);
             }
 
             var layer1 = this.layers[i],
@@ -2400,14 +2428,14 @@ if (!com) {
         // and clear its memory usage.
         destroy: function() {
             for (var j = 0; j < this.layers.length; j++) {
-                this.layers[j].requestManager.clear();
-                this.removeProviderAt(j);
+                this.layers[j].destroy();
             }
+            this.layers = [];
+            this.provider = null;
             for (var i = 0; i < this.eventHandlers.length; i++) {
                 this.eventHandlers[i].remove();
             }
             MM.removeEvent(window, 'resize', this.windowResize());
-            return this;
         }
     };
     if (typeof module !== 'undefined' && module.exports) {
@@ -2423,4 +2451,4 @@ if (!com) {
           Coordinate: MM.Coordinate
       };
     }
-})(com.modestmaps);
+})(mm);

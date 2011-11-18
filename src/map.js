@@ -332,12 +332,19 @@
         },
 
         // inspecting
-
         getExtent: function() {
             var extent = [];
             extent.push(this.pointLocation(new MM.Point(0, 0)));
             extent.push(this.pointLocation(this.dimensions));
             return extent;
+        },
+
+        extent: function(locations, any) {
+            if (locations) {
+                return this.setExtent(locations, any);
+            } else {
+                return this.getExtent();
+            }
         },
 
         // Get the current centerpoint of the map, returning a `Location`
@@ -350,8 +357,15 @@
             return this.coordinate.zoom;
         },
 
-        // layers
+        zoom: function(zoom) {
+            if (zoom !== undefined) {
+                return this.setZoom(zoom);
+            } else {
+                return this.getZoom();
+            }
+        },
 
+        // layers
         getLayers: function() {
             return this.layers;
         },
