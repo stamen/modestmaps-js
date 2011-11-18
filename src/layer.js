@@ -1,5 +1,5 @@
 
-    //////////////////////////// Layer
+    // Layer
 
     MM.Layer = function(map, provider) {
         this.parent = document.createElement('div');
@@ -106,11 +106,11 @@
             // use this coordinate for generating keys, parents and children:
             var tileCoord = startCoord.copy();
 
-            for(tileCoord.column = startCoord.column; tileCoord.column <= endCoord.column; tileCoord.column++) {
-                for(tileCoord.row = startCoord.row; tileCoord.row <= endCoord.row; tileCoord.row++) {
+            for (tileCoord.column = startCoord.column; tileCoord.column <= endCoord.column; tileCoord.column++) {
+                for (tileCoord.row = startCoord.row; tileCoord.row <= endCoord.row; tileCoord.row++) {
                     var validKeys = this.inventoryVisibleTile(levelElement, tileCoord);
 
-                    while(validKeys.length) {
+                    while (validKeys.length) {
                         validTileKeys[validKeys.pop()] = true;
                     }
                 }
@@ -119,8 +119,8 @@
             // i from i to zoom-5 are levels that would be scaled too big,
             // i from zoom+2 to levels.length are levels that would be
             // scaled too small (and tiles would be too numerous)
-            for(var name in this.levels) {
-                if(this.levels.hasOwnProperty(name)) {
+            for (var name in this.levels) {
+                if (this.levels.hasOwnProperty(name)) {
                     var zoom = parseInt(name,10);
 
                     if (zoom >= startCoord.zoom-5 && zoom < startCoord.zoom+2) {
@@ -141,8 +141,8 @@
             }
 
             // levels we want to see, if they have tiles in validTileKeys
-            var minLevel = startCoord.zoom-5;
-            var maxLevel = startCoord.zoom+2;
+            var minLevel = startCoord.zoom - 5;
+            var maxLevel = startCoord.zoom + 2;
 
             for (var zoom = minLevel; zoom < maxLevel; zoom++) {
                 this.adjustVisibleLevel(this.levels[zoom], zoom, validTileKeys);
@@ -169,29 +169,29 @@
             var tile_key = tile_coord.toKey(),
                 valid_tile_keys = [tile_key];
 
-           /*
-            * Check that the needed tile already exists someplace - add it to the DOM if it does.
-            */
-            if(tile_key in this.tiles) {
+            /*
+             * Check that the needed tile already exists someplace - add it to the DOM if it does.
+             */
+            if (tile_key in this.tiles) {
                 var tile = this.tiles[tile_key];
 
                 // ensure it's in the DOM:
-                if(tile.parentNode != layer_element)
-                {
+                if(tile.parentNode != layer_element) {
                     layer_element.appendChild(tile);
                 }
 
                 return valid_tile_keys;
             }
 
-           /*
-            * Check that the needed tile has even been requested at all.
-            */
+            /*
+             * Check that the needed tile has even been requested at all.
+             */
             if (!this.requestManager.hasRequest(tile_key)) {
                 var tile = this.provider.getTile(tile_coord);
-                if(typeof tile == 'string') {
+                if (typeof tile == 'string') {
                     this.addTileImage(tile_key, tile_coord, tile);
-                } else {
+                // tile must be truish
+                } else if (tile) {
                     this.addTileElement(tile_key, tile_coord, tile);
                 }
             }
@@ -215,14 +215,12 @@
                         if (parentTile.parentNode != parentLevel) {
                             parentLevel.appendChild(parentTile);
                         }
-                    }
-                    else if (!this.requestManager.hasRequest(parent_key)) {
+                    } else if (!this.requestManager.hasRequest(parent_key)) {
                         // force load of parent tiles we don't already have
                         var tile = this.provider.getTile(parent_coord);
 
-                        if(typeof tile == 'string') {
+                        if (typeof tile == 'string') {
                             this.addTileImage(parent_key, parent_coord, tile);
-
                         } else {
                             this.addTileElement(parent_key, parent_coord, tile);
                         }
@@ -238,8 +236,7 @@
             }
 
             // if we didn't find a parent, look at the children:
-            if(!tileCovered && !this.enablePyramidLoading)
-            {
+            if(!tileCovered && !this.enablePyramidLoading) {
                 var child_coord = tile_coord.zoomBy(1);
 
                 // mark everything valid whether or not we have it:
@@ -275,7 +272,7 @@
             // for tracking time of tile usage:
             var now = new Date().getTime();
 
-            if(!level) {
+            if (!level) {
                 // no tiles for this level yet
                 return;
             }
@@ -323,7 +320,7 @@
         },
 
         createOrGetLevel: function(zoom) {
-            if(zoom in this.levels) {
+            if (zoom in this.levels) {
                 return this.levels[zoom];
             }
 

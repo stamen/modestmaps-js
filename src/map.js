@@ -387,6 +387,7 @@
             MM.getFrame(this.getRedraw());
         },
         
+        // TODO: clear request queue?
         removeProviderAt: function(index) {
             if(index < 0 || index >= this.layers.length) {
                 throw new Error('invalid index in removeProviderAt(): ' + index);
@@ -506,11 +507,13 @@
         // Attempts to destroy all attachment a map has to a page
         // and clear its memory usage.
         destroy: function() {
-            this.requestManager.clear();
+            for (var j = 0; j < this.layers.length; j++) {
+                this.layers[j].requestManager.clear();
+                this.removeProviderAt(j);
+            }
             for (var i = 0; i < this.eventHandlers.length; i++) {
                 this.eventHandlers[i].remove();
             }
-            this.parent.removeChild(this.layerParent);
             MM.removeEvent(window, 'resize', this.windowResize());
             return this;
         }
