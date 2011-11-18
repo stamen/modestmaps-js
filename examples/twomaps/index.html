@@ -57,8 +57,12 @@ function initMaps() {
         }
     }
 
-    leftMap.addCallback('drawn', leftSync);
-    rightMap.addCallback('drawn', rightSync);
+    leftMap.addCallback('centered', leftSync);
+    rightMap.addCallback('centered', rightSync);
+    leftMap.addCallback('panned', leftSync);
+    rightMap.addCallback('panned', rightSync);
+    leftMap.addCallback('zoomed', leftSync);
+    rightMap.addCallback('zoomed', rightSync);
 
 }
 
