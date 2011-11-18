@@ -98,6 +98,6 @@ describe('Map', function() {
 
   it('can be cleanly destroyed', function() {
       map.destroy();
-      expect(map.requestManager.openRequestCount).toEqual(0);
+      expect(map.layers.length).toEqual(0);
   });
 });
