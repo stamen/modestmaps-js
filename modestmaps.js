@@ -1736,18 +1736,17 @@ if (!com) {
         positionTile: function(tile) {
             // position this tile (avoids a full draw() call):
             var theCoord = this.map.coordinate.zoomTo(tile.coord.zoom);
-            var scale = Math.pow(2, this.map.coordinate.zoom - tile.coord.zoom);
-            var tx = ((this.map.dimensions.x/2) + (tile.coord.column - theCoord.column) * this.provider.tileWidth * scale);
-            var ty = ((this.map.dimensions.y/2) + (tile.coord.row - theCoord.row) * this.provider.tileHeight * scale);
 
             tile.style.position = 'absolute';
-            tile.style.left = Math.round(tx) + 'px'; 
-            tile.style.top = Math.round(ty) + 'px'; 
-
-            // using style here and not raw width/height for ipad/iphone scaling
-            // see examples/touch/test.html                    
-            tile.style.width = Math.ceil(this.provider.tileWidth * scale) + 'px';
-            tile.style.height = Math.ceil(this.provider.tileHeight * scale) + 'px';
+            
+            MM.moveElement(tile, {
+                x: Math.round((this.map.dimensions.x/2) + (tile.coord.column - theCoord.column) * this.provider.tileWidth * scale),
+                y: Math.round((this.map.dimensions.y/2) + (tile.coord.row - theCoord.row) * this.provider.tileHeight * scale),
+                scale: Math.pow(2, this.map.coordinate.zoom - tile.coord.zoom),
+                // TODO: pass only scale or only w/h
+                width: this.provider.tileWidth,
+                height: this.provider.tileHeight
+            });
 
             // add tile to its level
             var theLevel = this.levels[tile.coord.zoom];
@@ -1875,8 +1874,7 @@ if (!com) {
             var theCoord = this.map.coordinate.zoomTo(Math.round(this.map.coordinate.zoom));
 
             return function(r1, r2) {
-                if (r1 && r2)
-                {
+                if (r1 && r2) {
                     var c1 = r1.coord;
                     var c2 = r2.coord;
                     if (c1.zoom == c2.zoom) {
