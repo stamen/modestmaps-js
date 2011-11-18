@@ -36,8 +36,8 @@
         getTileComplete: function() {
             if(!this._tileComplete) {
                 var theLayer = this;
-
                 this._tileComplete = function(manager, tile) {
+                
                     // cache the tile itself:
                     theLayer.tiles[tile.id] = tile;
                     theLayer.tileCacheSize++;
@@ -47,7 +47,6 @@
                         id: tile.id, 
                         lastTouchedTime: new Date().getTime() 
                     };
-
                     theLayer.recentTilesById[tile.id] = record;
                     theLayer.recentTiles.push(record);                        
 
@@ -56,17 +55,21 @@
                     var scale = Math.pow(2, theLayer.map.coordinate.zoom - tile.coord.zoom);
                     var tx = ((theLayer.map.dimensions.x/2) + (tile.coord.column - theCoord.column) * theLayer.provider.tileWidth * scale);
                     var ty = ((theLayer.map.dimensions.y/2) + (tile.coord.row - theCoord.row) * theLayer.provider.tileHeight * scale);
-                    tile.style.left = Math.round(tx) + 'px'; 
-                    tile.style.top = Math.round(ty) + 'px'; 
 
-                    // using style here and not raw width/height for ipad/iphone scaling
-                    // see examples/touch/test.html                    
-                    tile.style.width = Math.ceil(theLayer.provider.tileWidth * scale) + 'px';
-                    tile.style.height = Math.ceil(theLayer.provider.tileHeight * scale) + 'px';
+                    MM.moveElement(tile, {
+                        x: Math.round(tx),
+                        y: Math.round(ty),
+                        scale: scale,
+                        // TODO: pass only scale or only w/h
+                        width: theLayer.provider.tileWidth,
+                        height: theLayer.provider.tileHeight
+                    });
 
                     // add tile to its level
                     var theLevel = theLayer.levels[tile.coord.zoom];
                     theLevel.appendChild(tile);                    
+                    // Support style transition if available.
+                    tile.className = 'map-tile-loaded';
 
                     // ensure the level is visible if it's still the current level
                     if (Math.round(theLayer.map.coordinate.zoom) == tile.coord.zoom) {
@@ -414,10 +417,10 @@
         getRedraw: function() {
             // let's only create this closure once...
             if (!this._redraw) {
-                var theMap = this;
+                var theLayer = this;
                 this._redraw = function() {
-                    theMap.draw();
-                    theMap._redrawTimer = 0;
+                    theLayer.draw();
+                    theLayer._redrawTimer = 0;
                 };
             }
             return this._redraw;
