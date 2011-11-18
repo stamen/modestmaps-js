@@ -345,6 +345,14 @@
             return this.provider.coordinateLocation(this.coordinate);
         },
 
+        center: function(location) {
+            if (location) {
+                return this.setCenter(location);
+            } else {
+                return this.getCenter();
+            }
+        },
+
         // Get the current zoom level of the map, returning a number
         getZoom: function() {
             return this.coordinate.zoom;
