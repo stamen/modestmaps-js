@@ -60,8 +60,7 @@
             var theMap = this;
             // use destroy to get rid of this handler from the DOM            
             MM.addEvent(window, 'resize', this.windowResize());
-        }
-        else {
+        } else {
             this.autoSize = false;
             this.parent.style.width = Math.round(dimensions.x) + 'px';
             this.parent.style.height = Math.round(dimensions.y) + 'px';
