@@ -1,27 +1,23 @@
 
     // Layer
 
-    MM.Layer = function(map, provider, parent) {
+    MM.Layer = function(provider, parent) {
         this.parent = parent || document.createElement('div');
         this.parent.style.cssText = 'position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; margin: 0; padding: 0; z-index: 0';
 
-        // only append our parent to the map's parent if it doesn't have one
-        if (!this.parent.parentNode) {
-            map.parent.appendChild(this.parent);
-        }
-
-        this.map = map;
         this.levels = {};
 
         this.requestManager = new MM.RequestManager(this.parent);
         this.requestManager.addCallback('requestcomplete', this.getTileComplete());
 
-        this.setProvider(provider);
+        if (provider) {
+            this.setProvider(provider);
+        }
     };
 
     MM.Layer.prototype = {
 
-        map: null,
+        map: null, // TODO: remove
         parent: null,
         tiles: null,
         levels: null,
@@ -524,6 +520,15 @@
                 }
                 return r1 ? 1 : r2 ? -1 : 0;
             };
+        },
+        
+        destroy: function() {
+            this.requestManager.clear();
+            this.requestManager.removeCallback('requestcomplete', this.getTileComplete());
+            // TODO: does requestManager need a destroy function too?
+            this.provider = null;
+            this.parent.parentNode.removeChild(this.parent);        
+            this.map = null;
         }
 
     };

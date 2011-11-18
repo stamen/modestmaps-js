@@ -11,22 +11,22 @@
         {
             var mm = com.modestmaps,
                 bust = '?q=005',
-                bg = new mm.TemplatedMapProvider('http://acetate.geoiq.com/tiles/terrain/{Z}/{X}/{Y}.png'+bust),
-                fg = new mm.TemplatedMapProvider('http://acetate.geoiq.com/tiles/acetate-fg/{Z}/{X}/{Y}.png'+bust),
-                osm = new mm.TemplatedMapProvider('http://tile.openstreetmap.org/{Z}/{X}/{Y}.png'+bust),
-                mq = new mm.TemplatedMapProvider('http://otile1.mqcdn.com/tiles/1.0.0/osm/{Z}/{X}/{Y}.jpg'+bust);
+                bg = new MM.Layer(new mm.TemplatedMapProvider('http://acetate.geoiq.com/tiles/terrain/{Z}/{X}/{Y}.png'+bust)),
+                fg = new MM.Layer(new mm.TemplatedMapProvider('http://acetate.geoiq.com/tiles/acetate-fg/{Z}/{X}/{Y}.png'+bust)),
+                osm = new MM.Layer(new mm.TemplatedMapProvider('http://tile.openstreetmap.org/{Z}/{X}/{Y}.png'+bust)),
+                mq = new MM.Layer(new mm.TemplatedMapProvider('http://otile1.mqcdn.com/tiles/1.0.0/osm/{Z}/{X}/{Y}.jpg'+bust));
             
             var map = new mm.Map('map', [bg, fg], new mm.Point(800, 360));
         
             map.setCenterZoom(new mm.Location(37.811530, -122.2666097), 13);
             
-            window.getproviders = function() { console.log(['got providers:', map.getProviders()]) }
-            window.getprovider0 = function() { console.log(['got provider 0:', map.getProviderAt(0)]) }
-            window.getprovider1 = function() { console.log(['got provider 1:', map.getProviderAt(1)]) }
-            window.setprovider0 = function() { map.setProviderAt(0, osm) }
-            window.addprovider1 = function() { map.insertProviderAt(1, mq) }
-            window.remprovider1 = function() { map.removeProviderAt(1) }
-            window.swap01 = function() { map.swapProviders(0, 1) }
+            window.getLayers = function() { console.log(['got layers:', map.getLayers()]) }
+            window.getLayer0 = function() { console.log(['got layers 0:', map.getLayerAt(0)]) }
+            window.getLayer1 = function() { console.log(['got layers 1:', map.getLayerAt(1)]) }
+            window.setLayer0 = function() { map.setLayerAt(0, osm) }
+            window.insertLayer1 = function() { map.insertLayerAt(1, mq) }
+            window.remLayer1 = function() { map.removeLayerAt(1) }
+            window.swap01 = function() { map.swapLayers(0, 1) }
             
             //console.log(['provider:', bg]);
         }
@@ -48,13 +48,13 @@
     <div id="map">
     </div>
     <p>
-        <button onclick="getproviders();">get providers</button>
-        <button onclick="getprovider0();">get 1st provider</button>
-        <button onclick="getprovider1();">get 2nd provider</button>
-        <button onclick="setprovider0();">set 1st provider</button>
-        <button onclick="addprovider1();">add provider</button>
-        <button onclick="remprovider1();">remove 2nd provider</button>
-        <button onclick="swap01();">swap first two providers</button>
+        <button onclick="getLayers();">get layers</button>
+        <button onclick="getLayer0();">get 1st layer</button>
+        <button onclick="getLayer1();">get 2nd layer</button>
+        <button onclick="setLayer0();">set 1st layer</button>
+        <button onclick="insertLayer1();">insert layer</button>
+        <button onclick="remLayer1();">remove 2nd layer</button>
+        <button onclick="swap01();">swap first two layer</button>
     </p>
 </body>
 </html>

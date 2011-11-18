@@ -11,4 +11,4 @@
           Coordinate: MM.Coordinate
       };
     }
-})(com.modestmaps);
+})(mm);

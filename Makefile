@@ -15,6 +15,8 @@ JS_FILES = \
 	src/map.js \
 	src/end.js
 
+all: modestmaps.js modestmaps.min.js
+
 modestmaps.min.js: modestmaps.js
 	rm -f modestmaps.min.js
 	java -jar tools/yuicompressor-2.4.2.jar modestmaps.js > modestmaps.min.js

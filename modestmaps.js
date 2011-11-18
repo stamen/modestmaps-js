@@ -9,16 +9,23 @@
  *
  * Versioned using Semantic Versioning (v.major.minor.patch)
  * See CHANGELOG and http://semver.org/ for more details.
- * 
+ *
  */
 
-// namespacing!
+var previous_mm = mm;
+
+// namespacing for backwards-compatibility
 if (!com) {
-    var com = { };
-    if (!com.modestmaps) {
-        com.modestmaps = {};
-    }
+    var com = {};
+    if (!com.modestmaps) com.modestmaps = {};
 }
+
+var mm = com.modestmaps = {
+  noConflict: function() {
+    mm = previous_mm;
+    return this;
+  }
+};
 
 (function(MM) {
     // Make inheritance bearable: clone one level of properties
@@ -556,42 +563,40 @@ if (!com) {
 
     MM.MapProvider.prototype = {
         // defaults to Google-y Mercator style maps
-        projection: new MM.MercatorProjection( 0, 
-                        MM.deriveTransformation(-Math.PI,  Math.PI, 0, 0, 
-                                                 Math.PI,  Math.PI, 1, 0, 
-                                                -Math.PI, -Math.PI, 0, 1) ),
-                    
+        projection: new MM.MercatorProjection(0,
+            MM.deriveTransformation(-Math.PI,  Math.PI, 0, 0,
+                Math.PI,  Math.PI, 1, 0,
+                -Math.PI, -Math.PI, 0, 1)),
+
         tileWidth: 256,
         tileHeight: 256,
-        
+
         // these are limits for available *tiles*
         // panning limits will be different (since you can wrap around columns)
         // but if you put Infinity in here it will screw up sourceCoordinate
         topLeftOuterLimit: new MM.Coordinate(0,0,0),
         bottomRightInnerLimit: new MM.Coordinate(1,1,0).zoomTo(18),
-        
+
         getTileUrl: function(coordinate) {
             throw "Abstract method not implemented by subclass.";
         },
 
-        getTile: function(coordinate)
-        {
+        getTile: function(coordinate) {
             throw "Abstract method not implemented by subclass.";
         },
-        
-        releaseTile: function(element)
-        {
+
+        releaseTile: function(element) {
             throw "Abstract method not implemented by subclass.";
         },
-        
+
         locationCoordinate: function(location) {
             return this.projection.locationCoordinate(location);
         },
-    
+
         coordinateLocation: function(coordinate) {
             return this.projection.coordinateLocation(coordinate);
         },
-        
+
         outerLimits: function() {
             return [ this.topLeftOuterLimit.copy(),
                      this.bottomRightInnerLimit.copy() ];
@@ -603,7 +608,7 @@ if (!com) {
             this.topLeftOuterLimit = this.topLeftOuterLimit.zoomTo(minZoom);
             this.bottomRightInnerLimit = this.bottomRightInnerLimit.zoomTo(maxZoom);
         },
-    
+
         sourceCoordinate: function(coord) {
             var TL = this.topLeftOuterLimit.zoomTo(coord.zoom);
             var BR = this.bottomRightInnerLimit.zoomTo(coord.zoom);
@@ -621,7 +626,7 @@ if (!com) {
             return new MM.Coordinate(coord.row, wrappedColumn, coord.zoom);
         }
     };
-    
+
     // A simple tileprovider builder that supports `XYZ`-style tiles.
     MM.TemplatedMapProvider = function(template, subdomains)
     {
@@ -687,27 +692,24 @@ if (!com) {
     };
 
     MM.extend(MM.TemplatedMapProvider, MM.MapProvider);
-    
+
    /**
     * Possible new kind of provider that deals in elements.
     */
-    MM.TilePaintingProvider = function(template_provider)
-    {
+    MM.TilePaintingProvider = function(template_provider) {
         this.template_provider = template_provider;
-    }
-    
+    };
+
     MM.TilePaintingProvider.prototype = {
-    
-        getTile: function(coord)
-        {
+
+        getTile: function(coord) {
             return this.template_provider.getTileUrl(coord);
         },
-        
-        releaseTile: function(coord)
-        {
+
+        releaseTile: function(coord) {
         }
-    }
-    
+    };
+
     MM.extend(MM.TilePaintingProvider, MM.MapProvider);
     // Event Handlers
     // --------------
@@ -1406,27 +1408,23 @@ if (!com) {
 
     // Layer
 
-    MM.Layer = function(map, provider, parent) {
+    MM.Layer = function(provider, parent) {
         this.parent = parent || document.createElement('div');
         this.parent.style.cssText = 'position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; margin: 0; padding: 0; z-index: 0';
 
-        // only append our parent to the map's parent if it doesn't have one
-        if (!this.parent.parentNode) {
-            map.parent.appendChild(this.parent);
-        }
-
-        this.map = map;
         this.levels = {};
 
         this.requestManager = new MM.RequestManager(this.parent);
         this.requestManager.addCallback('requestcomplete', this.getTileComplete());
 
-        this.setProvider(provider);
+        if (provider) {
+            this.setProvider(provider);
+        }
     };
 
     MM.Layer.prototype = {
 
-        map: null,
+        map: null, // TODO: remove
         parent: null,
         tiles: null,
         levels: null,
@@ -1929,6 +1927,15 @@ if (!com) {
                 }
                 return r1 ? 1 : r2 ? -1 : 0;
             };
+        },
+        
+        destroy: function() {
+            this.requestManager.clear();
+            this.requestManager.removeCallback('requestcomplete', this.getTileComplete());
+            // TODO: does requestManager need a destroy function too?
+            this.provider = null;
+            this.parent.parentNode.removeChild(this.parent);        
+            this.map = null;
         }
 
     };
@@ -1939,14 +1946,15 @@ if (!com) {
     //
     //  * `parent` (required DOM element)
     //      Can also be an ID of a DOM element
-    //  * `providers` (required MapProvider or array)
-    //      Provides tile URLs and map projections, can be an array of providers.
+    //  * `layerOrLayers` (required MM.Layer or Array of MM.Layers)
+    //      each one must implement draw(), destroy(), have a .parent DOM element and a .map property
+    //      (an array of URL templates or MM.MapProviders is also acceptable)
     //  * `dimensions` (optional Point)
     //      Size of map to create
     //  * `eventHandlers` (optional Array)
     //      If empty or null MouseHandler will be used
     //      Otherwise, each handler will be called with init(map)
-    MM.Map = function(parent, providers, dimensions, eventHandlers) {
+    MM.Map = function(parent, layerOrLayers, dimensions, eventHandlers) {
 
         if (typeof parent == 'string') {
             parent = document.getElementById(parent);
@@ -1968,15 +1976,12 @@ if (!com) {
         }
 
         this.layers = [];
-
-        if(providers instanceof Array) {
-            // we were actually passed a list of providers
-            for(var i = 0; i < providers.length; i++) {
-                this.layers.push(new MM.Layer(this, providers[i]));
-            }
-        } else {
-            // we were probably passed a single provider
-            this.layers.push(new MM.Layer(this, providers));
+        if(!(layerOrLayers instanceof Array)) {
+            layerOrLayers = [ layerOrLayers ];
+        }
+        
+        for (var i = 0; i < layerOrLayers.length; i++) {
+            this.addLayer(layerOrLayers[i]);
         }
 
         // the first provider in the list gets to decide about projections and geometry
@@ -2035,8 +2040,6 @@ if (!com) {
         dimensions: null,
         coordinate: null,
 
-
-        levels: null,
         layers: null,
 
         callbackManager: null,
@@ -2259,7 +2262,6 @@ if (!com) {
         },
 
         // inspecting
-
         getExtent: function() {
             var extent = [];
             extent.push(this.pointLocation(new MM.Point(0, 0)));
@@ -2267,9 +2269,25 @@ if (!com) {
             return extent;
         },
 
+        extent: function(locations, any) {
+            if (locations) {
+                return this.setExtent(locations, any);
+            } else {
+                return this.getExtent();
+            }
+        },
+
         // Get the current centerpoint of the map, returning a `Location`
         getCenter: function() {
             return this.provider.coordinateLocation(this.coordinate);
+        },
+
+        center: function(location) {
+            if (location) {
+                return this.setCenter(location);
+            } else {
+                return this.getCenter();
+            }
         },
 
         // Get the current zoom level of the map, returning a number
@@ -2277,69 +2295,137 @@ if (!com) {
             return this.coordinate.zoom;
         },
 
+        zoom: function(zoom) {
+            if (zoom !== undefined) {
+                return this.setZoom(zoom);
+            } else {
+                return this.getZoom();
+            }
+        },
+
         // layers
-
-        getProviders: function() {
-            var providers = [];
-
-            for(var i = 0; i < this.layers.length; i++) {
-                providers.push(this.layers[i].provider);
+        
+        // HACK for 0.x.y - stare at @RandomEtc 
+        // this method means we can also pass a URL template or a MapProvider to addLayer
+        coerceLayer: function(layerish) {
+            if (!('draw' in layerish && typeof layerish.draw == 'function')) {
+                if (typeof layerish == 'string') {
+                    // probably a template string
+                    layerish = new MM.Layer(new MM.TemplatedMapProvider(layerish));
+                } else {
+                    // probably a MapProvider
+                    layerish = new MM.Layer(layerish);
+                }
             }
-
-            return providers;
+            return layerish;
+        },
+        
+        // return a copy of the layers array
+        getLayers: function() {
+            return this.layers.slice();
         },
 
-        getProviderAt: function(index) {
-            return this.layers[index].provider;
+        // return the layer at the given index
+        getLayerAt: function(index) {
+            return this.layers[index];
+        },
+        
+        // put the given layer on top of all the others
+        addLayer: function(layer) {
+            layer = this.coerceLayer(layer);
+            this.layers.push(layer);
+            // make sure layer.parent doesn't already have a parentNode
+            if (!layer.parent.parentNode) {
+                this.parent.appendChild(layer.parent); 
+            }
+            layer.map = this; // TODO: remove map property from MM.Layer?
+            return this;
+        },
+        
+        // find the given layer and remove it
+        removeLayer: function(layer) {
+            for (var i = 0; i < this.layers.length; i++) {
+                if (layer == this.layers[i]) {
+                    this.removeLayerAt(i);
+                    break;
+                }
+            }
+            return this;
         },
 
-        setProviderAt: function(index, provider) {
+        // replace the current layer at the given index with the given layer
+        setLayerAt: function(index, layer) {
+            
             if(index < 0 || index >= this.layers.length) {
-                throw new Error('invalid index in setProviderAt(): ' + index);
+                throw new Error('invalid index in setLayerAt(): ' + index);
             }
-            // pass it on.
-            this.layers[index].setProvider(provider);
+
+            layer = this.coerceLayer(layer);
+
+            if (this.layers[index] != layer) {
+
+                // clear existing layer at this index
+                if (index < this.layers.length) {
+                    this.layers[index].destroy()
+                }
+    
+                // pass it on.
+                this.layers[index] = layer;
+                this.parent.appendChild(layer.parent);
+                layer.map = this; // TODO: remove map property from MM.Layer            
+    
+                MM.getFrame(this.getRedraw());
+            }
+            
+            return this;
         },
 
-        insertProviderAt: function(index, provider) {
-            var layer = new MM.Layer(this, provider);
+        // put the given layer at the given index, moving others if necessary
+        insertLayerAt: function(index, layer) {
 
             if(index < 0 || index > this.layers.length) {
-                throw new Error('invalid index in insertProviderAt(): ' + index);
+                throw new Error('invalid index in insertLayerAt(): ' + index);
             }
+
+            layer = this.coerceLayer(layer);
 
             if(index == this.layers.length) {
                 // it just gets tacked on to the end
                 this.layers.push(layer);
+                this.parent.appendChild(layer.parent);
             } else {
                 // it needs to get slipped in amongst the others
                 var other = this.layers[index];
-                other.parent.parentNode.insertBefore(layer.parent, other.parent);
+                this.parent.insertBefore(layer.parent, other.parent);
                 this.layers.splice(index, 0, layer);
             }
 
+            layer.map = this; // TODO: remove map property from MM.Layer
+            
             MM.getFrame(this.getRedraw());
+            
+            return this;
         },
 
-        // TODO: clear request queue?
-        removeProviderAt: function(index) {
+        // remove the layer at the given index, call .destroy() on the layer
+        removeLayerAt: function(index) {
             if(index < 0 || index >= this.layers.length) {
-                throw new Error('invalid index in removeProviderAt(): ' + index);
+                throw new Error('invalid index in removeLayer(): ' + index);
             }
 
             // gone baby gone.
             var old = this.layers[index];
-            old.parent.parentNode.removeChild(old.parent);
             this.layers.splice(index, 1);
+            old.destroy();
+            
+            return this;
         },
 
-        swapProviders: function(i, j) {
-            if(i < 0 || i >= this.layers.length) {
-                throw new Error('invalid index in removeProviderAt(): ' + index);
-            }
+        // switch the stacking order of two layers, by index
+        swapLayers: function(i, j) {
 
-            if(j < 0 || j >= this.layers.length) {
-                throw new Error('invalid index in removeProviderAt(): ' + index);
+            if(i < 0 || i >= this.layers.length || j < 0 || j >= this.layers.length) {
+                throw new Error('invalid index in swapLayers(): ' + index);
             }
 
             var layer1 = this.layers[i],
@@ -2358,6 +2444,8 @@ if (!com) {
             // now do it to the layers array
             this.layers[i] = layer2;
             this.layers[j] = layer1;
+            
+            return this;
         },
 
         // limits
@@ -2442,14 +2530,14 @@ if (!com) {
         // and clear its memory usage.
         destroy: function() {
             for (var j = 0; j < this.layers.length; j++) {
-                this.layers[j].requestManager.clear();
-                this.removeProviderAt(j);
+                this.layers[j].destroy();
             }
+            this.layers = [];
+            this.provider = null;
             for (var i = 0; i < this.eventHandlers.length; i++) {
                 this.eventHandlers[i].remove();
             }
             MM.removeEvent(window, 'resize', this.windowResize());
-            return this;
         }
     };
     if (typeof module !== 'undefined' && module.exports) {
@@ -2465,4 +2553,4 @@ if (!com) {
           Coordinate: MM.Coordinate
       };
     }
-})(com.modestmaps);
+})(mm);
