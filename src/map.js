@@ -446,7 +446,7 @@
             return coord;
         },
         
-        // rendering    
+        // rendering
         
         // Redraw the tiles on the map, reusing existing tiles.
         draw: function() {
@@ -458,7 +458,7 @@
                 this.layers[i].draw();
             }
 
-            MM.getFrame(this.getRedraw());
+            this.dispatchCallback('drawn');
         },
 
         _redrawTimer: undefined,
