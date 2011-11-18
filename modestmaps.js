@@ -1367,13 +1367,10 @@ var mm = com.modestmaps = {
 
     // Layer
 
-    MM.Layer = function(map, provider) {
+    MM.Layer = function(provider) {
         this.parent = document.createElement('div');
         this.parent.style.cssText = 'position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; margin: 0; padding: 0; z-index: 0';
 
-        map.parent.appendChild(this.parent);
-
-        this.map = map;
         this.levels = {};
 
         this.requestManager = new MM.RequestManager(this.parent);
@@ -1384,7 +1381,7 @@ var mm = com.modestmaps = {
 
     MM.Layer.prototype = {
 
-        map: null,
+        map: null, // TODO: remove
         parent: null,
         tiles: null,
         levels: null,
@@ -1887,6 +1884,15 @@ var mm = com.modestmaps = {
                 }
                 return r1 ? 1 : r2 ? -1 : 0;
             };
+        },
+        
+        destroy: function() {
+            this.requestManager.clear();
+            this.requestManager.removeCallback('requestcomplete', this.getTileComplete());
+            // TODO: does requestManager need a destroy function too?
+            this.provider = null;
+            this.parent.parentNode.removeChild(this.parent);        
+            this.map = null;
         }
 
     };
@@ -1897,14 +1903,14 @@ var mm = com.modestmaps = {
     //
     //  * `parent` (required DOM element)
     //      Can also be an ID of a DOM element
-    //  * `providers` (required MapProvider or array)
-    //      Provides tile URLs and map projections, can be an array of providers.
+    //  * `layerOrLayers` (required MM.Layer or Array of MM.Layers)
+    //      each one must implement draw() and have a .parent DOM element and a .map property
     //  * `dimensions` (optional Point)
     //      Size of map to create
     //  * `eventHandlers` (optional Array)
     //      If empty or null MouseHandler will be used
     //      Otherwise, each handler will be called with init(map)
-    MM.Map = function(parent, providers, dimensions, eventHandlers) {
+    MM.Map = function(parent, layerOrLayers, dimensions, eventHandlers) {
 
         if (typeof parent == 'string') {
             parent = document.getElementById(parent);
@@ -1925,16 +1931,25 @@ var mm = com.modestmaps = {
             this.parent.style.position = 'relative';
         }
 
-        this.layers = [];
-
-        if(providers instanceof Array) {
-            // we were actually passed a list of providers
-            for(var i = 0; i < providers.length; i++) {
-                this.layers.push(new MM.Layer(this, providers[i]));
-            }
+        if(layerOrLayers instanceof Array) {
+            this.layers = layerOrLayers;
         } else {
-            // we were probably passed a single provider
-            this.layers.push(new MM.Layer(this, providers));
+            this.layers = [ layerOrLayers ];
+        }
+        
+        // HACK for 0.x.y - stare at @RandomEtc
+        for (var i = 0; i < this.layers.length; i++) {
+            if (!this.layers[i].hasOwnProperty('draw')) {
+                if (typeof this.layers[i] == 'string') {
+                    // probably a template string
+                    this.layers[i] = new MM.Layer(new MM.TemplatedMapProvider(this.layers[i]));
+                } else {
+                    // probably a MapProvider
+                    this.layers[i] = new MM.Layer(this.layers[i]);
+                }
+            }
+            this.parent.appendChild(this.layers[i].parent);
+            this.layers[i].map = this; // TODO: remove map from MM.Layer
         }
 
         // the first provider in the list gets to decide about projections and geometry
@@ -1993,8 +2008,6 @@ var mm = com.modestmaps = {
         dimensions: null,
         coordinate: null,
 
-
-        levels: null,
         layers: null,
 
         callbackManager: null,
@@ -2259,67 +2272,68 @@ var mm = com.modestmaps = {
         },
 
         // layers
-        getProviders: function() {
-            var providers = [];
-
-            for(var i = 0; i < this.layers.length; i++) {
-                providers.push(this.layers[i].provider);
-            }
-
-            return providers;
+        getLayers: function() {
+            return this.layers;
         },
 
-        getProviderAt: function(index) {
-            return this.layers[index].provider;
+        getLayerAt: function(index) {
+            return this.layers[index];
         },
 
-        setProviderAt: function(index, provider) {
+        addLayerAt: function(index, layer) {
             if(index < 0 || index >= this.layers.length) {
-                throw new Error('invalid index in setProviderAt(): ' + index);
+                throw new Error('invalid index in setLayer(): ' + index);
+            }
+            if (this.layers[index]) {
+                this.layers[index].destroy()
             }
             // pass it on.
-            this.layers[index].setProvider(provider);
+            this.layers[index] = layer;
+            this.parent.appendChild(layer.parent);
+            layer.map = this; // TODO: remove map property from MM.Layer            
+            MM.getFrame(this.getRedraw());
         },
 
-        insertProviderAt: function(index, provider) {
-            var layer = new MM.Layer(this, provider);
+        insertLayerAt: function(index, layer) {
 
             if(index < 0 || index > this.layers.length) {
-                throw new Error('invalid index in insertProviderAt(): ' + index);
+                throw new Error('invalid index in insertLayer(): ' + index);
             }
 
             if(index == this.layers.length) {
                 // it just gets tacked on to the end
                 this.layers.push(layer);
+                this.parent.appendChild(layer.parent);
             } else {
                 // it needs to get slipped in amongst the others
                 var other = this.layers[index];
-                other.parent.parentNode.insertBefore(layer.parent, other.parent);
+                this.parent.insertBefore(layer.parent, other.parent);
                 this.layers.splice(index, 0, layer);
             }
 
+            layer.map = this; // TODO: remove map property from MM.Layer
             MM.getFrame(this.getRedraw());
         },
 
         // TODO: clear request queue?
-        removeProviderAt: function(index) {
+        removeLayerAt: function(index) {
             if(index < 0 || index >= this.layers.length) {
-                throw new Error('invalid index in removeProviderAt(): ' + index);
+                throw new Error('invalid index in removeLayer(): ' + index);
             }
 
             // gone baby gone.
             var old = this.layers[index];
-            old.parent.parentNode.removeChild(old.parent);
             this.layers.splice(index, 1);
+            old.destroy();            
         },
 
-        swapProviders: function(i, j) {
+        swapLayers: function(i, j) {
             if(i < 0 || i >= this.layers.length) {
-                throw new Error('invalid index in removeProviderAt(): ' + index);
+                throw new Error('invalid index in swapLayers(): ' + index);
             }
 
             if(j < 0 || j >= this.layers.length) {
-                throw new Error('invalid index in removeProviderAt(): ' + index);
+                throw new Error('invalid index in swapLayers(): ' + index);
             }
 
             var layer1 = this.layers[i],
@@ -2422,14 +2436,14 @@ var mm = com.modestmaps = {
         // and clear its memory usage.
         destroy: function() {
             for (var j = 0; j < this.layers.length; j++) {
-                this.layers[j].requestManager.clear();
-                this.removeProviderAt(j);
+                this.layers[j].destroy();
             }
+            this.layers = [];
+            this.provider = null;
             for (var i = 0; i < this.eventHandlers.length; i++) {
                 this.eventHandlers[i].remove();
             }
             MM.removeEvent(window, 'resize', this.windowResize());
-            return this;
         }
     };
     if (typeof module !== 'undefined' && module.exports) {
