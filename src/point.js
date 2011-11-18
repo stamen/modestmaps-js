@@ -9,6 +9,9 @@
         y: 0,
         toString: function() {
             return "(" + this.x.toFixed(3) + ", " + this.y.toFixed(3) + ")";
+        },
+        copy: function() {
+            return new MM.Point(this.x, this.y);
         }
     };
 
