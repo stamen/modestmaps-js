@@ -105,21 +105,6 @@
         return false;
     };
 
-    // see http://ejohn.org/apps/jselect/event.html for the originals
-    MM.addEvent = function(obj, type, fn) {
-        if (obj.attachEvent) {
-            obj['e'+type+fn] = fn;
-            obj[type+fn] = function(){ obj['e'+type+fn](window.event); };
-            obj.attachEvent('on'+type, obj[type+fn]);
-        }
-        else {
-            obj.addEventListener(type, fn, false);
-            if (type == 'mousewheel') {
-                obj.addEventListener('DOMMouseScroll', fn, false);
-            }
-        }
-    };
-
     // From underscore.js
     MM.bind = function(func, obj) {
         var slice = Array.prototype.slice;
@@ -133,16 +118,29 @@
         };
     };
 
-    MM.removeEvent = function( obj, type, fn ) {
-        if ( obj.detachEvent ) {
-            obj.detachEvent('on'+type, obj[type+fn]);
-            obj[type+fn] = null;
+    // see http://ejohn.org/apps/jselect/event.html for the originals
+    MM.addEvent = function(obj, type, fn) {
+        if (obj.addEventListener) {
+            obj.addEventListener(type, fn, false);
+            if (type == 'mousewheel') {
+                obj.addEventListener('DOMMouseScroll', fn, false);
+            }
+        } else if (obj.attachEvent) {
+            obj['e'+type+fn] = fn;
+            obj[type+fn] = function(){ obj['e'+type+fn](window.event); };
+            obj.attachEvent('on'+type, obj[type+fn]);
         }
-        else {
+    };
+
+    MM.removeEvent = function( obj, type, fn ) {
+        if (obj.removeEventListener) {
             obj.removeEventListener(type, fn, false);
             if (type == 'mousewheel') {
                 obj.removeEventListener('DOMMouseScroll', fn, false);
             }
+        } else if (obj.detachEvent) {
+            obj.detachEvent('on'+type, obj[type+fn]);
+            obj[type+fn] = null;
         }
     };
 

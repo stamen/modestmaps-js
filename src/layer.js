@@ -56,8 +56,12 @@
                     // position this tile (avoids a full draw() call):
                     var theCoord = theLayer.map.coordinate.zoomTo(tile.coord.zoom);
                     var scale = Math.pow(2, theLayer.map.coordinate.zoom - tile.coord.zoom);
-                    var tx = ((theLayer.map.dimensions.x/2) + (tile.coord.column - theCoord.column) * theLayer.provider.tileWidth * scale);
-                    var ty = ((theLayer.map.dimensions.y/2) + (tile.coord.row - theCoord.row) * theLayer.provider.tileHeight * scale);
+                    var tx = ((theLayer.map.dimensions.x/2) +
+                        (tile.coord.column - theCoord.column) *
+                        theLayer.provider.tileWidth * scale);
+                    var ty = ((theLayer.map.dimensions.y/2) +
+                        (tile.coord.row - theCoord.row) *
+                        theLayer.provider.tileHeight * scale);
 
                     MM.moveElement(tile, {
                         x: Math.round(tx),
@@ -95,8 +99,10 @@
 
             // these are the top left and bottom right tile coordinates
             // we'll be loading everything in between:
-            var startCoord = this.map.pointCoordinate(new MM.Point(0,0)).zoomTo(baseZoom).container();
-            var endCoord = this.map.pointCoordinate(this.map.dimensions).zoomTo(baseZoom).container().right().down();
+            var startCoord = this.map.pointCoordinate(new MM.Point(0,0))
+                .zoomTo(baseZoom).container();
+            var endCoord = this.map.pointCoordinate(this.map.dimensions)
+                .zoomTo(baseZoom).container().right().down();
 
             // tiles with invalid keys will be removed from visible levels
             // requests for tiles with invalid keys will be canceled
@@ -161,13 +167,13 @@
             this.checkCache();
         },
 
-       /**
-        * For a given tile coordinate in a given level element, ensure that it's
-        * correctly represented in the DOM including potentially-overlapping
-        * parent and child tiles for pyramid loading.
-        *
-        * Return a list of valid (i.e. loadable?) tile keys.
-        */
+        /**
+         * For a given tile coordinate in a given level element, ensure that it's
+         * correctly represented in the DOM including potentially-overlapping
+         * parent and child tiles for pyramid loading.
+         *
+         * Return a list of valid (i.e. loadable?) tile keys.
+         */
         inventoryVisibleTile: function(layer_element, tile_coord) {
             var tile_key = tile_coord.toKey(),
                 valid_tile_keys = [tile_key];
@@ -267,10 +273,10 @@
             return tiles;
         },
 
-       /**
-        * For a given level, adjust visibility as a whole and discard individual
-        * tiles based on values in valid_tile_keys from inventoryVisibleTile().
-        */
+        /**
+         * For a given level, adjust visibility as a whole and discard individual
+         * tiles based on values in valid_tile_keys from inventoryVisibleTile().
+         */
         adjustVisibleLevel: function(level, zoom, valid_tile_keys) {
             // for tracking time of tile usage:
             var now = new Date().getTime();
@@ -366,10 +372,12 @@
             var theCoord = this.map.coordinate.zoomTo(tile.coord.zoom);
 
             tile.style.position = 'absolute';
-            
+
             MM.moveElement(tile, {
-                x: Math.round((this.map.dimensions.x/2) + (tile.coord.column - theCoord.column) * this.provider.tileWidth * scale),
-                y: Math.round((this.map.dimensions.y/2) + (tile.coord.row - theCoord.row) * this.provider.tileHeight * scale),
+                x: Math.round((this.map.dimensions.x/2) +
+                    (tile.coord.column - theCoord.column) * this.provider.tileWidth * scale),
+                y: Math.round((this.map.dimensions.y/2) +
+                    (tile.coord.row - theCoord.row) * this.provider.tileHeight * scale),
                 scale: Math.pow(2, this.map.coordinate.zoom - tile.coord.zoom),
                 // TODO: pass only scale or only w/h
                 width: this.provider.tileWidth,

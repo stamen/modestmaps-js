@@ -34,7 +34,7 @@
         }
 
         this.layers = [];
-        
+
         if(providers instanceof Array) {
             // we were actually passed a list of providers
             for(var i = 0; i < providers.length; i++) {
@@ -44,7 +44,7 @@
             // we were probably passed a single provider
             this.layers.push(new MM.Layer(this, providers));
         }
-        
+
         // the first provider in the list gets to decide about projections and geometry
         this.provider = this.layers[0].provider;
 
@@ -58,7 +58,7 @@
                 this.parent.offsetHeight);
             this.autoSize = true;
             var theMap = this;
-            // use destroy to get rid of this handler from the DOM            
+            // use destroy to get rid of this handler from the DOM
             MM.addEvent(window, 'resize', this.windowResize());
         } else {
             this.autoSize = false;
@@ -67,7 +67,7 @@
         }
 
         this.dimensions = dimensions;
-        
+
         this.enablePyramidLoading = false;
 
         this.callbackManager = new MM.CallbackManager(this, [
@@ -101,20 +101,20 @@
         dimensions: null,
         coordinate: null,
 
-    
+
         levels: null,
         layers: null,
-    
-        callbackManager: null,        
+
+        callbackManager: null,
 
         eventHandlers: null,
-        
+
         autoSize: null,
 
         toString: function() {
             return 'Map(#' + this.parent.id + ')';
         },
-        
+
         // callbacks...
 
         addCallback: function(event, callback) {
@@ -265,7 +265,7 @@
             var centerZoom = TL.zoom;
 
             this.coordinate = new MM.Coordinate(centerRow, centerColumn, centerZoom).zoomTo(initZoom);
-            this.draw(); // draw calls enforceLimits 
+            this.draw(); // draw calls enforceLimits
             // (if you switch to getFrame, call enforceLimits first)
 
             this.dispatchCallback('extentset', locations);
@@ -342,23 +342,23 @@
         getZoom: function() {
             return this.coordinate.zoom;
         },
-        
+
         // layers
-        
+
         getProviders: function() {
             var providers = [];
-            
+
             for(var i = 0; i < this.layers.length; i++) {
                 providers.push(this.layers[i].provider);
             }
-            
+
             return providers;
         },
-        
+
         getProviderAt: function(index) {
             return this.layers[index].provider;
         },
-        
+
         setProviderAt: function(index, provider) {
             if(index < 0 || index >= this.layers.length) {
                 throw new Error('invalid index in setProviderAt(): ' + index);
@@ -366,14 +366,14 @@
             // pass it on.
             this.layers[index].setProvider(provider);
         },
-        
+
         insertProviderAt: function(index, provider) {
             var layer = new MM.Layer(this, provider);
-            
+
             if(index < 0 || index > this.layers.length) {
                 throw new Error('invalid index in insertProviderAt(): ' + index);
             }
-            
+
             if(index == this.layers.length) {
                 // it just gets tacked on to the end
                 this.layers.push(layer);
@@ -386,48 +386,48 @@
 
             MM.getFrame(this.getRedraw());
         },
-        
+
         // TODO: clear request queue?
         removeProviderAt: function(index) {
             if(index < 0 || index >= this.layers.length) {
                 throw new Error('invalid index in removeProviderAt(): ' + index);
             }
-            
+
             // gone baby gone.
             var old = this.layers[index];
             old.parent.parentNode.removeChild(old.parent);
             this.layers.splice(index, 1);
         },
-        
+
         swapProviders: function(i, j) {
             if(i < 0 || i >= this.layers.length) {
                 throw new Error('invalid index in removeProviderAt(): ' + index);
             }
-            
+
             if(j < 0 || j >= this.layers.length) {
                 throw new Error('invalid index in removeProviderAt(): ' + index);
             }
-            
+
             var layer1 = this.layers[i],
                 layer2 = this.layers[j],
                 dummy = document.createElement('div');
-            
+
             // kick layer2 out, replace it with the dummy.
             this.parent.replaceChild(dummy, layer2.parent);
-            
+
             // put layer2 back in and kick layer1 out
             this.parent.replaceChild(layer2.parent, layer1.parent);
-            
+
             // put layer1 back in and ditch the dummy
             this.parent.replaceChild(layer1.parent, dummy);
-            
+
             // now do it to the layers array
             this.layers[i] = layer2;
             this.layers[j] = layer1;
         },
-        
+
         // limits
-        
+
         // Prevent the user from navigating the map outside the `outerLimits`
         // of the map's provider.
         enforceLimits: function(coord) {
@@ -445,9 +445,9 @@
             }
             return coord;
         },
-        
+
         // rendering
-        
+
         // Redraw the tiles on the map, reusing existing tiles.
         draw: function() {
             // make sure we're not too far in or out:
