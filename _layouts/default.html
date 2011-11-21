@@ -2,26 +2,24 @@
 <html>
 <head>
   <meta charset='utf-8'/>
-  <title>Modest Maps {% if page.title %} / {{ page.title }}{% endif %}</title>
-  <link href='{{  site.baseurl }}/css/reset.css' rel='stylesheet' type='text/css' />
-  <link href='{{  site.baseurl }}/css/site.css' rel='stylesheet' type='text/css' />
-  <link href='{{  site.baseurl }}/css/pygments.css' rel='stylesheet' type='text/css' />
+  <title>Modest Maps | {{page.title}}</title>
+  <link rel='shortcut icon' href='images/favicon.ico' type='image/x-icon' />
+  <link href='{{site.baseurl}}/css/reset.css' rel='stylesheet' type='text/css' />
+  <link href='{{site.baseurl}}/css/site.css' rel='stylesheet' type='text/css' />
+  <link href='{{site.baseurl}}/css/pygments.css' rel='stylesheet' type='text/css' />
 </head>
 <body>
-  <div class='limiter'>
-    <div class='header'>
-      <h1><a href='{{ site.baseurl }}/' class='title icon'>{ modest maps }</a></h1>
-    </div>
-    <div class='content'>
-      <h2>{{ page.title }}</h2>
-      {{ content }}
-    </div>
-    <div class='sidebar'>
+  <div class='header'>
+    <h1><a href='{{site.baseurl}}/' class='title icon'>{ modest maps }</a></h1>
+  </div>
+  <div class='limiter clearfix'>
+     <div class='sidebar'>
+      <a href='{{site.baseurl}}/' class='home {% if page.url == "/index.html" %}active{% endif %}'>Home</a>
       <div class='item'>
         <h4>Manual</h4>
         <ul>
           {% for post in site.tags.manual %}
-            <li><a href='{{ site.baseurl }}{{ post.url }}'>{{ post.title }}</a></li>
+            <li><a href='{{site.baseurl}}{{post.url}}' class='{% if page.url == post.url %}active{% endif %}'>{{ post.title }}</a></li>
           {% endfor %}
         </ul>
       </div>
@@ -29,37 +27,17 @@
         <h4>API</h4>
         <ul>
           {% for post in site.tags.api %}
-            <li><a href='{{ site.baseurl }}{{ post.url }}'>{{ post.title }}</a></li>
+            <li><a href='{{site.baseurl}}{{post.url}}' class='{% if page.url == post.url %}active{% endif %}'>{{ post.title }}</a></li>
           {% endfor %}
         </ul>
       </div>
-      <div class='item'>
-        <h4>Implementations</h4>
-        <div class='option'>
-          <a href='https://github.com/RandomEtc/modestmaps-cinder'>modestmaps-cinder</a>
-          <p>Utilities in <a href='http://libcinder.org/'>Cinder</a>, a C++ library
-          for creative coding</p>
-        </div>
-        <div class='option'>
-          <a href='https://github.com/migurski/modestmaps-as3'>modestmaps-as3</a>
-          <p>An <a href='http://www.adobe.com/devnet/actionscript.html'>Actionscript 3</a>
-          library for Flash and Flex applications</p>
-        </div>
-        <div class='option'>
-          <a href='https://github.com/RandomEtc/modestmaps-processing'>modestmaps-processing</a>
-          <p>A <a href='http://www.processing.org/'>Processing</a> library for
-          creative coding in the Processing language</p>
-        </div>
-        <div class='option'>
-          <a href='https://github.com/RandomEtc/modestmaps-of'>modestmaps-of</a>
-          <p>Utilities in the <a href='http://www.openframeworks.cc/'>OpenFrameworks</a> library,
-          another C++ environment for visual code</p>
-        </div>
-      </div>
+    </div>
+    <div class='content'>
+      {{ content }}
     </div>
   </div>
-<script src='{{ site.baseurl }}/js/ender.js'></script>
-<script src='{{ site.baseurl }}/js/modestmaps.js'></script>
-<script src='{{ site.baseurl }}/js/site.js'></script>
+<script src='{{site.baseurl}}/js/ender.js'></script>
+<script src='{{site.baseurl}}/js/modestmaps.js'></script>
+<script src='{{site.baseurl}}/js/site.js'></script>
 </body>
 </html>

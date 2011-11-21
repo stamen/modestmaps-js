@@ -1,7 +1,8 @@
-auto:        true
-pygments:    true
-markdown:    rdiscount
-permalink:   /:title.html
-baseurl:     /modestmaps-js
+auto: true
+server: true
+pygments: true
+markdown: rdiscount
+permalink: /:title.html
+baseurl: /modestmaps-js
 rdiscount:
   extensions: [smart]
