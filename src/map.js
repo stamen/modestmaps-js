@@ -94,18 +94,18 @@
 
     MM.Map.prototype = {
 
-        parent: null,
-        provider: null,
-        dimensions: null,
-        coordinate: null,
+        parent: null,          // DOM Element
+        provider: null,        // MM.MapProvider of first known layer
+        dimensions: null,      // MM.Point with x/y size of parent element
+        coordinate: null,      // Center of map MM.Coordinate with row/column/zoom
 
-        layers: null,
+        layers: null,          // Array of MM.Layer (interface = .draw(), .destroy(), .parent and .map)
 
-        callbackManager: null,
+        callbackManager: null, // MM.CallbackManager, handles map events
 
-        eventHandlers: null,
+        eventHandlers: null,   // Array of interaction handlers, just a MM.MouseHandler by default
 
-        autoSize: null,
+        autoSize: null,        // Boolean, true if we have a window resize listener
 
         toString: function() {
             return 'Map(#' + this.parent.id + ')';
