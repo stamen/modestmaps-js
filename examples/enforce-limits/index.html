@@ -2,7 +2,7 @@
 <html>
 <head>
 <title>Modest Maps JS</title>
-<script type="text/javascript" src="../../modestmaps.min.js"></script>
+<script type="text/javascript" src="../../modestmaps.js"></script>
 <script type="text/javascript">
 window.onload = function() {
 
@@ -11,14 +11,16 @@ window.onload = function() {
     
     var provider = new MM.TemplatedMapProvider("http://otile1.mqcdn.com/tiles/1.0.0/osm/{Z}/{X}/{Y}.png");
 
-    // override provider limits so that tiles are not loaded unless they are inside these bounds:
+    map = new MM.Map(document.body, provider)
+
+/*    // override provider limits so that tiles are not loaded unless they are inside these bounds:
     var minZoom = 2;
     var maxZoom = 10;
     var topLeft = new MM.Location(51.4, -131.8);
     var bottomRight = new MM.Location(21.5, -50.5);
 
-    provider.bottomRightInnerLimit = provider.locationCoordinate(bottomRight).zoomTo(maxZoom);
-    provider.topLeftOuterLimit = provider.locationCoordinate(topLeft).zoomTo(minZoom);
+    provider.bottomRightInnerLimit = map.locationCoordinate(bottomRight).zoomTo(maxZoom);
+    provider.topLeftOuterLimit = map.locationCoordinate(topLeft).zoomTo(minZoom);
 
     // override sourceCoordinate so that it doesn't use coord limits to wrap tiles
     // but so that it rejects any tile coordinates that lie outside the limits
@@ -30,67 +32,12 @@ window.onload = function() {
         var BR = this.bottomRightInnerLimit.zoomTo(coord.zoom).container().right().down();
         if (coord.row < TL.row || coord.row >= BR.row || coord.column < TL.column || coord.column >= BR.column) {
             // it's too high or too low or too lefty or too righty:
-            console.log(coord.toString() + " is outside bounds");
+            //console.log(coord.toString() + " is outside bounds");
             return null;
         }
         // otherwise it's cool, let it through
         return coord;
-    }
-    
-    map = new MM.Map(document.body, provider)
-
-    // override enforceLimits so that you can't pan outside the given limits
-    // Prevent the user from navigating the map outside the `outerLimits`
-    // of the map's provider.
-    map.enforceLimits = function(coord) {
-        coord = coord.copy();
-        var limits = this.provider.outerLimits();
-        if (limits) {
-            var minZoom = limits[0].zoom;
-            var maxZoom = limits[1].zoom;
-            if (coord.zoom < minZoom) {
-                coord = coord.zoomTo(minZoom);
-            }
-            else if (coord.zoom > maxZoom) {
-                coord = coord.zoomTo(maxZoom);
-            }
-    
-            // this generally does the *intended* thing,
-            // but it's not always desired behavior so it's disabled for now
-    
-            var topLeftLimit = limits[0].zoomTo(coord.zoom);
-            var bottomRightLimit = limits[1].zoomTo(coord.zoom);
-            var currentTopLeft = this.pointCoordinate(new MM.Point(0,0));
-            var currentBottomRight = this.pointCoordinate(this.dimensions);
-    
-            if (bottomRightLimit.row - topLeftLimit.row < currentBottomRight.row - currentTopLeft.row) {
-                // if the limit is smaller than the current view center it
-                coord.row = (bottomRightLimit.row + topLeftLimit.row) / 2;
-            }
-            else {
-                if (currentTopLeft.row < topLeftLimit.row) {
-                    coord.row += topLeftLimit.row - currentTopLeft.row;
-                }
-                else if (currentBottomRight.row > bottomRightLimit.row) {
-                    coord.row -= currentBottomRight.row - bottomRightLimit.row;
-                }
-            }
-            if (bottomRightLimit.column - topLeftLimit.column < currentBottomRight.column - currentTopLeft.column) {
-                // if the limit is smaller than the current view, center it
-                coord.column = (bottomRightLimit.column + topLeftLimit.column) / 2;                    
-            }
-            else {
-                if (currentTopLeft.column < topLeftLimit.column) {
-                    coord.column += topLeftLimit.column - currentTopLeft.column;
-                }
-                else if (currentBottomRight.column > bottomRightLimit.column) {
-                    coord.column -= currentBottomRight.column - bottomRightLimit.column;
-                }
-            }
-    
-        }
-        return coord;
-    }    
+    }*/
 
     map.setCenterZoom(new MM.Location(37.811530, -122.2666097), 5);
     

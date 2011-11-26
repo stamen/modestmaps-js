@@ -8,15 +8,21 @@ var MM = require('../../modestmaps.js'),
 function renderStaticMap(provider, dimensions, zoom, location, callback) {
 
   var canvas = new Canvas(dimensions.x, dimensions.y),
-      ctx = canvas.getContext('2d');
-
-  var centerCoordinate = provider.locationCoordinate(location).zoomTo(zoom);
+      ctx = canvas.getContext('2d'),
+      // default to Google-y Mercator style maps
+      projection = new MM.MercatorProjection(0,
+        MM.deriveTransformation(-Math.PI,  Math.PI, 0, 0,
+                                 Math.PI,  Math.PI, 1, 0,
+                                -Math.PI, -Math.PI, 0, 1)),
+      tileSize = new MM.Point(256, 256);
+  
+  var centerCoordinate = projection.locationCoordinate(location).zoomTo(zoom);
 
   function pointCoordinate(point) {
     // new point coordinate reflecting distance from map center, in tile widths
     var coord = centerCoordinate.copy();
-    coord.column += (point.x - dimensions.x/2) / provider.tileWidth;
-    coord.row += (point.y - dimensions.y/2) / provider.tileHeight;
+    coord.column += (point.x - dimensions.x/2) / tileSize.x;
+    coord.row += (point.y - dimensions.y/2) / tileSize.y;
     return coord;
   };
 
@@ -26,8 +32,8 @@ function renderStaticMap(provider, dimensions, zoom, location, callback) {
       coord = coord.zoomTo(zoom);
     }
     var point = new MM.Point(dimensions.x/2, dimensions.y/2);
-    point.x += provider.tileWidth * (coord.column - centerCoordinate.column);
-    point.y += provider.tileHeight * (coord.row - centerCoordinate.row);
+    point.x += tileSize.x * (coord.column - centerCoordinate.column);
+    point.y += tileSize.y * (coord.row - centerCoordinate.row);
     return point;
   }
 
@@ -51,7 +57,7 @@ function renderStaticMap(provider, dimensions, zoom, location, callback) {
       else {
         var img = new Image();
         img.src = data;
-        ctx.drawImage(img, p.x, p.y, provider.tileWidth, provider.tileHeight);
+        ctx.drawImage(img, p.x, p.y, tileSize.x, tileSize.y);
         completeRequests++;
         checkDone();
       }

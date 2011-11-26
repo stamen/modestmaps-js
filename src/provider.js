@@ -9,14 +9,6 @@
     };
 
     MM.MapProvider.prototype = {
-        // defaults to Google-y Mercator style maps
-        projection: new MM.MercatorProjection(0,
-            MM.deriveTransformation(-Math.PI,  Math.PI, 0, 0,
-                Math.PI,  Math.PI, 1, 0,
-                -Math.PI, -Math.PI, 0, 1)),
-
-        tileWidth: 256,
-        tileHeight: 256,
 
         // these are limits for available *tiles*
         // panning limits will be different (since you can wrap around columns)
@@ -34,14 +26,6 @@
 
         releaseTile: function(element) {
             throw "Abstract method not implemented by subclass.";
-        },
-
-        locationCoordinate: function(location) {
-            return this.projection.locationCoordinate(location);
-        },
-
-        coordinateLocation: function(coordinate) {
-            return this.projection.coordinateLocation(coordinate);
         },
 
         outerLimits: function() {

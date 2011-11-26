@@ -23,7 +23,7 @@ com.modestmaps.PolygonMarker = function(map, locations, fillStyle, fillAlpha, st
     var maxLon = locations[0].lon;
     
     for (var i = 0; i < locations.length; i++) {
-        this.coords.push(map.provider.locationCoordinate(locations[i]));
+        this.coords.push(map.locationCoordinate(locations[i]));
         minLat = Math.min(minLat, locations[i].lat);
         maxLat = Math.max(maxLat, locations[i].lat);
         minLon = Math.min(minLon, locations[i].lon);
@@ -36,8 +36,8 @@ com.modestmaps.PolygonMarker = function(map, locations, fillStyle, fillAlpha, st
 //    console.log(topLeftLocation);
 //    console.log(bottomRightLocation);
     
-    this.topLeftCoord = map.provider.locationCoordinate(topLeftLocation);
-    this.bottomRightCoord = map.provider.locationCoordinate(bottomRightLocation);
+    this.topLeftCoord = map.locationCoordinate(topLeftLocation);
+    this.bottomRightCoord = map.locationCoordinate(bottomRightLocation);
     
 //    console.log(this.topLeftCoord);
 //    console.log(this.bottomRightCoord);

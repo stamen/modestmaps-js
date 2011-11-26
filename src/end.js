@@ -8,7 +8,8 @@
           Location: MM.Location,
           MapProvider: MM.MapProvider,
           TemplatedMapProvider: MM.TemplatedMapProvider,
-          Coordinate: MM.Coordinate
+          Coordinate: MM.Coordinate,
+          deriveTransformation: MM.deriveTransformation
       };
     }
 })(mm);

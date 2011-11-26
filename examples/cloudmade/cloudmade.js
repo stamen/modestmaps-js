@@ -9,6 +9,8 @@ if (!com) {
 com.modestmaps.CloudMadeProvider = function(key, style) {
     this.key = key;
     this.style = style;
+    this.tileWidth = 256;
+    this.tileHeight = 256;
 }
 
 com.modestmaps.CloudMadeProvider.prototype = {
