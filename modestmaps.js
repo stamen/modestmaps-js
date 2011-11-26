@@ -1805,7 +1805,7 @@ var mm = com.modestmaps = {
         },
 
         setProvider: function(newProvider) {
-            if (newProvider.hasOwnProperty('getTileUrl')) {
+            if ('getTileUrl' in newProvider && (typeof newProvider.getTileUrl === 'function')) {
                 newProvider = new MM.TilePaintingProvider(newProvider);
             }
 
