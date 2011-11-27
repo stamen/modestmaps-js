@@ -153,6 +153,14 @@
             }
             return this._windowResize;
         },
+        
+        // A convenience function to restrict interactive zoom ranges.
+        // (you should also adjust map provider to restrict which tiles get loaded,
+        // or modify map.coordLimits and provider.tileLimits for finer control)
+        setZoomRange: function(minZoom, maxZoom) {
+            this.coordLimits[0] = this.coordLimits[0].zoomTo(minZoom);
+            this.coordLimits[1] = this.coordLimits[1].zoomTo(maxZoom);
+        },        
 
         // zooming
         zoomBy: function(zoomOffset) {
