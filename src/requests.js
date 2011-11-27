@@ -62,9 +62,7 @@
             
             for(var i = 0; i < this.requestQueue.length; i++) {
                 var request = this.requestQueue[i];
-
-                if(request && request.key == id)
-                {
+                if(request && request.id == id) {
                     this.requestQueue[i] = null;
                 }
             }
@@ -136,6 +134,7 @@
                 }
             }
         },
+        
         getProcessQueue: function() {
             // let's only create this closure once...
             if (!this._processQueue) {
@@ -146,6 +145,7 @@
             }
             return this._processQueue;
         },
+        
         // Select images from the `requestQueue` and create image elements for
         // them, attaching their load events to the function returned by
         // `this.getLoadComplete()` so that they can be added to the map.
