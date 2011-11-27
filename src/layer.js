@@ -28,6 +28,8 @@
         recentTiles: null,
         recentTilesById: null,
 
+        enablePyramidLoading: false,
+
         _tileComplete: null,
 
         getTileComplete: function() {

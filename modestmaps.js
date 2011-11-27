@@ -1378,6 +1378,8 @@ var mm = com.modestmaps = {
         recentTiles: null,
         recentTilesById: null,
 
+        enablePyramidLoading: false,
+
         _tileComplete: null,
 
         getTileComplete: function() {
