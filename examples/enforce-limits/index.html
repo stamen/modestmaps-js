@@ -13,14 +13,18 @@ window.onload = function() {
 
     map = new MM.Map(document.body, provider)
 
-/*    // override provider limits so that tiles are not loaded unless they are inside these bounds:
     var minZoom = 2;
     var maxZoom = 10;
     var topLeft = new MM.Location(51.4, -131.8);
     var bottomRight = new MM.Location(21.5, -50.5);
 
-    provider.bottomRightInnerLimit = map.locationCoordinate(bottomRight).zoomTo(maxZoom);
+    // override map limits so that panning and zooming are constrained within these bounds:
+    map.coordLimits = [ map.locationCoordinate(topLeft).zoomTo(minZoom),
+                        map.locationCoordinate(bottomRight).zoomTo(maxZoom) ];
+
+    // override provider limits so that tiles are not loaded unless they are inside these bounds:
     provider.topLeftOuterLimit = map.locationCoordinate(topLeft).zoomTo(minZoom);
+    provider.bottomRightInnerLimit = map.locationCoordinate(bottomRight).zoomTo(maxZoom);
 
     // override sourceCoordinate so that it doesn't use coord limits to wrap tiles
     // but so that it rejects any tile coordinates that lie outside the limits
@@ -37,7 +41,7 @@ window.onload = function() {
         }
         // otherwise it's cool, let it through
         return coord;
-    }*/
+    }
 
     map.setCenterZoom(new MM.Location(37.811530, -122.2666097), 5);
     
