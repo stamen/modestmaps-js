@@ -183,6 +183,10 @@
                 // ensure it's in the DOM:
                 if(tile.parentNode != layer_element) {
                     layer_element.appendChild(tile);
+                    // if the provider implements reAddTile(), call it
+                    if ("reAddTile" in this.provider) {
+                        this.provider.reAddTile(tile_key, tile_coord, tile);
+                    }
                 }
 
                 return valid_tile_keys;
@@ -366,6 +370,7 @@
         positionTile: function(tile) {
             // position this tile (avoids a full draw() call):
             var theCoord = this.map.coordinate.zoomTo(tile.coord.zoom);
+            var scale = Math.pow(2, this.map.coordinate.zoom - tile.coord.zoom);
 
             tile.style.position = 'absolute';
 

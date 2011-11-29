@@ -192,6 +192,9 @@ var mm = com.modestmaps = {
         y: 0,
         toString: function() {
             return "(" + this.x.toFixed(3) + ", " + this.y.toFixed(3) + ")";
+        },
+        copy: function() {
+            return new MM.Point(this.x, this.y);
         }
     };
 
@@ -1590,6 +1593,10 @@ var mm = com.modestmaps = {
                 // ensure it's in the DOM:
                 if(tile.parentNode != layer_element) {
                     layer_element.appendChild(tile);
+                    // if the provider implements reAddTile(), call it
+                    if ("reAddTile" in this.provider) {
+                        this.provider.reAddTile(tile_key, tile_coord, tile);
+                    }
                 }
 
                 return valid_tile_keys;
@@ -1773,6 +1780,7 @@ var mm = com.modestmaps = {
         positionTile: function(tile) {
             // position this tile (avoids a full draw() call):
             var theCoord = this.map.coordinate.zoomTo(tile.coord.zoom);
+            var scale = Math.pow(2, this.map.coordinate.zoom - tile.coord.zoom);
 
             tile.style.position = 'absolute';
 
