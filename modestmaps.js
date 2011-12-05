@@ -1101,7 +1101,10 @@ if (!com) {
         this.maxOpenRequests = 4;
         this.requestQueue = [];
 
-        this.callbackManager = new MM.CallbackManager(this, ['requestcomplete']);
+        this.callbackManager = new MM.CallbackManager(this, [
+            'requestcomplete',
+            'requesterror'
+        ]);
     };
 
     MM.RequestManager.prototype = {
@@ -1297,6 +1300,7 @@ if (!com) {
                         // really stops loading
                         // FIXME: we'll never retry because this id is still
                         // in requestsById - is that right?
+                        theManager.dispatchCallback('requesterror', img.src);
                         img.src = null;
                     }
 
