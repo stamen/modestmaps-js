@@ -14,10 +14,14 @@
         this.template_provider = template_provider;
         this.offset = 0;
         this.tiles = {};
+        // FIXME: this is hard-coded now, but it should come from the map or the provider.
+        // Currently, though, there's no way for the provider to know about the map.
+        this.tileSize = new MM.Point(256, 256);
     };
 
     MM.SpriteMapProvider.prototype = {
         tiles: null,
+        tileSize: null,
         offset: 0,
 
         getOffset: function() {
@@ -32,7 +36,7 @@
 
         applyOffset: function(tile) {
             var left = 0,
-                top = -this.offset * this.tileHeight;
+                top = -this.offset * this.tileSize.y;
             tile.style.backgroundPosition = left + "px " + top + "px";
             // tile.style.backgroundPosition = -(this.offset * 100) + "% left";
         },
@@ -55,8 +59,8 @@
                         tile.style.backgroundImage = "url(" + url + ")";
                     }, 100);
                     tile.style.backgroundRepeat = "no-repeat";
-                    tile.style.width = this.tileWidth + "px";
-                    tile.style.height = this.tileHeight + "px";
+                    tile.style.width = this.tileSize.x + "px";
+                    tile.style.height = this.tileSize.y + "px";
                     tile.style.overflow = "hidden";
                     this.tiles[key] = tile;
                     this.applyOffset(tile);
@@ -75,12 +79,10 @@
         },
 
         reAddTile: function(key, coord, tile) {
-            console.log("re-add:", key, tile);
+            // console.log("re-add:", key, tile);
             this.tiles[key] = tile;
             this.applyOffset(tile);
         }
     };
-
-    mm.extend(MM.SpriteMapProvider, MM.TemplatedMapProvider);
 
 })(com.modestmaps);

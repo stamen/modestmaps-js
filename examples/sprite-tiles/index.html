@@ -17,19 +17,16 @@
 
         function initMap() {
             var baseURL = "http://tiles-523195119.us-east-1.elb.amazonaws.com/";
-
             var tiles = new MM.TemplatedMapProvider(baseURL + "inundated/{Z}/{X}/{Y}.png");
-            tiles.topLeftOuterLimit.zoom = 8;
-            tiles.bottomRightInnerLimit.zoom = 16;
 
             map = new MM.Map("map", tiles);
+            map.coordLimits[0].zoom = 8; // min zoom
+            map.coordLimits[1].zoom = 16; // max zoom
             map.setCenterZoom({lat: 37.804, lon: -122.252}, 9);
 
             var template = new MM.TemplatedMapProvider(baseURL + "inundation_b/{Z}/{X}/{Y}.png");
             sprite = new MM.SpriteMapProvider(template);
-
-            var layer = new MM.Layer(sprite);
-            map.addLayer(layer);
+            map.addLayer(sprite);
 
             var output = $("#output");
             slider = $("#slider").slider({
