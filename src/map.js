@@ -47,14 +47,14 @@
         this.projection = new MM.MercatorProjection(0,
             MM.deriveTransformation(-Math.PI,  Math.PI, 0, 0,
                                      Math.PI,  Math.PI, 1, 0,
-                                    -Math.PI, -Math.PI, 0, 1)),
+                                    -Math.PI, -Math.PI, 0, 1));
         this.tileSize = new MM.Point(256, 256);
 
         // default 0-18 zoom level
         // with infinite horizontal pan and clamped vertical pan        
         this.coordLimits = [
             new MM.Coordinate(0,-Infinity,0),           // top left outer
-            new MM.Coordinate(1,Infinity,0).zoomTo(18), // bottom right inner
+            new MM.Coordinate(1,Infinity,0).zoomTo(18) // bottom right inner
         ];
 
         // eyes towards null island
@@ -92,8 +92,8 @@
         } else {
             this.eventHandlers = eventHandlers;
             if (eventHandlers instanceof Array) {
-                for (var i = 0; i < eventHandlers.length; i++) {
-                    eventHandlers[i].init(this);
+                for (var j = 0; j < eventHandlers.length; j++) {
+                    eventHandlers[j].init(this);
                 }
             }
         }
@@ -456,7 +456,7 @@
 
                 // clear existing layer at this index
                 if (index < this.layers.length) {
-                    this.layers[index].destroy()
+                    this.layers[index].destroy();
                 }
     
                 // pass it on.
@@ -619,7 +619,7 @@
                 if (this.autoSize) {
                     // maybe the parent size has changed?
                     var w = this.parent.offsetWidth,
-                        h = this.parent.offsetHeight
+                        h = this.parent.offsetHeight;
                     this.dimensions = new MM.Point(w,h);
                     if (w <= 0 || h <= 0) {
                         return;

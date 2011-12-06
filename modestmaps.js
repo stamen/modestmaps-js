@@ -1428,8 +1428,10 @@ var mm = com.modestmaps = {
             // use this coordinate for generating keys, parents and children:
             var tileCoord = startCoord.copy();
 
-            for (tileCoord.column = startCoord.column; tileCoord.column <= endCoord.column; tileCoord.column++) {
-                for (tileCoord.row = startCoord.row; tileCoord.row <= endCoord.row; tileCoord.row++) {
+            for (tileCoord.column = startCoord.column;
+                 tileCoord.column <= endCoord.column; tileCoord.column++) {
+                for (tileCoord.row = startCoord.row;
+                     tileCoord.row <= endCoord.row; tileCoord.row++) {
                     var validKeys = this.inventoryVisibleTile(levelElement, tileCoord);
 
                     while (validKeys.length) {
@@ -1439,7 +1441,7 @@ var mm = com.modestmaps = {
             }
 
             // i from i to zoom-5 are levels that would be scaled too big,
-            // i from zoom+2 to levels.length are levels that would be
+            // i from zoom + 2 to levels. length are levels that would be
             // scaled too small (and tiles would be too numerous)
             for (var name in this.levels) {
                 if (this.levels.hasOwnProperty(name)) {
@@ -1466,8 +1468,8 @@ var mm = com.modestmaps = {
             var minLevel = startCoord.zoom - 5;
             var maxLevel = startCoord.zoom + 2;
 
-            for (var zoom = minLevel; zoom < maxLevel; zoom++) {
-                this.adjustVisibleLevel(this.levels[zoom], zoom, validTileKeys);
+            for (var z = minLevel; z < maxLevel; z++) {
+                this.adjustVisibleLevel(this.levels[z], z, validTileKeys);
             }
 
             // cancel requests that aren't visible:
@@ -1498,7 +1500,7 @@ var mm = com.modestmaps = {
                 var tile = this.tiles[tile_key];
 
                 // ensure it's in the DOM:
-                if(tile.parentNode != layer_element) {
+                if (tile.parentNode != layer_element) {
                     layer_element.appendChild(tile);
                 }
 
@@ -1509,12 +1511,12 @@ var mm = com.modestmaps = {
              * Check that the needed tile has even been requested at all.
              */
             if (!this.requestManager.hasRequest(tile_key)) {
-                var tile = this.provider.getTile(tile_coord);
-                if (typeof tile == 'string') {
-                    this.addTileImage(tile_key, tile_coord, tile);
+                var tileToRequest = this.provider.getTile(tile_coord);
+                if (typeof tileToRequest == 'string') {
+                    this.addTileImage(tile_key, tile_coord, tileToRequest);
                 // tile must be truish
-                } else if (tile) {
-                    this.addTileElement(tile_key, tile_coord, tile);
+                } else if (tileToRequest) {
+                    this.addTileElement(tile_key, tile_coord, tileToRequest);
                 }
             }
 
@@ -1522,7 +1524,7 @@ var mm = com.modestmaps = {
             var tileCovered = false;
             var maxStepsOut = tile_coord.zoom;
 
-            for(var pz = 1; pz <= maxStepsOut; pz++) {
+            for (var pz = 1; pz <= maxStepsOut; pz++) {
                 var parent_coord = tile_coord.zoomBy(-pz).container();
                 var parent_key = parent_coord.toKey();
 
@@ -1539,12 +1541,12 @@ var mm = com.modestmaps = {
                         }
                     } else if (!this.requestManager.hasRequest(parent_key)) {
                         // force load of parent tiles we don't already have
-                        var tile = this.provider.getTile(parent_coord);
+                        var tileToAdd = this.provider.getTile(parent_coord);
 
-                        if (typeof tile == 'string') {
-                            this.addTileImage(parent_key, parent_coord, tile);
+                        if (typeof tileToAdd == 'string') {
+                            this.addTileImage(parent_key, parent_coord, tileToAdd);
                         } else {
-                            this.addTileElement(parent_key, parent_coord, tile);
+                            this.addTileElement(parent_key, parent_coord, tileToAdd);
                         }
                     }
                 } else {
@@ -1748,10 +1750,8 @@ var mm = com.modestmaps = {
             return this._redraw;
         },
 
-        /*
-         * keeps cache below max size
-         * (called every time we receive a new tile and add it to the cache)
-         */
+        // keeps cache below max size
+        // (called every time we receive a new tile and add it to the cache)
         checkCache: function() {
             var numTilesOnScreen = this.parent.getElementsByTagName('img').length;
             var maxTiles = Math.max(numTilesOnScreen, this.maxTileCacheSize);
@@ -1759,7 +1759,8 @@ var mm = com.modestmaps = {
             if (this.tileCacheSize > maxTiles) {
                 // sort from newest (highest) to oldest (lowest)
                 this.recentTiles.sort(function(t1, t2) {
-                    return t2.lastTouchedTime < t1.lastTouchedTime ? -1 : t2.lastTouchedTime > t1.lastTouchedTime ? 1 : 0;
+                    return t2.lastTouchedTime < t1.lastTouchedTime ? -1 :
+                      t2.lastTouchedTime > t1.lastTouchedTime ? 1 : 0;
                 });
             }
 
@@ -1794,8 +1795,8 @@ var mm = com.modestmaps = {
             if (!firstProvider) {
                 this.requestManager.clear();
 
-                for(var name in this.levels) {
-                    if(this.levels.hasOwnProperty(name)) {
+                for (var name in this.levels) {
+                    if (this.levels.hasOwnProperty(name)) {
                         var level = this.levels[name];
 
                         while (level.firstChild) {
@@ -1847,13 +1848,13 @@ var mm = com.modestmaps = {
                 return r1 ? 1 : r2 ? -1 : 0;
             };
         },
-        
+
         destroy: function() {
             this.requestManager.clear();
             this.requestManager.removeCallback('requestcomplete', this.getTileComplete());
             // TODO: does requestManager need a destroy function too?
             this.provider = null;
-            this.parent.parentNode.removeChild(this.parent);        
+            this.parent.parentNode.removeChild(this.parent);
             this.map = null;
         }
 
@@ -1907,14 +1908,14 @@ var mm = com.modestmaps = {
         this.projection = new MM.MercatorProjection(0,
             MM.deriveTransformation(-Math.PI,  Math.PI, 0, 0,
                                      Math.PI,  Math.PI, 1, 0,
-                                    -Math.PI, -Math.PI, 0, 1)),
+                                    -Math.PI, -Math.PI, 0, 1));
         this.tileSize = new MM.Point(256, 256);
 
         // default 0-18 zoom level
         // with infinite horizontal pan and clamped vertical pan        
         this.coordLimits = [
             new MM.Coordinate(0,-Infinity,0),           // top left outer
-            new MM.Coordinate(1,Infinity,0).zoomTo(18), // bottom right inner
+            new MM.Coordinate(1,Infinity,0).zoomTo(18) // bottom right inner
         ];
 
         // eyes towards null island
@@ -1952,8 +1953,8 @@ var mm = com.modestmaps = {
         } else {
             this.eventHandlers = eventHandlers;
             if (eventHandlers instanceof Array) {
-                for (var i = 0; i < eventHandlers.length; i++) {
-                    eventHandlers[i].init(this);
+                for (var j = 0; j < eventHandlers.length; j++) {
+                    eventHandlers[j].init(this);
                 }
             }
         }
@@ -2316,7 +2317,7 @@ var mm = com.modestmaps = {
 
                 // clear existing layer at this index
                 if (index < this.layers.length) {
-                    this.layers[index].destroy()
+                    this.layers[index].destroy();
                 }
     
                 // pass it on.
@@ -2479,7 +2480,7 @@ var mm = com.modestmaps = {
                 if (this.autoSize) {
                     // maybe the parent size has changed?
                     var w = this.parent.offsetWidth,
-                        h = this.parent.offsetHeight
+                        h = this.parent.offsetHeight;
                     this.dimensions = new MM.Point(w,h);
                     if (w <= 0 || h <= 0) {
                         return;
