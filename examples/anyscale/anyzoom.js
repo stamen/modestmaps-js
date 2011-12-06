@@ -14,9 +14,12 @@ AnyZoomHandler.prototype = {
 
     init: function(map) {
         this.map = map;
-        com.modestmaps.addEvent(map.layerParent, 'dblclick', this.getDoubleClick());
-        com.modestmaps.addEvent(map.layerParent, 'mousedown', this.getMouseDown());
-        com.modestmaps.addEvent(map.parent, 'mousewheel', this.getMouseWheel());            
+        this.mouseDiv = document.createElement('div');
+        this.mouseDiv.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; margin: 0; padding: 0; z-index: 1000; background: transparent;';
+        map.parent.appendChild(this.mouseDiv);
+        com.modestmaps.addEvent(this.mouseDiv, 'dblclick', this.getDoubleClick());
+        com.modestmaps.addEvent(this.mouseDiv, 'mousedown', this.getMouseDown());
+        com.modestmaps.addEvent(this.mouseDiv, 'mousewheel', this.getMouseWheel());            
     },
     
     mouseDownHandler: null,
@@ -31,7 +34,7 @@ AnyZoomHandler.prototype = {
                         
                 theHandler.prevMouse = new com.modestmaps.Point(e.clientX, e.clientY);
                 
-                theHandler.map.parent.style.cursor = 'move';
+                theHandler.mouseDiv.style.cursor = 'move';
             
                 return com.modestmaps.cancelEvent(e);
             };
@@ -70,7 +73,7 @@ AnyZoomHandler.prototype = {
         
                 theHandler.prevMouse = null;
 
-                theHandler.map.parent.style.cursor = '';                
+                theHandler.mouseDiv.style.cursor = '';                
         
                 return com.modestmaps.cancelEvent(e);
             };
@@ -145,7 +148,7 @@ AnyZoomHandler.prototype = {
         point.y += document.body.scrollTop + document.documentElement.scrollTop;
 
         // correct for nested offsets in DOM
-        for(var node = this.map.parent; node; node = node.offsetParent) {
+        for(var node = this.mouseDiv; node; node = node.offsetParent) {
             point.x -= node.offsetLeft;
             point.y -= node.offsetTop;
         }

@@ -10,7 +10,7 @@ if (!com) {
 
     MM.Follower = function(map, location, content)
     {
-        this.coord = map.provider.locationCoordinate(location);
+        this.coord = map.locationCoordinate(location);
         
         this.offset = new MM.Point(0, 0);
         this.dimensions = new MM.Point(150, 150);

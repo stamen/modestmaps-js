@@ -8,7 +8,7 @@ if (!com) {
 
 com.modestmaps.CabFollower = function(map, location, content)
 {
-    this.coord = map.provider.locationCoordinate(location);
+    this.coord = map.locationCoordinate(location);
     
     this.dimensions = new com.modestmaps.Point(20, 20);
     this.offset = new com.modestmaps.Point(this.dimensions.x/2, -this.dimensions.y/2);

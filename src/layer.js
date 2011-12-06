@@ -7,7 +7,7 @@
 
         this.levels = {};
 
-        this.requestManager = new MM.RequestManager(this.parent);
+        this.requestManager = new MM.RequestManager();
         this.requestManager.addCallback('requestcomplete', this.getTileComplete());
 
         if (provider) {
@@ -30,6 +30,8 @@
         recentTiles: null,
         recentTilesById: null,
 
+        enablePyramidLoading: false,
+
         _tileComplete: null,
 
         getTileComplete: function() {
@@ -50,39 +52,7 @@
                     theLayer.recentTiles.push(record);
 
                     // position this tile (avoids a full draw() call):
-                    var theCoord = theLayer.map.coordinate.zoomTo(tile.coord.zoom);
-                    var scale = Math.pow(2, theLayer.map.coordinate.zoom - tile.coord.zoom);
-                    var tx = ((theLayer.map.dimensions.x/2) +
-                        (tile.coord.column - theCoord.column) *
-                        theLayer.provider.tileWidth * scale);
-                    var ty = ((theLayer.map.dimensions.y/2) +
-                        (tile.coord.row - theCoord.row) *
-                        theLayer.provider.tileHeight * scale);
-
-                    MM.moveElement(tile, {
-                        x: Math.round(tx),
-                        y: Math.round(ty),
-                        scale: scale,
-                        // TODO: pass only scale or only w/h
-                        width: theLayer.provider.tileWidth,
-                        height: theLayer.provider.tileHeight
-                    });
-
-                    // add tile to its level
-                    var theLevel = theLayer.levels[tile.coord.zoom];
-                    theLevel.appendChild(tile);
-                    // Support style transition if available.
-                    tile.className = 'map-tile-loaded';
-
-                    // ensure the level is visible if it's still the current level
-                    if (Math.round(theLayer.map.coordinate.zoom) == tile.coord.zoom) {
-                        theLevel.style.display = 'block';
-                    }
-
-                    // request a lazy redraw of all levels
-                    // this will remove tiles that were only visible
-                    // to cover this tile while it loaded:
-                    theLayer.requestRedraw();
+                    theLayer.positionTile(tile);
                 };
             }
 
@@ -297,8 +267,8 @@
                 level.style.display = 'none';
             }
 
-            var tileWidth = this.provider.tileWidth * scale;
-            var tileHeight = this.provider.tileHeight * scale;
+            var tileWidth = this.map.tileSize.x * scale;
+            var tileHeight = this.map.tileSize.y * scale;
             var center = new MM.Point(this.map.dimensions.x/2, this.map.dimensions.y/2);
             var tiles = this.tileElementsInLevel(level);
 
@@ -318,8 +288,8 @@
                             (tile.coord.row - theCoord.row) * tileHeight),
                         scale: scale,
                         // TODO: pass only scale or only w/h
-                        width: this.provider.tileWidth,
-                        height: this.provider.tileHeight
+                        width: this.map.tileSize.x,
+                        height: this.map.tileSize.y
                     });
 
                     // log last-touched-time of currently cached tiles
@@ -374,20 +344,29 @@
 
             tile.style.position = 'absolute';
 
+            var scale = Math.pow(2, this.map.coordinate.zoom - tile.coord.zoom);
+            var tx = ((this.map.dimensions.x/2) +
+                (tile.coord.column - theCoord.column) *
+                this.map.tileSize.x * scale);
+            var ty = ((this.map.dimensions.y/2) +
+                (tile.coord.row - theCoord.row) *
+                this.map.tileSize.y * scale);
+
             MM.moveElement(tile, {
-                x: Math.round((this.map.dimensions.x/2) +
-                    (tile.coord.column - theCoord.column) * this.provider.tileWidth * scale),
-                y: Math.round((this.map.dimensions.y/2) +
-                    (tile.coord.row - theCoord.row) * this.provider.tileHeight * scale),
-                scale: Math.pow(2, this.map.coordinate.zoom - tile.coord.zoom),
+                x: Math.round(tx),
+                y: Math.round(ty),
+                scale: scale,
                 // TODO: pass only scale or only w/h
-                width: this.provider.tileWidth,
-                height: this.provider.tileHeight
+                width: this.map.tileSize.x,
+                height: this.map.tileSize.y
             });
 
             // add tile to its level
             var theLevel = this.levels[tile.coord.zoom];
             theLevel.appendChild(tile);
+
+            // Support style transition if available.
+            tile.className = 'map-tile-loaded';
 
             // ensure the level is visible if it's still the current level
             if (Math.round(this.map.coordinate.zoom) == tile.coord.zoom) {
@@ -462,7 +441,7 @@
         },
 
         setProvider: function(newProvider) {
-            if (newProvider.hasOwnProperty('getTileUrl')) {
+            if ('getTileUrl' in newProvider && (typeof newProvider.getTileUrl === 'function')) {
                 newProvider = new MM.TilePaintingProvider(newProvider);
             }
 

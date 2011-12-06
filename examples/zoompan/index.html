@@ -15,8 +15,9 @@ window.onload = function() {
     var subdomains = [ 'otile1', 'otile2', 'otile3', 'otile4'];
     var provider = new MM.TemplatedMapProvider(template, subdomains);
 
-    map = new MM.Map('map', provider); 
-//    map.enablePyramidLoading = true;
+    map = new MM.Map('map', provider);
+    
+    map.getLayerAt(0).enablePyramidLoading = true;
 
     map.setCenterZoom(new MM.Location(37.811530, -122.2666097), 14);
 
@@ -28,8 +29,8 @@ window.onload = function() {
 
 function animateCenterZoom(l1, z1) {
 
-    var start = map.provider.locationCoordinate(map.getCenter()).zoomTo(0),
-        end   = map.provider.locationCoordinate(l1).zoomTo(0);
+    var start = map.locationCoordinate(map.getCenter()).zoomTo(0),
+        end   = map.locationCoordinate(l1).zoomTo(0);
         
     var c0 = { x: start.column, y: start.row },
         c1 = { x: end.column, y: end.row };
@@ -144,7 +145,7 @@ function animateStep(c0,w0,c1,w1,V,rho) {
 
 function applyPos(pos,w) {
     var c = new MM.Coordinate(pos.y,pos.x,0);
-    var l = map.provider.coordinateLocation(c);
+    var l = map.coordinateLocation(c);
 
     // how much world can we see at zoom 0?
     var topLeft = map.pointCoordinate(new MM.Point(0,0)).zoomTo(0);

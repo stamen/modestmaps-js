@@ -565,20 +565,12 @@ var mm = com.modestmaps = {
     };
 
     MM.MapProvider.prototype = {
-        // defaults to Google-y Mercator style maps
-        projection: new MM.MercatorProjection(0,
-            MM.deriveTransformation(-Math.PI,  Math.PI, 0, 0,
-                Math.PI,  Math.PI, 1, 0,
-                -Math.PI, -Math.PI, 0, 1)),
-
-        tileWidth: 256,
-        tileHeight: 256,
 
         // these are limits for available *tiles*
         // panning limits will be different (since you can wrap around columns)
         // but if you put Infinity in here it will screw up sourceCoordinate
-        topLeftOuterLimit: new MM.Coordinate(0,0,0),
-        bottomRightInnerLimit: new MM.Coordinate(1,1,0).zoomTo(18),
+        tileLimits: [ new MM.Coordinate(0,0,0),             // top left outer
+                      new MM.Coordinate(1,1,0).zoomTo(18) ], // bottom right inner
 
         getTileUrl: function(coordinate) {
             throw "Abstract method not implemented by subclass.";
@@ -592,29 +584,20 @@ var mm = com.modestmaps = {
             throw "Abstract method not implemented by subclass.";
         },
 
-        locationCoordinate: function(location) {
-            return this.projection.locationCoordinate(location);
-        },
-
-        coordinateLocation: function(coordinate) {
-            return this.projection.coordinateLocation(coordinate);
-        },
-
-        outerLimits: function() {
-            return [ this.topLeftOuterLimit.copy(),
-                     this.bottomRightInnerLimit.copy() ];
-        },
-
-        // use this to tell MapProvider  that tiles only exist between certain zoom levels.
-        // Map will respect thse zoom limits and not allow zooming outside this range
+        // use this to tell MapProvider that tiles only exist between certain zoom levels.
+        // should be set separately on Map to restrict interactive zoom/pan ranges
         setZoomRange: function(minZoom, maxZoom) {
-            this.topLeftOuterLimit = this.topLeftOuterLimit.zoomTo(minZoom);
-            this.bottomRightInnerLimit = this.bottomRightInnerLimit.zoomTo(maxZoom);
+            this.tileLimits[0] = this.tileLimits[0].zoomTo(minZoom);
+            this.tileLimits[1] = this.tileLimits[1].zoomTo(maxZoom);
         },
 
+        // return null if coord is above/below row extents
+        // wrap column around the world if it's outside column extents
+        // ... you should override this function if you change the tile limits
+        // ... see enforce-limits in examples for details
         sourceCoordinate: function(coord) {
-            var TL = this.topLeftOuterLimit.zoomTo(coord.zoom);
-            var BR = this.bottomRightInnerLimit.zoomTo(coord.zoom);
+            var TL = this.tileLimits[0].zoomTo(coord.zoom);
+            var BR = this.tileLimits[1].zoomTo(coord.zoom);
             var vSize = BR.row - TL.row;
             if (coord.row < 0 | coord.row >= vSize) {
                 // it's too high or too low:
@@ -1230,9 +1213,7 @@ var mm = com.modestmaps = {
             
             for(var i = 0; i < this.requestQueue.length; i++) {
                 var request = this.requestQueue[i];
-
-                if(request && request.key == id)
-                {
+                if(request && request.id == id) {
                     this.requestQueue[i] = null;
                 }
             }
@@ -1304,6 +1285,7 @@ var mm = com.modestmaps = {
                 }
             }
         },
+        
         getProcessQueue: function() {
             // let's only create this closure once...
             if (!this._processQueue) {
@@ -1314,6 +1296,7 @@ var mm = com.modestmaps = {
             }
             return this._processQueue;
         },
+        
         // Select images from the `requestQueue` and create image elements for
         // them, attaching their load events to the function returned by
         // `this.getLoadComplete()` so that they can be added to the map.
@@ -1417,7 +1400,7 @@ var mm = com.modestmaps = {
 
         this.levels = {};
 
-        this.requestManager = new MM.RequestManager(this.parent);
+        this.requestManager = new MM.RequestManager();
         this.requestManager.addCallback('requestcomplete', this.getTileComplete());
 
         if (provider) {
@@ -1440,6 +1423,8 @@ var mm = com.modestmaps = {
         recentTiles: null,
         recentTilesById: null,
 
+        enablePyramidLoading: false,
+
         _tileComplete: null,
 
         getTileComplete: function() {
@@ -1460,39 +1445,7 @@ var mm = com.modestmaps = {
                     theLayer.recentTiles.push(record);
 
                     // position this tile (avoids a full draw() call):
-                    var theCoord = theLayer.map.coordinate.zoomTo(tile.coord.zoom);
-                    var scale = Math.pow(2, theLayer.map.coordinate.zoom - tile.coord.zoom);
-                    var tx = ((theLayer.map.dimensions.x/2) +
-                        (tile.coord.column - theCoord.column) *
-                        theLayer.provider.tileWidth * scale);
-                    var ty = ((theLayer.map.dimensions.y/2) +
-                        (tile.coord.row - theCoord.row) *
-                        theLayer.provider.tileHeight * scale);
-
-                    MM.moveElement(tile, {
-                        x: Math.round(tx),
-                        y: Math.round(ty),
-                        scale: scale,
-                        // TODO: pass only scale or only w/h
-                        width: theLayer.provider.tileWidth,
-                        height: theLayer.provider.tileHeight
-                    });
-
-                    // add tile to its level
-                    var theLevel = theLayer.levels[tile.coord.zoom];
-                    theLevel.appendChild(tile);
-                    // Support style transition if available.
-                    tile.className = 'map-tile-loaded';
-
-                    // ensure the level is visible if it's still the current level
-                    if (Math.round(theLayer.map.coordinate.zoom) == tile.coord.zoom) {
-                        theLevel.style.display = 'block';
-                    }
-
-                    // request a lazy redraw of all levels
-                    // this will remove tiles that were only visible
-                    // to cover this tile while it loaded:
-                    theLayer.requestRedraw();
+                    theLayer.positionTile(tile);
                 };
             }
 
@@ -1707,8 +1660,8 @@ var mm = com.modestmaps = {
                 level.style.display = 'none';
             }
 
-            var tileWidth = this.provider.tileWidth * scale;
-            var tileHeight = this.provider.tileHeight * scale;
+            var tileWidth = this.map.tileSize.x * scale;
+            var tileHeight = this.map.tileSize.y * scale;
             var center = new MM.Point(this.map.dimensions.x/2, this.map.dimensions.y/2);
             var tiles = this.tileElementsInLevel(level);
 
@@ -1728,8 +1681,8 @@ var mm = com.modestmaps = {
                             (tile.coord.row - theCoord.row) * tileHeight),
                         scale: scale,
                         // TODO: pass only scale or only w/h
-                        width: this.provider.tileWidth,
-                        height: this.provider.tileHeight
+                        width: this.map.tileSize.x,
+                        height: this.map.tileSize.y
                     });
 
                     // log last-touched-time of currently cached tiles
@@ -1784,20 +1737,29 @@ var mm = com.modestmaps = {
 
             tile.style.position = 'absolute';
 
+            var scale = Math.pow(2, this.map.coordinate.zoom - tile.coord.zoom);
+            var tx = ((this.map.dimensions.x/2) +
+                (tile.coord.column - theCoord.column) *
+                this.map.tileSize.x * scale);
+            var ty = ((this.map.dimensions.y/2) +
+                (tile.coord.row - theCoord.row) *
+                this.map.tileSize.y * scale);
+
             MM.moveElement(tile, {
-                x: Math.round((this.map.dimensions.x/2) +
-                    (tile.coord.column - theCoord.column) * this.provider.tileWidth * scale),
-                y: Math.round((this.map.dimensions.y/2) +
-                    (tile.coord.row - theCoord.row) * this.provider.tileHeight * scale),
-                scale: Math.pow(2, this.map.coordinate.zoom - tile.coord.zoom),
+                x: Math.round(tx),
+                y: Math.round(ty),
+                scale: scale,
                 // TODO: pass only scale or only w/h
-                width: this.provider.tileWidth,
-                height: this.provider.tileHeight
+                width: this.map.tileSize.x,
+                height: this.map.tileSize.y
             });
 
             // add tile to its level
             var theLevel = this.levels[tile.coord.zoom];
             theLevel.appendChild(tile);
+
+            // Support style transition if available.
+            tile.className = 'map-tile-loaded';
 
             // ensure the level is visible if it's still the current level
             if (Math.round(this.map.coordinate.zoom) == tile.coord.zoom) {
@@ -1872,7 +1834,7 @@ var mm = com.modestmaps = {
         },
 
         setProvider: function(newProvider) {
-            if (newProvider.hasOwnProperty('getTileUrl')) {
+            if ('getTileUrl' in newProvider && (typeof newProvider.getTileUrl === 'function')) {
                 newProvider = new MM.TilePaintingProvider(newProvider);
             }
 
@@ -1992,30 +1954,38 @@ var mm = com.modestmaps = {
             this.addLayer(layerOrLayers[i]);
         }
 
-        // the first provider in the list gets to decide about projections and geometry
-        this.provider = this.layers[0].provider;
+        // default to Google-y Mercator style maps
+        this.projection = new MM.MercatorProjection(0,
+            MM.deriveTransformation(-Math.PI,  Math.PI, 0, 0,
+                                     Math.PI,  Math.PI, 1, 0,
+                                    -Math.PI, -Math.PI, 0, 1)),
+        this.tileSize = new MM.Point(256, 256);
 
+        // default 0-18 zoom level
+        // with infinite horizontal pan and clamped vertical pan        
+        this.coordLimits = [
+            new MM.Coordinate(0,-Infinity,0),           // top left outer
+            new MM.Coordinate(1,Infinity,0).zoomTo(18), // bottom right inner
+        ];
+
+        // eyes towards null island
         this.coordinate = new MM.Coordinate(0.5, 0.5, 0);
 
         // if you don't specify dimensions we assume you want to fill the parent
         // unless the parent has no w/h, in which case we'll still use a default
         if (!dimensions) {
-            dimensions = new MM.Point(
-                this.parent.offsetWidth,
-                this.parent.offsetHeight);
+            dimensions = new MM.Point(this.parent.offsetWidth,
+                                      this.parent.offsetHeight);
             this.autoSize = true;
-            var theMap = this;
             // use destroy to get rid of this handler from the DOM
             MM.addEvent(window, 'resize', this.windowResize());
         } else {
             this.autoSize = false;
+            // don't call setSize here because it calls draw()
             this.parent.style.width = Math.round(dimensions.x) + 'px';
             this.parent.style.height = Math.round(dimensions.y) + 'px';
         }
-
         this.dimensions = dimensions;
-
-        this.enablePyramidLoading = false;
 
         this.callbackManager = new MM.CallbackManager(this, [
             'zoomed',
@@ -2043,18 +2013,22 @@ var mm = com.modestmaps = {
 
     MM.Map.prototype = {
 
-        parent: null,
-        provider: null,
-        dimensions: null,
-        coordinate: null,
+        parent: null,          // DOM Element
+        dimensions: null,      // MM.Point with x/y size of parent element
 
-        layers: null,
+        projection: null,      // MM.Projection of first known layer
+        coordinate: null,      // Center of map MM.Coordinate with row/column/zoom
+        tileSize: null,        // MM.Point with x/y size of tiles
 
-        callbackManager: null,
+        coordLimits: null,     // Array of [ topLeftOuter, bottomLeftInner ] MM.Coordinates
 
-        eventHandlers: null,
+        layers: null,          // Array of MM.Layer (interface = .draw(), .destroy(), .parent and .map)
 
-        autoSize: null,
+        callbackManager: null, // MM.CallbackManager, handles map events
+
+        eventHandlers: null,   // Array of interaction handlers, just a MM.MouseHandler by default
+
+        autoSize: null,        // Boolean, true if we have a window resize listener
 
         toString: function() {
             return 'Map(#' + this.parent.id + ')';
@@ -2090,6 +2064,14 @@ var mm = com.modestmaps = {
             }
             return this._windowResize;
         },
+        
+        // A convenience function to restrict interactive zoom ranges.
+        // (you should also adjust map provider to restrict which tiles get loaded,
+        // or modify map.coordLimits and provider.tileLimits for finer control)
+        setZoomRange: function(minZoom, maxZoom) {
+            this.coordLimits[0] = this.coordLimits[0].zoomTo(minZoom);
+            this.coordLimits[1] = this.coordLimits[1].zoomTo(maxZoom);
+        },        
 
         // zooming
         zoomBy: function(zoomOffset) {
@@ -2115,8 +2097,8 @@ var mm = com.modestmaps = {
 
         // panning
         panBy: function(dx, dy) {
-            this.coordinate.column -= dx / this.provider.tileWidth;
-            this.coordinate.row -= dy / this.provider.tileHeight;
+            this.coordinate.column -= dx / this.tileSize.x;
+            this.coordinate.row -= dy / this.tileSize.y;
 
             this.coordinate = this.enforceLimits(this.coordinate);
 
@@ -2128,8 +2110,8 @@ var mm = com.modestmaps = {
 
         /*
         panZoom: function(dx, dy, zoom) {
-            this.coordinate.column -= dx / this.provider.tileWidth;
-            this.coordinate.row -= dy / this.provider.tileHeight;
+            this.coordinate.column -= dx / this.tileSize.x;
+            this.coordinate.row -= dy / this.tileSize.y;
             this.coordinate = this.coordinate.zoomTo(zoom);
 
             // Defer until the browser is ready to draw.
@@ -2150,7 +2132,7 @@ var mm = com.modestmaps = {
         },
 
         setCenterZoom: function(location, zoom) {
-            this.coordinate = this.provider.locationCoordinate(location).zoomTo(parseFloat(zoom) || 0);
+            this.coordinate = this.projection.locationCoordinate(location).zoomTo(parseFloat(zoom) || 0);
             MM.getFrame(this.getRedraw());
             this.dispatchCallback('centered', [location, zoom]);
             return this;
@@ -2160,7 +2142,7 @@ var mm = com.modestmaps = {
 
             var TL, BR;
             for (var i = 0; i < locations.length; i++) {
-                var coordinate = this.provider.locationCoordinate(locations[i]);
+                var coordinate = this.projection.locationCoordinate(locations[i]);
                 if (TL) {
                     TL.row = Math.min(TL.row, coordinate.row);
                     TL.column = Math.min(TL.column, coordinate.column);
@@ -2179,7 +2161,7 @@ var mm = com.modestmaps = {
             var height = this.dimensions.y + 1;
 
             // multiplication factor between horizontal span and map width
-            var hFactor = (BR.column - TL.column) / (width / this.provider.tileWidth);
+            var hFactor = (BR.column - TL.column) / (width / this.tileSize.x);
 
             // multiplication factor expressed as base-2 logarithm, for zoom difference
             var hZoomDiff = Math.log(hFactor) / Math.log(2);
@@ -2188,7 +2170,7 @@ var mm = com.modestmaps = {
             var hPossibleZoom = TL.zoom - (any ? hZoomDiff : Math.ceil(hZoomDiff));
 
             // multiplication factor between vertical span and map height
-            var vFactor = (BR.row - TL.row) / (height / this.provider.tileHeight);
+            var vFactor = (BR.row - TL.row) / (height / this.tileSize.y);
 
             // multiplication factor expressed as base-2 logarithm, for zoom difference
             var vZoomDiff = Math.log(vFactor) / Math.log(2);
@@ -2199,10 +2181,9 @@ var mm = com.modestmaps = {
             // initial zoom to fit extent vertically and horizontally
             var initZoom = Math.min(hPossibleZoom, vPossibleZoom);
 
-            // additionally, make sure it's not outside the boundaries set by provider limits
-            // this also catches Infinity stuff
-            initZoom = Math.min(initZoom, this.provider.outerLimits()[1].zoom);
-            initZoom = Math.max(initZoom, this.provider.outerLimits()[0].zoom);
+            // additionally, make sure it's not outside the boundaries set by map limits
+            initZoom = Math.min(initZoom, this.coordLimits[1].zoom);
+            initZoom = Math.max(initZoom, this.coordLimits[0].zoom);
 
             // coordinate of extent center
             var centerRow = (TL.row + BR.row) / 2;
@@ -2228,7 +2209,12 @@ var mm = com.modestmaps = {
             }
             this.parent.style.width = Math.round(this.dimensions.x) + 'px';
             this.parent.style.height = Math.round(this.dimensions.y) + 'px';
-            this.draw();
+            if (this.autoSize) {
+                MM.removeEvent(window, 'resize', this.windowResize());
+                this.autoSize = false;
+            }
+            this.draw(); // draw calls enforceLimits
+            // (if you switch to getFrame, call enforceLimits first)
             this.dispatchCallback('resized', [this.dimensions]);
             return this;
         },
@@ -2242,8 +2228,8 @@ var mm = com.modestmaps = {
 
             // distance from the center of the map
             var point = new MM.Point(this.dimensions.x / 2, this.dimensions.y / 2);
-            point.x += this.provider.tileWidth * (coord.column - this.coordinate.column);
-            point.y += this.provider.tileHeight * (coord.row - this.coordinate.row);
+            point.x += this.tileSize.x * (coord.column - this.coordinate.column);
+            point.y += this.tileSize.y * (coord.row - this.coordinate.row);
 
             return point;
         },
@@ -2253,20 +2239,30 @@ var mm = com.modestmaps = {
         pointCoordinate: function(point) {
             // new point coordinate reflecting distance from map center, in tile widths
             var coord = this.coordinate.copy();
-            coord.column += (point.x - this.dimensions.x / 2) / this.provider.tileWidth;
-            coord.row += (point.y - this.dimensions.y / 2) / this.provider.tileHeight;
+            coord.column += (point.x - this.dimensions.x / 2) / this.tileSize.x;
+            coord.row += (point.y - this.dimensions.y / 2) / this.tileSize.y;
 
             return coord;
         },
 
+        // Return an MM.Coordinate (row,col,zoom) for an MM.Location (lat,lon).
+        locationCoordinate: function(location) {
+            return this.projection.locationCoordinate(location);
+        },
+
+        // Return an MM.Location (lat,lon) for an MM.Coordinate (row,col,zoom).
+        coordinateLocation: function(coordinate) {
+            return this.projection.coordinateLocation(coordinate);
+        },
+
         // Return an x, y point on the map image for a given geographical location.
         locationPoint: function(location) {
-            return this.coordinatePoint(this.provider.locationCoordinate(location));
+            return this.coordinatePoint(this.locationCoordinate(location));
         },
 
         // Return a geographical location on the map image for a given x, y point.
         pointLocation: function(point) {
-            return this.provider.coordinateLocation(this.pointCoordinate(point));
+            return this.coordinateLocation(this.pointCoordinate(point));
         },
 
         // inspecting
@@ -2287,7 +2283,7 @@ var mm = com.modestmaps = {
 
         // Get the current centerpoint of the map, returning a `Location`
         getCenter: function() {
-            return this.provider.coordinateLocation(this.coordinate);
+            return this.projection.coordinateLocation(this.coordinate);
         },
 
         center: function(location) {
@@ -2316,16 +2312,16 @@ var mm = com.modestmaps = {
         // HACK for 0.x.y - stare at @RandomEtc 
         // this method means we can also pass a URL template or a MapProvider to addLayer
         coerceLayer: function(layerish) {
-            if (!('draw' in layerish && typeof layerish.draw == 'function')) {
-                if (typeof layerish == 'string') {
-                    // probably a template string
-                    layerish = new MM.Layer(new MM.TemplatedMapProvider(layerish));
-                } else {
-                    // probably a MapProvider
-                    layerish = new MM.Layer(layerish);
-                }
+            if ('draw' in layerish && typeof layerish.draw == 'function') {
+                // good enough, though we should probably enforce .parent and .destroy() too
+                return layerish;
+            } else if (typeof layerish == 'string') {
+                // probably a template string
+                return new MM.Layer(new MM.TemplatedMapProvider(layerish));
+            } else {
+                // probably a MapProvider
+                return new MM.Layer(layerish);
             }
-            return layerish;
         },
         
         // return a copy of the layers array
@@ -2458,12 +2454,10 @@ var mm = com.modestmaps = {
 
         // limits
 
-        // Prevent the user from navigating the map outside the `outerLimits`
-        // of the map's provider.
-        enforceLimits: function(coord) {
-            coord = coord.copy();
-            var limits = this.provider.outerLimits();
-            if (limits) {
+        enforceZoomLimits: function(coord) {
+            var limits = this.coordLimits;
+            if (limits) {            
+                // clamp zoom level:
                 var minZoom = limits[0].zoom;
                 var maxZoom = limits[1].zoom;
                 if (coord.zoom < minZoom) {
@@ -2474,6 +2468,57 @@ var mm = com.modestmaps = {
                 }
             }
             return coord;
+        },
+        
+        enforcePanLimits: function(coord) {
+        
+            var limits = this.coordLimits;
+            
+            if (limits) {            
+        
+                coord = coord.copy();
+                
+                // clamp pan:
+                var topLeftLimit = limits[0].zoomTo(coord.zoom);
+                var bottomRightLimit = limits[1].zoomTo(coord.zoom);
+                var currentTopLeft = this.pointCoordinate(new MM.Point(0,0));
+                var currentBottomRight = this.pointCoordinate(this.dimensions);
+    
+                // this handles infinite limits:
+                // (Infinity - Infinity) is Nan
+                // NaN is never less than anything
+                if (bottomRightLimit.row - topLeftLimit.row < currentBottomRight.row - currentTopLeft.row) {
+                    // if the limit is smaller than the current view center it
+                    coord.row = (bottomRightLimit.row + topLeftLimit.row) / 2;
+                }
+                else {
+                    if (currentTopLeft.row < topLeftLimit.row) {
+                        coord.row += topLeftLimit.row - currentTopLeft.row;
+                    }
+                    else if (currentBottomRight.row > bottomRightLimit.row) {
+                        coord.row -= currentBottomRight.row - bottomRightLimit.row;
+                    }
+                }
+                if (bottomRightLimit.column - topLeftLimit.column < currentBottomRight.column - currentTopLeft.column) {
+                    // if the limit is smaller than the current view, center it
+                    coord.column = (bottomRightLimit.column + topLeftLimit.column) / 2;                    
+                }
+                else {
+                    if (currentTopLeft.column < topLeftLimit.column) {
+                        coord.column += topLeftLimit.column - currentTopLeft.column;
+                    }
+                    else if (currentBottomRight.column > bottomRightLimit.column) {
+                        coord.column -= currentBottomRight.column - bottomRightLimit.column;
+                    }
+                }
+            }
+            
+            return coord;        
+        },
+
+        // Prevent accidentally navigating outside the `coordLimits` of the map.
+        enforceLimits: function(coord) {
+            return this.enforcePanLimits(this.enforceZoomLimits(coord));
         },
 
         // rendering
@@ -2541,11 +2586,13 @@ var mm = com.modestmaps = {
                 this.layers[j].destroy();
             }
             this.layers = [];
-            this.provider = null;
+            this.projection = null;
             for (var i = 0; i < this.eventHandlers.length; i++) {
                 this.eventHandlers[i].remove();
             }
-            MM.removeEvent(window, 'resize', this.windowResize());
+            if (this.autoSize) {
+                MM.removeEvent(window, 'resize', this.windowResize());
+            }
         }
     };
     if (typeof module !== 'undefined' && module.exports) {
@@ -2558,7 +2605,8 @@ var mm = com.modestmaps = {
           Location: MM.Location,
           MapProvider: MM.MapProvider,
           TemplatedMapProvider: MM.TemplatedMapProvider,
-          Coordinate: MM.Coordinate
+          Coordinate: MM.Coordinate,
+          deriveTransformation: MM.deriveTransformation
       };
     }
 })(mm);
