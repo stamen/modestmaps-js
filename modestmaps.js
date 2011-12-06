@@ -613,7 +613,29 @@ var mm = com.modestmaps = {
         }
     };
 
-    // A simple tileprovider builder that supports `XYZ`-style tiles.
+    /**
+     * FIXME: need a better explanation here! This is a pretty crucial part of
+     * understanding how to use ModestMaps.
+     *
+     * TemplatedMapProvider is a tile provider that generates tile URLs from a
+     * template string by replacing the following bits for each tile
+     * coordinate:
+     *
+     * {Z}: the tile's zoom level (from 1 to ~20)
+     * {X}: the tile's X, or column (from 0 to a very large number at higher
+     * zooms)
+     * {Y}: the tile's Y, or row (from 0 to a very large number at higher
+     * zooms)
+     *
+     * E.g.:
+     *
+     * var osm = new MM.TemplatedMapProvider("http://tile.openstreetmap.org/{Z}/{X}/{Y}.png");
+     *
+     * Or:
+     *
+     * var placeholder = new MM.TemplatedMapProvider("http://placehold.it/256/f0f/fff.png&text={Z}/{X}/{Y}");
+     *
+     */
     MM.TemplatedMapProvider = function(template, subdomains)
     {
         var isQuadKey = false;
@@ -624,16 +646,6 @@ var mm = com.modestmaps = {
                 .replace('{subdomains}', '{S}')
                 .replace('{zoom}', '{Z}')
                 .replace('{quadkey}', '{Q}');
-        }
-
-        // parse subdomains from the URL template in the form:
-        // {S:domain1,domain2,domain3}
-        if (!subdomains && template.indexOf("{S:") > -1) {
-            var match = template.match(/{S:([^}])*}/);
-            if (match) {
-                subdomains = match[1].split(",");
-                template = template.replace(match[0], "{S}");
-            }
         }
 
         var hasSubdomains = false;

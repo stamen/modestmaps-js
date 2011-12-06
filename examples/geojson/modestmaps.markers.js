@@ -148,7 +148,7 @@ if (!com.modestmaps) {
             // convert the feature to a Location instance
             marker.location = this.coerceLocation(feature);
             // remember the tile coordinate so we don't have to reproject every time
-            marker.coord = this.map.provider.locationCoordinate(marker.location);
+            marker.coord = this.map.locationCoordinate(marker.location);
             // position: absolute
             marker.style.position = "absolute";
             // update the marker's position
