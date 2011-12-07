@@ -12,7 +12,7 @@
  *
  */
 
-var previous_mm = mm;
+var previousMM = MM;
 
 // namespacing for backwards-compatibility
 if (!com) {
@@ -20,9 +20,9 @@ if (!com) {
     if (!com.modestmaps) com.modestmaps = {};
 }
 
-var mm = com.modestmaps = {
+var MM = com.modestmaps = {
   noConflict: function() {
-    mm = previous_mm;
+    MM = previousMM;
     return this;
   }
 };
