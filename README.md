@@ -10,8 +10,3 @@ check out the `master` branch!
 - Manual
   - About Datatypes
   - Common recipes
-- API
-  - Handlers
-  - Datatypes
-  - Providers
-  - The Map Object

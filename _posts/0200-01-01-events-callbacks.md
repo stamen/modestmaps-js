@@ -1,7 +1,7 @@
 ---
 title: Events
 tags: manual
-layout: default
+layout: page
 ---
 
 
