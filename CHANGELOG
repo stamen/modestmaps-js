@@ -15,6 +15,8 @@ v1.0.0 (dev)
 - `map.setExtent` no longer rounds zoom levels by default.
 - `map.roundZoom` added to the map to allow for the old behavior
   of `map.setExtent` if desired.
+- Maps now include `MM.TouchHandler()` by default for touch-device
+  compatibility
 
 v0.21.0
 - Returns `this` from `map.addCallback()`, `map.removeCallback()`,
