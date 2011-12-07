@@ -92,7 +92,7 @@ describe('Map', function() {
       waits(500);
 
       runs(function() {
-          expect(sink.receive).toHaveBeenCalledWith(map, [{ x: 200, y: 300}]);
+          expect(sink.receive).toHaveBeenCalledWith(map, { x: 200, y: 300});
       });
   });
 
