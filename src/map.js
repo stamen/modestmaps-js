@@ -289,16 +289,12 @@
             return this;
         },
 
-
         // Resize the map's container `<div>`, redrawing the map and triggering
         // `resized` to make sure that the map's presentation is still correct.
-        setSize: function(dimensionsOrX, orY) {
-            if (dimensionsOrX.hasOwnProperty('x') && dimensionsOrX.hasOwnProperty('y')) {
-                this.dimensions = dimensionsOrX;
-            }
-            else if (orY !== undefined && !isNaN(orY)) {
-                this.dimensions = new MM.Point(dimensionsOrX, orY);
-            }
+        setSize: function(dimensions) {
+            // Ensure that, whether a raw object or a Point object is passed,
+            // this.dimensions will be a Point.
+            this.dimensions = new MM.Point(dimensions.x, dimensions.y);
             this.parent.style.width = Math.round(this.dimensions.x) + 'px';
             this.parent.style.height = Math.round(this.dimensions.y) + 'px';
             if (this.autoSize) {
@@ -307,7 +303,7 @@
             }
             this.draw(); // draw calls enforceLimits
             // (if you switch to getFrame, call enforceLimits first)
-            this.dispatchCallback('resized', [this.dimensions]);
+            this.dispatchCallback('resized', this.dimensions);
             return this;
         },
 

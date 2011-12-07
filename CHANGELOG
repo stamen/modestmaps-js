@@ -8,6 +8,14 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment
     the major version." -- http://semver.org/
 
+v1.0.0 (dev)
+- `map.setSize` now only accepts an object of the form `{x: 0, y: 0}`
+  or a `MM.Size` object, and it calls its callback with a
+	`MM.Size` argument.
+- `map.setExtent` no longer rounds zoom levels by default.
+- `map.roundZoom` added to the map to allow for the old behavior
+  of `map.setExtent` if desired.
+
 v0.21.0
 - Returns `this` from `map.addCallback()`, `map.removeCallback()`,
   and `map.dispatchCallback()`
