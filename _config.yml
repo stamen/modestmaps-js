@@ -1,12 +1,8 @@
-destination: ./_site
-auto:        true
-source:      .
-lsi:         false
-server_port: 4000
-pygments:    true
-markdown:    rdiscount
-permalink:   /:title.html
-url:         http://stamen.github.com/modestmaps-js/
-baseurl:     /modestmaps-js
+auto: true
+server: true
+pygments: true
+markdown: rdiscount
+permalink: /:title.html
+baseurl: /modestmaps-js
 rdiscount:
   extensions: [smart]

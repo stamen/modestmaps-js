@@ -40,9 +40,9 @@ div.highlight .nt { color: #007000 } /* Name.Tag */
 div.highlight .nv { color: #003060 } /* Name.Variable */
 div.highlight .ow { color: #000000;  } /* Operator.Word */
 div.highlight .w { color: #bbbbbb } /* Text.Whitespace */
-div.highlight .mf { color: #6000E0;  } /* Literal.Number.Float */
+div.highlight .mf { color: #cb4b16;  } /* Literal.Number.Float */
 div.highlight .mh { color: #005080;  } /* Literal.Number.Hex */
-div.highlight .mi { color: #6060f0;  } /* Literal.Number.Integer */
+div.highlight .mi { color: #cb4b16;  } /* Literal.Number.Integer */
 div.highlight .mo { color: #4000E0;  } /* Literal.Number.Oct */
 div.highlight .sb { background-color: #8c926a } /* Literal.String.Backtick */
 div.highlight .sc { color: #8080F0 } /* Literal.String.Char */

@@ -1,7 +1,7 @@
 ---
 title: Navigating
 tags: manual
-layout: default
+layout: page
 ---
 
 Map provides several different ways to change the current center and zoom level, apart from `setCenterZoom` and `setExtent`. 
