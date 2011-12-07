@@ -842,7 +842,7 @@ var MM = com.modestmaps = {
             options = options || {};
 
             // Fail early if this isn't a touch device.
-            if (!this.isTouchable) return false;
+            if (!this.isTouchable()) return false;
 
             this._touchStartMachine = MM.bind(this.touchStartMachine, this);
             this._touchMoveMachine = MM.bind(this.touchMoveMachine, this);
@@ -865,6 +865,9 @@ var MM = com.modestmaps = {
         },
 
         remove: function() {
+            // Fail early if this isn't a touch device.
+            if (!this.isTouchable()) return false;
+
             MM.removeEvent(this.map.parent, 'touchstart',
                 this._touchStartMachine);
             MM.removeEvent(this.map.parent, 'touchmove',
