@@ -518,10 +518,10 @@
         },
 
         // switch the stacking order of two layers, by index
-        swapLayers: function(i, j) {
+        swapLayersAt: function(i, j) {
 
             if (i < 0 || i >= this.layers.length || j < 0 || j >= this.layers.length) {
-                throw new Error('invalid index in swapLayers(): ' + index);
+                throw new Error('invalid index in swapLayersAt(): ' + index);
             }
 
             var layer1 = this.layers[i],

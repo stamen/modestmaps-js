@@ -120,7 +120,7 @@ describe('Map', function() {
           var l1 = map.getLayerAt(0);
 
           expect(map.insertLayerAt(1, l)).toEqual(map);
-          expect(map.swapLayers(0, 1)).toEqual(map);
+          expect(map.swapLayersAt(0, 1)).toEqual(map);
 
           expect(map.getLayerAt(0)).toEqual(l);
           expect(map.getLayerAt(1)).toEqual(l1);
