@@ -340,6 +340,47 @@ img.left {
   border: none;
   font-size: 16px;
   }
+.contributors {
+  border-top: 1px solid #d9e5ea;
+  margin: 20px -20px 10px -20px;
+  padding: 10px 20px 0;
+  }
+
+.contributors a {
+  margin:0 20px 0 0;
+  padding:10px;
+  display:block;
+  float:left;
+  }
+
+.contributors a:hover {
+  background-color:#eff4f6 !important;
+}
+
+.contributors a#stamen {
+  color:#69aaca;
+  font:bold 34px/40px "Helvetica";
+  letter-spacing:-2px;
+  border:0;
+}
+
+.contributors a#bloom {
+  color:#69aaca;
+  font:34px/40px bold "Helvetica";
+  letter-spacing:-2px;
+  border:0;
+}
+
+.contributors a#mapbox {
+  color:#69aaca;
+  font:34px/40px bold "Helvetica";
+  background:transparent url('images/mapbox.png') no-repeat;
+  background-position:10px 10px;
+  padding-left:55px;
+  letter-spacing:-2px;
+  border:0;
+}
+
 .download p {
   margin: 0 0 10px;
   color: #AEAEAE;
