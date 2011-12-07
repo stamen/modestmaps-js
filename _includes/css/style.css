@@ -356,16 +356,8 @@ img.left {
   border-top: 1px solid #d9e5ea;
   margin: 20px -20px -80px;
   padding: 0 20px;
-  height: 75px;
-  overflow: hidden;
-  -moz-transition: height 0.5s ease-out;
-  -o-transition: height 0.5s ease-out;
-  -webkit-transition: height 0.5s ease-out;
-  transition: height 0.5s ease-out;
+  height: 360px;
   }
-  .implementations:hover {
-    height: 360px;
-    }
 .implementations h2 {
   display: block;
   margin: 20px 0 30px;
@@ -375,8 +367,21 @@ img.left {
     color: inherit;
     }
 .option {
-  margin-bottom: 10px;
+  opacity: 0.20;
+  -moz-opacity: 0.20;
+  filter:alpha(opacity=20);
+  margin-bottom: 20px;
+  padding-right: 20px;
+  -moz-transition: opacity 0.3s linear;
+  -o-transition: opacity 0.3s linear;
+  -webkit-transition: opacity 0.3s linear;
+  transition: opacity 0.3s linear;
   }
+  .option:hover {
+    opacity: 1;
+    -moz-opacity: 1;
+    filter:alpha(opacity=100);
+    }
 .option .icon {
   float: left;
   width: 60px;
@@ -395,7 +400,10 @@ img.left {
   display: block;
   border-bottom: none;
   font-weight: bold;
+  font-size: 14px;
   }
 .option p {
+  font-size: 12px;
+  margin: 0;
   color: #AEAEAE;
   }
