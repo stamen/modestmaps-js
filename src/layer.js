@@ -337,7 +337,11 @@
             // position this tile (avoids a full draw() call):
             var theCoord = this.map.coordinate.zoomTo(tile.coord.zoom);
 
-            tile.style.position = 'absolute';
+            // Start tile positioning and prevent drag for modern browsers
+            tile.style.cssText = 'position:absolute;-webkit-user-select: none;-webkit-user-drag: none;-moz-user-drag: none;';
+
+            // Prevent drag for IE
+            tile.ondragstart = function() { return false; };
 
             var scale = Math.pow(2, this.map.coordinate.zoom - tile.coord.zoom);
             var tx = ((this.map.dimensions.x/2) +
