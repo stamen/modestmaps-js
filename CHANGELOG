@@ -17,6 +17,10 @@ v1.0.0 (dev)
   of `map.setExtent` if desired.
 - Maps now include `MM.TouchHandler()` by default for touch-device
   compatibility
+- `MM.MouseWheelHandler()` now supports a second argument,
+  `any`, which, when true, will allow intermediate zooms
+- MouseWheel events are now normalized to take advantage of
+  acceleration and avoid browser bugs.
 
 v0.21.0
 - Returns `this` from `map.addCallback()`, `map.removeCallback()`,
