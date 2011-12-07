@@ -87,8 +87,10 @@
 
         // set up handlers last so that all required attributes/functions are in place if needed
         if (eventHandlers === undefined) {
-            this.eventHandlers = [];
-            this.eventHandlers.push(new MM.MouseHandler(this));
+            this.eventHandlers = [
+                new MM.MouseHandler(this),
+                new MM.TouchHandler(this)
+            ];
         } else {
             this.eventHandlers = eventHandlers;
             if (eventHandlers instanceof Array) {

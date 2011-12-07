@@ -12,4 +12,4 @@
           deriveTransformation: MM.deriveTransformation
       };
     }
-})(mm);
+})(MM);

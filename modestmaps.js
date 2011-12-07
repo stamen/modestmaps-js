@@ -841,6 +841,9 @@ var MM = com.modestmaps = {
             this.map = map;
             options = options || {};
 
+            // Fail early if this isn't a touch device.
+            if (!this.isTouchable) return false;
+
             this._touchStartMachine = MM.bind(this.touchStartMachine, this);
             this._touchMoveMachine = MM.bind(this.touchMoveMachine, this);
             this._touchEndMachine = MM.bind(this.touchEndMachine, this);
@@ -853,6 +856,12 @@ var MM = com.modestmaps = {
 
             this.options = {};
             this.options.snapToZoom = options.snapToZoom || true;
+        },
+
+        isTouchable: function() {
+             var el = document.createElement('div');
+             el.setAttribute('ongesturestart', 'return;');
+             return (typeof el.ongesturestart === 'function');
         },
 
         remove: function() {
@@ -1948,8 +1957,10 @@ var MM = com.modestmaps = {
 
         // set up handlers last so that all required attributes/functions are in place if needed
         if (eventHandlers === undefined) {
-            this.eventHandlers = [];
-            this.eventHandlers.push(new MM.MouseHandler(this));
+            this.eventHandlers = [
+                new MM.MouseHandler(this),
+                new MM.TouchHandler(this)
+            ];
         } else {
             this.eventHandlers = eventHandlers;
             if (eventHandlers instanceof Array) {
@@ -2560,4 +2571,4 @@ var MM = com.modestmaps = {
           deriveTransformation: MM.deriveTransformation
       };
     }
-})(mm);
+})(MM);
