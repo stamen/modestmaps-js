@@ -13,10 +13,10 @@ describe('Map', function() {
 
     var template = 'http://{S}tile.openstreetmap.org/{Z}/{X}/{Y}.png';
     var subdomains = [ '', 'a.', 'b.', 'c.' ];
-    var provider = new com.modestmaps.TemplatedMapProvider(template, subdomains);
+    var provider = new MM.TemplatedMapProvider(template, subdomains);
 
-    map = new com.modestmaps.Map(div, provider, new com.modestmaps.Point(400, 400));
-    map.setCenterZoom(new com.modestmaps.Location(0, 0), 0);
+    map = new MM.Map(div, provider, new MM.Point(400, 400));
+    map.setCenterZoom(new MM.Location(0, 0), 0);
   });
 
   it('attaches itself to a parent div', function() {

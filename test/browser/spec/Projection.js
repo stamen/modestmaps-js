@@ -1,6 +1,5 @@
 describe('Projection', function() {
-    var MM = com.modestmaps,
-        m;
+    var m;
 
     beforeEach(function() {
         m = new MM.MercatorProjection(10);

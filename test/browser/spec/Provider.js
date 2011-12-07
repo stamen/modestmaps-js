@@ -1,5 +1,4 @@
 describe('Providers', function() {
-    var MM = com.modestmaps;
     // Currently not testing subdomain-based templatedmapprovider, since
     // the implementation should be kind of undefined.
     it('basic templatedmapprovider', function() {
