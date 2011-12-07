@@ -5,22 +5,21 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <title>Modest Maps JS - Any Zoom Demo</title>
 <script type="text/javascript" src="../../modestmaps.js"></script>
-<script type="text/javascript" src="anyzoom.js"></script>
 <script type="text/javascript">
 
 var map;
 
 function initMap() {
 
-    var mm = com.modestmaps;
-
     var container = document.getElementById('container');
 
     var template = 'http://{S}tile.openstreetmap.org/{Z}/{X}/{Y}.png';
     var subdomains = [ '', 'a.', 'b.', 'c.' ];
-    var provider = new mm.TemplatedMapProvider(template, subdomains);
+    var provider = new MM.TemplatedMapProvider(template, subdomains);
 
-    map = new mm.Map('map', provider, null, [ new AnyZoomHandler() ]);
+    map = new MM.Map('map', provider, null, []);
+
+    map.addHandler(new MM.MouseWheel(map, true));
 
     map.setCenterZoom(new mm.Location(37.811530, -122.2666097), 14);
 

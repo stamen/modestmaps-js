@@ -676,40 +676,52 @@ var MM = com.modestmaps = {
 
     // A handler that allows mouse-wheel zooming - zooming in
     // when page would scroll up, and out when the page would scroll down.
-    MM.MouseWheelHandler = function(map) {
-        if (map !== undefined) this.init(map);
+    MM.MouseWheelHandler = function(map, any) {
+        if (map !== undefined) this.init(map, any);
     };
 
     MM.MouseWheelHandler.prototype = {
 
-        init: function(map) {
+        init: function(map, any) {
             this.map = map;
+            this.any = any;
             this._mouseWheel = MM.bind(this.mouseWheel, this);
+
+            this._zoomDiv = document.body.appendChild(document.createElement('div'));
+            this._zoomDiv.style.cssText = 'visibility:hidden;top:0;height:0;width:0;overflow-y:scroll';
+            var innerDiv = this._zoomDiv.appendChild(document.createElement('div'));
+            innerDiv.style.height = '2000px';
             MM.addEvent(map.parent, 'mousewheel', this._mouseWheel);
         },
 
         remove: function() {
             MM.removeEvent(this.map.parent, 'mousewheel', this._mouseWheel);
+            this._zoomDiv.parentNode.removeChild(this._zoomDiv);
         },
 
         mouseWheel: function(e) {
             var delta = 0;
             this.prevTime = this.prevTime || new Date().getTime();
 
-            if (e.wheelDelta) {
-                delta = e.wheelDelta;
-            } else if (e.detail) {
-                delta = -e.detail;
+            try {
+                this._zoomDiv.scrollTop = 1000;
+                this._zoomDiv.dispatchEvent(e);
+                delta = 1000 - this._zoomDiv.scrollTop;
+            } catch (error) {
+                delta = e.wheelDelta || (-e.detail * 5);
             }
 
             // limit mousewheeling to once every 200ms
             var timeSince = new Date().getTime() - this.prevTime;
 
-            if (Math.abs(delta) > 0 && (timeSince > 200)) {
+            if (Math.abs(delta) > 0 && (timeSince > 200) && !this.any) {
                 var point = MM.getMousePoint(e, this.map);
                 this.map.zoomByAbout(delta > 0 ? 1 : -1, point);
 
                 this.prevTime = new Date().getTime();
+            } else if (this.any) {
+                var point = MM.getMousePoint(e, this.map);
+                this.map.zoomByAbout(delta * 0.001, point);
             }
 
             // Cancel the event so that the page doesn't scroll
