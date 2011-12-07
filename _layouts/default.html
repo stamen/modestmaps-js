@@ -3,32 +3,23 @@
 <head>
   <meta charset='utf-8'/>
   <title>Modest Maps | {{page.title}}</title>
-  <link rel='shortcut icon' href='images/favicon.ico' type='image/x-icon' />
-  <link href='{{site.baseurl}}/css/reset.css' rel='stylesheet' type='text/css' />
-  <link href='{{site.baseurl}}/css/site.css' rel='stylesheet' type='text/css' />
-  <link href='{{site.baseurl}}/css/pygments.css' rel='stylesheet' type='text/css' />
+  <link rel='shortcut icon' href='{{site.baseurl}}/images/favicon.ico' type='image/x-icon' />
+  <link href='{{site.baseurl}}/site.css' rel='stylesheet' type='text/css' />
 </head>
 <body>
   <div class='header'>
-    <h1><a href='{{site.baseurl}}/' class='title icon'>{ modest maps }</a></h1>
+    <h1><a href='{{site.baseurl}}/' class='icon title'>{ modest maps }</a></h1>
   </div>
   <div class='limiter clearfix'>
      <div class='sidebar'>
-      <a href='{{site.baseurl}}/' class='home {% if page.url == "/index.html" %}active{% endif %}'>Home</a>
-      <div class='item'>
-        <h4>Manual</h4>
+      <div class='sidebar-inner'>
         <ul>
+            <li><a href='{{site.baseurl}}/' class='home {% if page.url == "/index.html" %}active{% endif %}'>Home</a></li>
           {% for post in site.tags.manual %}
             <li><a href='{{site.baseurl}}{{post.url}}' class='{% if page.url == post.url %}active{% endif %}'>{{ post.title }}</a></li>
           {% endfor %}
-        </ul>
-      </div>
-      <div class='item'>
-        <h4>API</h4>
-        <ul>
-          {% for post in site.tags.api %}
-            <li><a href='{{site.baseurl}}{{post.url}}' class='{% if page.url == post.url %}active{% endif %}'>{{ post.title }}</a></li>
-          {% endfor %}
+            <li><a class='external' href='https://github.com/stamen/modestmaps-js'>Repository</a></li>
+            <li><a class='external' href='https://github.com/stamen/modestmaps-js/wiki'>API Docs</a></li>
         </ul>
       </div>
     </div>
@@ -36,8 +27,6 @@
       {{ content }}
     </div>
   </div>
-<script src='{{site.baseurl}}/js/ender.js'></script>
-<script src='{{site.baseurl}}/js/modestmaps.js'></script>
-<script src='{{site.baseurl}}/js/site.js'></script>
+<script src='{{site.baseurl}}/site.js'></script>
 </body>
 </html>
