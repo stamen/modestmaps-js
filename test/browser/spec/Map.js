@@ -33,51 +33,111 @@ describe('Map', function() {
       expect(typeof map.coordinate.zoom).toEqual('number');
   });
 
-  it('binds and calls drawn', function() {
-      spyOn(sink, 'receive');
-      map.addCallback('drawn', sink.receive);
+  describe('Navigation', function() {
+      it('binds and calls drawn', function() {
+          spyOn(sink, 'receive');
+          map.addCallback('drawn', sink.receive);
 
-      runs(function() {
-          map.draw();
+          runs(function() {
+              map.draw();
+          });
+
+          waits(500);
+
+          runs(function() {
+              expect(sink.receive).toHaveBeenCalledWith(map, undefined);
+          });
       });
 
-      waits(500);
+      it('binds and calls zoomed', function() {
+          spyOn(sink, 'receive');
+          map.addCallback('zoomed', sink.receive);
 
-      runs(function() {
-          expect(sink.receive).toHaveBeenCalledWith(map, undefined);
+          runs(function() {
+              map.zoomIn();
+          });
+
+          waits(500);
+
+          runs(function() {
+              expect(sink.receive).toHaveBeenCalledWith(map, 1);
+          });
+      });
+
+      it('binds and calls panned', function() {
+          spyOn(sink, 'receive');
+          map.addCallback('panned', sink.receive);
+
+          runs(function() {
+              map.panBy(2, 2);
+          });
+
+          waits(500);
+
+          runs(function() {
+              expect(sink.receive).toHaveBeenCalledWith(map, [2, 2]);
+          });
       });
   });
 
-  it('binds and calls zoomed', function() {
-      spyOn(sink, 'receive');
-      map.addCallback('zoomed', sink.receive);
+  describe('Layer Interface', function() {
+      it('Can set a new layer at 0', function() {
+          var p = new MM.TemplatedMapProvider(
+              'http://{S}.tile.openstreetmap.org/{Z}/{X}/{Y}.png', ['a']);
+          var l = new MM.Layer(p);
+          map.setLayerAt(0, l);
 
-      runs(function() {
-          map.zoomIn();
+          expect(map.getLayerAt(0)).toEqual(l);
+      });
+      it('Can insert a new layer at 0', function() {
+          var p = new MM.TemplatedMapProvider(
+              'http://{S}.tile.openstreetmap.org/{Z}/{X}/{Y}.png', ['a']);
+          var l = new MM.Layer(p);
+
+          expect(map.insertLayerAt(0, l)).toEqual(map);
+          expect(map.getLayerAt(0)).toEqual(l);
+          expect(map.getLayers().length).toEqual(2);
+      });
+      it('Can remove a new layer at 0', function() {
+          var p = new MM.TemplatedMapProvider(
+              'http://{S}.tile.openstreetmap.org/{Z}/{X}/{Y}.png', ['a']);
+          var l = new MM.Layer(p);
+
+          expect(map.insertLayerAt(0, l)).toEqual(map);
+
+          expect(map.getLayerAt(0)).toEqual(l);
+          expect(map.getLayers().length).toEqual(2);
+
+          expect(map.removeLayerAt(0)).toEqual(map);
+          expect(map.getLayers().length).toEqual(1);
       });
 
-      waits(500);
+      it('Can swap a new layer at 0', function() {
+          var p = new MM.TemplatedMapProvider(
+              'http://{S}.tile.openstreetmap.org/{Z}/{X}/{Y}.png', ['a']);
+          var l = new MM.Layer(p);
 
-      runs(function() {
-          expect(sink.receive).toHaveBeenCalledWith(map, 1);
+          var l1 = map.getLayerAt(0);
+
+          expect(map.insertLayerAt(1, l)).toEqual(map);
+          expect(map.swapLayers(0, 1)).toEqual(map);
+
+          expect(map.getLayerAt(0)).toEqual(l);
+          expect(map.getLayerAt(1)).toEqual(l1);
+          expect(map.getLayers().length).toEqual(2);
+      });
+
+      it('Can remove a specific layer', function() {
+          var p = new MM.TemplatedMapProvider(
+              'http://{S}.tile.openstreetmap.org/{Z}/{X}/{Y}.png', ['a']);
+          var l = new MM.Layer(p);
+
+          expect(map.insertLayerAt(1, l)).toEqual(map);
+          expect(map.removeLayer(l)).toEqual(map);
+
+          expect(map.getLayers().length).toEqual(1);
       });
   });
-
-  it('binds and calls panned', function() {
-      spyOn(sink, 'receive');
-      map.addCallback('panned', sink.receive);
-
-      runs(function() {
-          map.panBy(2, 2);
-      });
-
-      waits(500);
-
-      runs(function() {
-          expect(sink.receive).toHaveBeenCalledWith(map, [2, 2]);
-      });
-  });
-
 
   it('binds and calls resized', function() {
       spyOn(sink, 'receive');

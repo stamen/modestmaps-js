@@ -1866,7 +1866,10 @@ var MM = com.modestmaps = {
             this.requestManager.removeCallback('requestcomplete', this.getTileComplete());
             // TODO: does requestManager need a destroy function too?
             this.provider = null;
-            this.parent.parentNode.removeChild(this.parent);
+            // If this layer was ever attached to the DOM, detach it.
+            if (this.parent.parentNode) {
+              this.parent.parentNode.removeChild(this.parent);
+            }
             this.map = null;
         }
 
