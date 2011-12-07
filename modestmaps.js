@@ -2088,7 +2088,7 @@ var MM = com.modestmaps = {
             return this;
         },
 
-        setExtent: function(locations, any) {
+        setExtent: function(locations) {
 
             var TL, BR;
             for (var i = 0; i < locations.length; i++) {
@@ -2100,8 +2100,7 @@ var MM = com.modestmaps = {
                     BR.row = Math.max(BR.row, coordinate.row);
                     BR.column = Math.max(BR.column, coordinate.column);
                     BR.zoom = Math.max(BR.zoom, coordinate.zoom);
-                }
-                else {
+                } else {
                     TL = coordinate.copy();
                     BR = coordinate.copy();
                 }
@@ -2117,7 +2116,7 @@ var MM = com.modestmaps = {
             var hZoomDiff = Math.log(hFactor) / Math.log(2);
 
             // possible horizontal zoom to fit geographical extent in map width
-            var hPossibleZoom = TL.zoom - (any ? hZoomDiff : Math.ceil(hZoomDiff));
+            var hPossibleZoom = TL.zoom - hZoomDiff;
 
             // multiplication factor between vertical span and map height
             var vFactor = (BR.row - TL.row) / (height / this.tileSize.y);
@@ -2126,7 +2125,7 @@ var MM = com.modestmaps = {
             var vZoomDiff = Math.log(vFactor) / Math.log(2);
 
             // possible vertical zoom to fit geographical extent in map height
-            var vPossibleZoom = TL.zoom - (any ? vZoomDiff : Math.ceil(vZoomDiff));
+            var vPossibleZoom = TL.zoom - vZoomDiff;
 
             // initial zoom to fit extent vertically and horizontally
             var initZoom = Math.min(hPossibleZoom, vPossibleZoom);
@@ -2140,13 +2139,17 @@ var MM = com.modestmaps = {
             var centerColumn = (TL.column + BR.column) / 2;
             var centerZoom = TL.zoom;
 
-            this.coordinate = new MM.Coordinate(centerRow, centerColumn, centerZoom).zoomTo(initZoom);
+            this.coordinate = new MM.Coordinate(
+                centerRow,
+                centerColumn,
+                centerZoom).zoomTo(initZoom);
             this.draw(); // draw calls enforceLimits
             // (if you switch to getFrame, call enforceLimits first)
 
             this.dispatchCallback('extentset', locations);
             return this;
         },
+
 
         // Resize the map's container `<div>`, redrawing the map and triggering
         // `resized` to make sure that the map's presentation is still correct.
@@ -2247,6 +2250,12 @@ var MM = com.modestmaps = {
         // Get the current zoom level of the map, returning a number
         getZoom: function() {
             return this.coordinate.zoom;
+        },
+
+        // Simple syntatic sugar for making the old behavior of
+        // setExtent attainable.
+        roundZoom: function() {
+            return this.setZoom(Math.round(this.getZoom));
         },
 
         zoom: function(zoom) {
