@@ -20,8 +20,7 @@
             var tiles = new MM.TemplatedMapProvider(baseURL + "inundated/{Z}/{X}/{Y}.png");
 
             map = new MM.Map("map", tiles);
-            map.coordLimits[0].zoom = 8; // min zoom
-            map.coordLimits[1].zoom = 16; // max zoom
+            map.setZoomRange(8, 16);
             map.setCenterZoom({lat: 37.804, lon: -122.252}, 9);
 
             var template = new MM.TemplatedMapProvider(baseURL + "inundation_b/{Z}/{X}/{Y}.png");

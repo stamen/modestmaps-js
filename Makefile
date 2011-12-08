@@ -4,6 +4,7 @@ JS_FILES = \
 	src/point.js \
 	src/coordinate.js \
 	src/location.js \
+	src/extent.js \
 	src/transformation.js \
 	src/projection.js \
 	src/provider.js \

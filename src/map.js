@@ -228,6 +228,10 @@
         },
 
         setExtent: function(locations, any) {
+            // coerce locations to an array if it's a MapExtent instance
+            if (locations instanceof MM.MapExtent) {
+                locations = locations.toArray();
+            }
 
             var TL, BR;
             for (var i = 0; i < locations.length; i++) {

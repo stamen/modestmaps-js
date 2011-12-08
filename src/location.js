@@ -10,6 +10,9 @@
         lon: 0,
         toString: function() {
             return "(" + this.lat.toFixed(3) + ", " + this.lon.toFixed(3) + ")";
+        },
+        copy: function() {
+            return new MM.Location(this.lat, this.lon);
         }
     };
 
