@@ -19,13 +19,14 @@
             map.addLayer(box);
 
             var nwLabel = document.getElementById("nw-label"),
-                seLabel = document.getElementById("se-label");
+                seLabel = document.getElementById("se-label"),
+                output = document.getElementById("extent-output");
             box.addCallback("extentset", function(o, ext) {
                 var nw = ext.northWest(),
                     se = ext.southEast();
-                console.log("nw:", nw, "se:", se);
                 nwLabel.innerText = nw.toString();
                 seLabel.innerText = se.toString();
+                output.value = ext.toString();
             });
             box.setExtent(extent);
         }
@@ -43,6 +44,11 @@
                 z-index: 1000;
             }
 
+            /*
+             * FIXME: IE apparently needs the transparent PNG background to
+             * receive mouse events.
+             */
+
             .map-extent .handles {
                 cursor: move;
                 border: 1px solid red;
@@ -50,7 +56,6 @@
             }
 
             .map-extent .handle {
-                /* IE needs this, apparently */
                 background-image: url(1px.png);
             }
 
@@ -67,24 +72,6 @@
             .map-extent .handle-southeast { cursor: nwse-resize; }
             .map-extent .handle-northeast,
             .map-extent .handle-southwest { cursor: nesw-resize; }
-
-            .map-extent .label {
-                position: absolute;
-                display: block;
-                text-align: center;
-                width: 10em;
-            }
-
-            #nw-label {
-                top: -1em;
-                margin-top: -10px;
-                left: -5em;
-            }
-            #se-label {
-                top: 100%;
-                margin-top: 10px;
-                right: -5em;
-            }
 
             .map-extent .handle-north {
                 height: 5px;
@@ -136,6 +123,25 @@
                 left: -4px;
             }
 
+            /* labels (optional) */
+            .map-extent .label {
+                position: absolute;
+                display: block;
+                text-align: center;
+                width: 10em;
+            }
+
+            #nw-label {
+                top: -1em;
+                margin-top: -10px;
+                left: -5em;
+            }
+            #se-label {
+                top: 100%;
+                margin-top: 10px;
+                right: -5em;
+            }
+
         </style>
     </head>
     <body onload="initMap()">
@@ -145,4 +151,6 @@
                 <span id="se-label" class="label"></span>
             </div>
         </div>
+        <p>Selected extent (N,W,S,E): <input type="text" size="40" id="extent-output"></p>
     </body>
+</html>

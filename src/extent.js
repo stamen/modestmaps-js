@@ -34,6 +34,16 @@
             return new MM.MapExtent(this.north, this.west, this.south, this.east);
         },
 
+        toString: function(precision) {
+            if (isNaN(precision)) precision = 3;
+            return [
+                this.north.toFixed(precision),
+                this.west.toFixed(precision),
+                this.south.toFixed(precision),
+                this.east.toFixed(precision)
+            ].join(", ");
+        },
+
         // getters for the corner locations
         northWest: function() {
             return new MM.Location(this.north, this.west);
@@ -103,6 +113,16 @@
         toArray: function() {
             return [this.northWest(), this.southEast()];
         }
+    };
+
+    MM.MapExtent.fromString = function(str) {
+        var parts = str.split(/\s*,\s*/, 4);
+        return new MM.MapExtent(
+            parseFloat(parts[0]),
+            parseFloat(parts[1]),
+            parseFloat(parts[2]),
+            parseFloat(parts[3])
+        );
     };
 
     MM.MapExtent.fromArray = function(locations) {
