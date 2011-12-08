@@ -65,7 +65,7 @@ a {
   a:hover {
     color: #101010;
     }
-  .content a {
+  .content p a {
     border-bottom: 1px solid #ccc;
     -moz-transition: border-color 0.3s linear;
     -o-transition: border-color 0.3s linear;
@@ -387,7 +387,7 @@ img.left {
   }
 .download.js {
   background: transparent url(images/sprite.png) no-repeat 0px -280px;
-  width: 275px;
+  width: 375px;
   padding-left: 130px;
   height: 120px;
   }
@@ -448,3 +448,8 @@ img.left {
   margin: 0;
   color: #AEAEAE;
   }
+
+img.screenshot {
+  border:1px solid #CEDEE4;
+  margin-top:20px;
+}
