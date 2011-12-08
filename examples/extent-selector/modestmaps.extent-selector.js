@@ -14,7 +14,7 @@ if (!com.modestmaps) {
         if (extent) {
             this.setExtent(extent);
         }
-        this.callbackManager = new MM.CallbackManager(this, ["resize", "update", "draw"]);
+        this.callbackManager = new MM.CallbackManager(this, ["extentset", "update", "draw"]);
     };
 
     MM.ExtentSelector.prototype = {
@@ -42,6 +42,7 @@ if (!com.modestmaps) {
         },
         setExtent: function(extent) {
             this.extent = this.coerceExtent.apply(this, arguments);
+            this.dispatchCallback("extentset", this.extent.copy());
             this.draw();
         },
 
@@ -238,6 +239,7 @@ if (!com.modestmaps) {
             } else {
                 this.parent.style.visibility = "hidden";
             }
+            this.dispatchCallback("draw");
         },
 
         // update the geographic extent from the screen bounds
@@ -254,6 +256,7 @@ if (!com.modestmaps) {
             this.extent.south = southEast.lat;
             this.extent.west = northWest.lon;
             this.extent.east = southEast.lon;
+            this.dispatchCallback("extentset", this.extent.copy());
         }
     };
 

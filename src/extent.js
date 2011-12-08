@@ -18,6 +18,10 @@
         east: 0,
         west: 0,
 
+        copy: function() {
+            return new MM.MapExtent(this.north, this.south, this.east, this.west);
+        },
+
         // getters for the corner locations
         northWest: function() {
             return new MM.Location(this.north, this.west);

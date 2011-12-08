@@ -17,8 +17,19 @@
 
             box = new MM.ExtentSelector(document.getElementById("extent"));
             map.addLayer(box);
+
+            var nwLabel = document.getElementById("nw-label"),
+                seLabel = document.getElementById("se-label");
+            box.addCallback("extentset", function(o, ext) {
+                var nw = ext.northWest(),
+                    se = ext.southEast();
+                console.log("nw:", nw, "se:", se);
+                nwLabel.innerText = nw.toString();
+                seLabel.innerText = se.toString();
+            });
             box.setExtent(extent);
         }
+
         </script>
 
         <style type="text/css">
@@ -59,11 +70,19 @@
 
             .map-extent .label {
                 position: absolute;
+                width: 10em;
             }
 
-            .map-extent .label-northwest { top: -1em; }
-            .map-extent .label-southeast { bottom: 100%; }
-
+            #nw-label {
+                top: -1em;
+                margin-top: -10px;
+                left: -5em;
+            }
+            #se-label {
+                top: 100%;
+                margin-top: 10px;
+                right: -5em;
+            }
 
             .map-extent .handle-north {
                 height: 5px;
@@ -119,6 +138,9 @@
     </head>
     <body onload="initMap()">
         <div id="map">
-            <div id="extent" class="map-extent"></div>
+            <div id="extent" class="map-extent">
+                <span id="nw-label" class="label"></span>
+                <span id="se-label" class="label"></span>
+            </div>
         </div>
     </body>
