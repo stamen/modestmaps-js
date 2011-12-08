@@ -6,29 +6,66 @@
         <script type="text/javascript" src="modestmaps.extent-selector.js"></script>
         <script type="text/javascript">
         var MM = com.modestmaps,
-            map, box, extent;
+            map, selector, extent;
 
         function initMap() {
+            // the map
             var provider = new MM.TemplatedMapProvider("http://acetate.geoiq.com/tiles/acetate-base/{Z}/{X}/{Y}.png");
             map = new MM.Map("map", provider);
 
+            // the initial extent
             var extent = new MM.MapExtent(37.837, -122.522, 37.691, -122.350);
             map.setExtent(extent);
 
-            box = new MM.ExtentSelector(document.getElementById("extent"));
-            map.addLayer(box);
+            // the selector is a map "layer"
+            selector = new MM.ExtentSelector(document.getElementById("extent"));
+            map.addLayer(selector);
 
+            // update the northwest and south east labels when the extent
+            // changes
             var nwLabel = document.getElementById("nw-label"),
                 seLabel = document.getElementById("se-label"),
-                output = document.getElementById("extent-output");
-            box.addCallback("extentset", function(o, ext) {
-                var nw = ext.northWest(),
-                    se = ext.southEast();
-                nwLabel.innerText = nw.toString();
-                seLabel.innerText = se.toString();
-                output.value = ext.toString();
+                extentField = document.getElementById("extent-string");
+            selector.addCallback("extentset", function(o, ext) {
+                // these setters all coerce to strings, which implicitly
+                // calls toString() on the Location and MapExtent instances
+                nwLabel.innerText = ext.northWest();
+                seLabel.innerText = ext.southEast();
+                // and update the extent string field for good measure
+                extentField.value = ext;
             });
-            box.setExtent(extent);
+            selector.setExtent(extent);
+
+            // when the snap-extent button is pressed, set the selector's
+            // extent to the map's
+            MM.addEvent(document.getElementById("snap-extent"), "click", function(e) {
+                selector.setExtent(map.getExtent());
+                return MM.cancelEvent(e);
+            });
+
+            // when the update-extent button is pressed, parse the input
+            // field's value as an extent and attempt to set it on the 
+            // selector
+            MM.addEvent(document.getElementById("update-extent"), "click", function(e) {
+                // keep the old extent around in case there's an issue,
+                // so we can reset the field
+                var old = selector.getExtent();
+                try {
+                    var ext = MM.MapExtent.fromString(extentField.value);
+                    selector.setExtent(ext);
+                } catch (e) {
+                    alert("Whoops: " + e);
+                    selector.setExtent(old);
+                }
+                return MM.cancelEvent(e);
+            });
+
+            // the checkbox determines if you can drag the extent selector
+            // by its center
+            var checkbox = document.getElementById("move-center");
+            MM.addEvent(checkbox, "change", function(e) {
+                selector.allowMoveCenter = checkbox.checked;
+            });
         }
 
         </script>
@@ -87,8 +124,7 @@
 
             .map-extent .handle-east {
                 width: 5px;
-                height: 100%;
-                right: -1px;
+                height: 100%; right: -1px;
             }
 
             .map-extent .handle-west {
@@ -151,6 +187,11 @@
                 <span id="se-label" class="label"></span>
             </div>
         </div>
-        <p>Selected extent (N,W,S,E): <input type="text" size="40" id="extent-output"></p>
+        <p>Extent (N,W,S,E):
+            <input id="extent-string" type="text" size="40">
+            <button id="update-extent">update</button>
+            <button id="snap-extent">snap to map</button>
+            <label><input id="move-center" type="checkbox" checked> allow dragging extent by center</label>
+        </p>
     </body>
 </html>

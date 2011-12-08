@@ -46,12 +46,6 @@ if (!com.modestmaps) {
             this.draw();
         },
 
-        snapToMap: function(map) {
-            if (!map) map = this.map;
-            var extent = MM.MapExtent.fromLocations(map.getExtent());
-            this.setExtent(extent);
-        },
-
         // coerces arguments into a MapExtent instance
         coerceExtent: function(extent) {
             if (extent instanceof Array) {
@@ -102,11 +96,6 @@ if (!com.modestmaps) {
          * Returns true if the extent changed, false if not.
          */
         moveHandleBy: function(delta, name) {
-            // if no handle name is provided and we're not allowed to move
-            // the center, return false
-            if (!name && !this.allowMoveCenter) {
-                return false;
-            }
             var parent = this.parent,
                 top = parent.offsetTop,
                 left = parent.offsetLeft,
@@ -183,6 +172,12 @@ if (!com.modestmaps) {
                 name = target.getAttribute("data-name"),
                 map = this.map,
                 pos = MM.getMousePoint(e, map);
+
+            // if no handle name is provided and we're not allowed to move
+            // the center, return early (not canceling the event)
+            if (!name && !this.allowMoveCenter) {
+                return;
+            }
 
             function mousemove(e) {
                 var p = MM.getMousePoint(e, map),

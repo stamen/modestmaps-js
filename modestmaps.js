@@ -501,7 +501,10 @@ var mm = com.modestmaps = {
     };
 
     MM.MapExtent.fromString = function(str) {
-        var parts = str.split(/\s*,\s*/, 4);
+        var parts = str.split(/\s*,\s*/);
+        if (parts.length != 4) {
+            throw "Invalid extent string (expecting 4 comma-separated numbers)";
+        }
         return new MM.MapExtent(
             parseFloat(parts[0]),
             parseFloat(parts[1]),
