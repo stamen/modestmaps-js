@@ -12,7 +12,7 @@
             var provider = new MM.TemplatedMapProvider("http://acetate.geoiq.com/tiles/acetate-base/{Z}/{X}/{Y}.png");
             map = new MM.Map("map", provider);
 
-            var extent = new MM.MapExtent(37.8, 37.6, -122.5, -122.3);
+            var extent = new MM.MapExtent(37.837, -122.522, 37.691, -122.350);
             map.setExtent(extent);
 
             box = new MM.ExtentSelector(document.getElementById("extent"));
@@ -70,6 +70,8 @@
 
             .map-extent .label {
                 position: absolute;
+                display: block;
+                text-align: center;
                 width: 10em;
             }
 

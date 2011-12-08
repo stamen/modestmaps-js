@@ -46,6 +46,12 @@ if (!com.modestmaps) {
             this.draw();
         },
 
+        snapToMap: function(map) {
+            if (!map) map = this.map;
+            var extent = MM.MapExtent.fromLocations(map.getExtent());
+            this.setExtent(extent);
+        },
+
         // coerces arguments into a MapExtent instance
         coerceExtent: function(extent) {
             if (extent instanceof Array) {

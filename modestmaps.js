@@ -389,11 +389,23 @@ var mm = com.modestmaps = {
     // An object representing a map's rectangular extent, defined by its north,
     // south, east and west bounds.
 
-    MM.MapExtent = function(north, south, east, west) {
-        this.north = north ? Math.max(north, south) : 0;
-        this.south = south ? Math.min(north, south) : 0;
-        this.east = east ? Math.max(east, west) : 0;
-        this.west = west ? Math.min(east, west) : 0;
+    MM.MapExtent = function(north, west, south, east) {
+        if (arguments[0] instanceof MM.Location) {
+            var northwest = arguments[0];
+            north = northwest.lat;
+            west = northwest.lon;
+        }
+        if (arguments[1] instanceof MM.Location) {
+            var southeast = arguments[1];
+            south = southeast.lat;
+            east = southeast.lon;
+        }
+        if (isNaN(south)) south = north;
+        if (isNaN(east)) east = west;
+        this.north = Math.max(north, south);
+        this.south = Math.min(north, south);
+        this.east = Math.max(east, west);
+        this.west = Math.min(east, west);
     };
 
     MM.MapExtent.prototype = {
@@ -404,7 +416,7 @@ var mm = com.modestmaps = {
         west: 0,
 
         copy: function() {
-            return new MM.MapExtent(this.north, this.south, this.east, this.west);
+            return new MM.MapExtent(this.north, this.west, this.south, this.east);
         },
 
         // getters for the corner locations
@@ -444,6 +456,17 @@ var mm = com.modestmaps = {
             }
         },
 
+        // reset bounds from a list of locations
+        setFromLocations: function(locations) {
+            var len = locations.length,
+                first = locations[0];
+            this.north = this.south = first.lat;
+            this.east = this.west = first.lon;
+            for (var i = 1; i < len; i++) {
+                this.encloseLocation(locations[i]);
+            }
+        },
+
         // extend the bounds to include another extent
         encloseExtent: function(extent) {
             if (extent.north > this.north) this.north = extent.north;
@@ -468,14 +491,8 @@ var mm = com.modestmaps = {
     };
 
     MM.MapExtent.fromArray = function(locations) {
-        var len = locations.length;
-        if (len == 0) return new MM.MapExtent();
-
-        var first = locations[0],
-            extent = new MM.MapExtent(first.lat, first.lon, first.lat, first.lon);
-        for (var i = 1; i < len; i++) {
-            extent.encloseLocation(locations[i]);
-        }
+        var extent = new MM.MapExtent();
+        extent.setFromLocations(locations);
         return extent;
     };
 
@@ -1253,7 +1270,7 @@ var mm = com.modestmaps = {
                     try {
                         this.callbacks[event][i](this.owner, message);
                     } catch(e) {
-                        console.log(e);
+                        //console.log(e);
                         // meh
                     }
                 }
