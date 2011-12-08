@@ -71,6 +71,15 @@
         </script>
 
         <style type="text/css">
+
+            body {
+                margin: 0;
+                padding: 20px;
+            }
+
+            h1,
+            p { margin: 0 0 .5em 0; }
+
             #map {
                 height: 500px;
             }
@@ -184,9 +193,10 @@
         <h1>ModestMaps JS: Extent Selector</h1>
         <p>Extent (N,W,S,E):
             <input id="extent-string" type="text" size="40">
-            <button id="update-extent">update</button>
-            <button id="snap-extent">snap to map</button>
-            <label><input id="move-center" type="checkbox" checked> allow dragging extent by center</label>
+            <button id="update-extent">update from input</button>
+            <button id="snap-extent">grab from map</button>
+            <br>
+            <label><input id="move-center" type="checkbox" checked> allow dragging the extent by its center</label>
         </p>
         <div id="map">
             <div id="extent" class="map-extent">
