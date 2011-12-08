@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>ModestMaps JS: Extent Editor</title>
+        <title>ModestMaps JS: Extent Selector</title>
         <script type="text/javascript" src="../../modestmaps.js"></script>
         <script type="text/javascript" src="modestmaps.extent-selector.js"></script>
         <script type="text/javascript">
@@ -181,17 +181,18 @@
         </style>
     </head>
     <body onload="initMap()">
-        <div id="map">
-            <div id="extent" class="map-extent">
-                <span id="nw-label" class="label"></span>
-                <span id="se-label" class="label"></span>
-            </div>
-        </div>
+        <h1>ModestMaps JS: Extent Selector</h1>
         <p>Extent (N,W,S,E):
             <input id="extent-string" type="text" size="40">
             <button id="update-extent">update</button>
             <button id="snap-extent">snap to map</button>
             <label><input id="move-center" type="checkbox" checked> allow dragging extent by center</label>
         </p>
+        <div id="map">
+            <div id="extent" class="map-extent">
+                <span id="nw-label" class="label"></span>
+                <span id="se-label" class="label"></span>
+            </div>
+        </div>
     </body>
 </html>
