@@ -17,11 +17,11 @@ function initMap() {
     var subdomains = [ '', 'a.', 'b.', 'c.' ];
     var provider = new MM.TemplatedMapProvider(template, subdomains);
 
-    map = new MM.Map('map', provider, null, []);
+    map = new MM.Map('map', provider, null, [
+        new MM.MouseWheelHandler(null, true)
+    ]);
 
-    map.addHandler(new MM.MouseWheel(map, true));
-
-    map.setCenterZoom(new mm.Location(37.811530, -122.2666097), 14);
+    map.setCenterZoom(new MM.Location(37.811530, -122.2666097), 14);
 
 }
 

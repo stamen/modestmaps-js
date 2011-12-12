@@ -21,15 +21,21 @@
 
     // A handler that allows mouse-wheel zooming - zooming in
     // when page would scroll up, and out when the page would scroll down.
-    MM.MouseWheelHandler = function(map, any) {
-        if (map !== undefined) this.init(map, any);
+    MM.MouseWheelHandler = function(map, precise) {
+        // only init() if we get a map
+        if (map) {
+            this.init(map, precise);
+        // allow (null, true) as constructor args
+        } else if (arguments.length > 1) {
+            this.precise = precise ? true : false;
+        }
     };
 
     MM.MouseWheelHandler.prototype = {
+        precise: false,
 
-        init: function(map, any) {
+        init: function(map) {
             this.map = map;
-            this.any = any;
             this._mouseWheel = MM.bind(this.mouseWheel, this);
 
             this._zoomDiv = document.body.appendChild(document.createElement('div'));
@@ -59,12 +65,12 @@
             // limit mousewheeling to once every 200ms
             var timeSince = new Date().getTime() - this.prevTime;
 
-            if (Math.abs(delta) > 0 && (timeSince > 200) && !this.any) {
+            if (Math.abs(delta) > 0 && (timeSince > 200) && !this.precise) {
                 var point = MM.getMousePoint(e, this.map);
                 this.map.zoomByAbout(delta > 0 ? 1 : -1, point);
 
                 this.prevTime = new Date().getTime();
-            } else if (this.any) {
+            } else if (this.precise) {
                 var point = MM.getMousePoint(e, this.map);
                 this.map.zoomByAbout(delta * 0.001, point);
             }
