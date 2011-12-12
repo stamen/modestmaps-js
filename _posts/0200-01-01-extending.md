@@ -7,7 +7,7 @@ layout: page
 Modest Maps is written to be minimal and make few assumptions
 about uses. It's the perfect basis for building mapping tools.
 
-
+### Wax
 <div><a href='http://mapbox.com/wax'><img class='screenshot' src='images/examples/wax.png' /></a></div>
 
 
@@ -16,7 +16,7 @@ about uses. It's the perfect basis for building mapping tools.
 [permalinks](http://mapbox.com/wax/hash-mm.html#2.00/10.0/20.0),
 and much more basic functionality and UI to Modest Maps.
 
-
+### HTMAPL
 <div><a href='http://prag.ma/code/htmapl/'><img class='screenshot' src='images/examples/htmapl.png' /></a></div>
 
 
@@ -24,7 +24,7 @@ and much more basic functionality and UI to Modest Maps.
 maps with Modest Maps by writing
 nothing more than simple HTML.
 
-
+### Easey
 <div><a href='http://mapbox.com/easey'>
 <img class='screenshot' src='images/examples/easey.png' /></a></div>
 

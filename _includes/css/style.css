@@ -17,10 +17,14 @@ h1,h2,h3,h4,h5,h6 {
   }
 h2 {
   margin: 10px 0 20px;
-  font-size: 28px;
-  line-height: 32px;
+  font-size: 26px;
+  line-height: 30px;
   }
-h3 { font-size: 28px; line-height: 28px; margin: 10px 0; }
+h3 {
+  font-size: 22px;
+  line-height: 28px;
+  margin: 20px 0 10px;
+  }
 h5 { font-size: 18px; line-height: 18px; margin: 10px 0; }
 h6 { font-size: 11px; line-height: 18px; margin: 0; }
 
@@ -66,7 +70,7 @@ a {
     color: #101010;
     }
   .content p a {
-    border-bottom: 1px solid #ccc;
+    border-bottom: 1px solid #ddd;
     -moz-transition: border-color 0.3s linear;
     -o-transition: border-color 0.3s linear;
     -webkit-transition: border-color 0.3s linear;
@@ -229,10 +233,9 @@ a.external:before {
   height: 140px;
   }
 .content {
-  width: 638px;
+  width: 640px;
   padding: 20px 20px 80px;
   float: left;
-  border: 1px solid #CEDEE4;
   }
 
 .sidebar {
@@ -318,7 +321,7 @@ img.left {
   position: relative;
   }
   body .map {
-    border: 1px solid #CEDEE4;
+    border: 1px solid #ddd;
     height: 340px!important;
     }
   .highlight {
@@ -333,53 +336,40 @@ img.left {
 .premiere {
   border-top: 1px solid #d9e5ea;
   margin: 0 -20px;
-  padding: 10px 20px 0;
+  padding: 10px 20px 30px;
   }
-.premiere a.source {
-  font-weight: bold;
-  border: none;
-  font-size: 16px;
-  }
+  .premiere a.source {
+    font-weight: bold;
+    border: none;
+    font-size: 16px;
+    }
+
 .contributors {
+  background: #fff;
   border-top: 1px solid #d9e5ea;
-  margin: 20px -20px 10px -20px;
-  padding: 10px 20px 0;
+  margin: 0 -20px;
+  padding: 10px 20px 40px;
   }
-
-.contributors a {
-  margin:0 20px 0 0;
-  padding:10px;
-  display:block;
-  float:left;
-  }
-
-.contributors a:hover {
-  background-color:#eff4f6 !important;
-}
-
-.contributors a#stamen {
-  color:#69aaca;
-  font:bold 34px/40px "Helvetica";
-  letter-spacing:-2px;
-  border:0;
-}
-
-.contributors a#bloom {
-  color:#69aaca;
-  font:34px/40px bold "Helvetica";
-  letter-spacing:-2px;
-  border:0;
-}
-
-.contributors a#mapbox {
-  color:#69aaca;
-  font:34px/40px bold "Helvetica";
-  background:transparent url('images/mapbox.png') no-repeat;
-  background-position:10px 10px;
-  padding-left:55px;
-  letter-spacing:-2px;
-  border:0;
-}
+  .contributors a {
+    margin: 0 20px 0 0;
+    float: left;
+    color: white;
+    width: 120px;
+    }
+  .contributors .stamen {
+    height: 25px;
+    background-position: 0 -446px;
+    margin-top: 6px;
+    }
+  .contributors .mapbox {
+    height: 40px;
+    background-position: 0 -475px;
+    }
+  .contributors .bloom {
+    width: 95px;
+    height: 40px;
+    background-position: 0 -405px;
+    }
 
 .download p {
   margin: 0 0 10px;
@@ -391,22 +381,21 @@ img.left {
   padding-left: 130px;
   height: 120px;
   }
-
 .implementations {
   background: white url(images/bg.png) repeat 0 0;
   border-top: 1px solid #d9e5ea;
-  margin: 20px -20px -80px;
+  margin: 0 -20px -80px;
   padding: 0 20px;
   height: 360px;
   }
-.implementations h2 {
-  display: block;
-  margin: 20px 0 30px;
-  }
-  .implementations.active h2,
-  .implementations h2:hover {
-    color: inherit;
+  .implementations h2 {
+    display: block;
+    margin: 20px 0 30px;
     }
+    .implementations.active h2,
+    .implementations h2:hover {
+      color: inherit;
+      }
 .option {
   opacity: 0.20;
   -moz-opacity: 0.20;
@@ -450,6 +439,8 @@ img.left {
   }
 
 img.screenshot {
-  border:1px solid #CEDEE4;
-  margin-top:20px;
-}
+  border: 1px solid #ddd;
+  -moz-box-shadow: 0 0 5px rgba(0,0,0,0.15);
+  -webkit-box-shadow: 0 0 5px rgba(0,0,0,0.15);
+  box-shadow: 0 0 5px rgba(0,0,0,0.15);
+  }
