@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Modest Maps JS</title>
+<script type="text/javascript" src="../../modestmaps.js"></script>
+<script type="text/javascript">
+    var map;
+    function initMap() {
+        var src = document.getElementById('src');
+        eval(src.textContent || src.innerText);
+    }
+</script>
+</head>
+<body onload="initMap()">
+<h1>Modest Maps JS</h1>
+<p><a href="javascript:map.zoomIn()">zoom in</a> | <a href="javascript:map.zoomOut()">zoom out</a>
+<br><a href="javascript:map.panLeft()">pan left</a> | <a href="javascript:map.panRight()">pan right</a> | <a href="javascript:map.panDown()">pan down</a> | <a href="javascript:map.panUp()">pan up</a></p>
+<div id="map">
+</div>
+<p>The above div is a map initialized like so:</p>
+<pre id="src">
+// "import" the namespace
+var provider = new MM.MapProvider(function(coord) {
+    var img = parseInt(coord.zoom) +'-r'+ parseInt(coord.row) +'-c'+ parseInt(coord.column) + '.jpg';
+    return 'http://osm-bayarea.s3.amazonaws.com/' + img;
+});
+
+map = new MM.Map('map', provider, new MM.Point(900,900), [])
+
+map.setCenterZoom(new MM.Location(37.811530, -122.2666097), 14);
+</pre>
+<div id="log"></div>
+</body>
+</html>

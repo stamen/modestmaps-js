@@ -1,11 +1,12 @@
-describe('Providers', function() {
+describe('Layer', function() {
     // Currently not testing subdomain-based templatedmapprovider, since
     // the implementation should be kind of undefined.
-    it('basic templatedmapprovider', function() {
+    it('layer can be created and destroyed', function() {
         var p = new MM.TemplatedMapProvider(
             'http://{S}.tile.openstreetmap.org/{Z}/{X}/{Y}.png', ['a']);
+        var l = new MM.Layer(p);
 
-       expect(p.getTileUrl(new MM.Coordinate(1225, 1832, 12))).toEqual(
-          'http://a.tile.openstreetmap.org/12/1832/1225.png');
+        l.destroy();
+        expect(l.map).toEqual(null);
     });
 });

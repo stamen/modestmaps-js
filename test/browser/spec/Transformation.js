@@ -1,5 +1,4 @@
 describe('Transformation', function() {
-    var MM = com.modestmaps;
     it('can do an identity transform', function() {
         var t = new MM.Transformation(1, 0, 0, 0, 1, 0);
         var p = new MM.Point(1, 1);

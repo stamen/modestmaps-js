@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v0.21.0-layers
+ * Modest Maps JS v1.0.0
  * http://modestmaps.com/
  *
  * Copyright (c) 2011 Stamen Design, All Rights Reserved.
@@ -12,7 +12,7 @@
  *
  */
 
-var previous_mm = mm;
+var previousMM = MM;
 
 // namespacing for backwards-compatibility
 if (!com) {
@@ -20,9 +20,9 @@ if (!com) {
     if (!com.modestmaps) com.modestmaps = {};
 }
 
-var mm = com.modestmaps = {
+var MM = com.modestmaps = {
   noConflict: function() {
-    mm = previous_mm;
+    MM = previousMM;
     return this;
   }
 };

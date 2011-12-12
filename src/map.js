@@ -38,7 +38,7 @@
         if(!(layerOrLayers instanceof Array)) {
             layerOrLayers = [ layerOrLayers ];
         }
-        
+
         for (var i = 0; i < layerOrLayers.length; i++) {
             this.addLayer(layerOrLayers[i]);
         }
@@ -51,7 +51,7 @@
         this.tileSize = new MM.Point(256, 256);
 
         // default 0-18 zoom level
-        // with infinite horizontal pan and clamped vertical pan        
+        // with infinite horizontal pan and clamped vertical pan
         this.coordLimits = [
             new MM.Coordinate(0,-Infinity,0),           // top left outer
             new MM.Coordinate(1,Infinity,0).zoomTo(18) // bottom right inner
@@ -87,8 +87,10 @@
 
         // set up handlers last so that all required attributes/functions are in place if needed
         if (eventHandlers === undefined) {
-            this.eventHandlers = [];
-            this.eventHandlers.push(new MM.MouseHandler(this));
+            this.eventHandlers = [
+                new MM.MouseHandler(this),
+                new MM.TouchHandler(this)
+            ];
         } else {
             this.eventHandlers = eventHandlers;
             if (eventHandlers instanceof Array) {
@@ -153,14 +155,14 @@
             }
             return this._windowResize;
         },
-        
+
         // A convenience function to restrict interactive zoom ranges.
         // (you should also adjust map provider to restrict which tiles get loaded,
         // or modify map.coordLimits and provider.tileLimits for finer control)
         setZoomRange: function(minZoom, maxZoom) {
             this.coordLimits[0] = this.coordLimits[0].zoomTo(minZoom);
             this.coordLimits[1] = this.coordLimits[1].zoomTo(maxZoom);
-        },        
+        },
 
         // zooming
         zoomBy: function(zoomOffset) {
@@ -227,7 +229,7 @@
             return this;
         },
 
-        setExtent: function(locations, any) {
+        setExtent: function(locations, precise) {
             // coerce locations to an array if it's a MapExtent instance
             if (locations instanceof MM.MapExtent) {
                 locations = locations.toArray();
@@ -243,8 +245,7 @@
                     BR.row = Math.max(BR.row, coordinate.row);
                     BR.column = Math.max(BR.column, coordinate.column);
                     BR.zoom = Math.max(BR.zoom, coordinate.zoom);
-                }
-                else {
+                } else {
                     TL = coordinate.copy();
                     BR = coordinate.copy();
                 }
@@ -260,7 +261,7 @@
             var hZoomDiff = Math.log(hFactor) / Math.log(2);
 
             // possible horizontal zoom to fit geographical extent in map width
-            var hPossibleZoom = TL.zoom - (any ? hZoomDiff : Math.ceil(hZoomDiff));
+            var hPossibleZoom = TL.zoom - hZoomDiff;
 
             // multiplication factor between vertical span and map height
             var vFactor = (BR.row - TL.row) / (height / this.tileSize.y);
@@ -269,7 +270,7 @@
             var vZoomDiff = Math.log(vFactor) / Math.log(2);
 
             // possible vertical zoom to fit geographical extent in map height
-            var vPossibleZoom = TL.zoom - (any ? vZoomDiff : Math.ceil(vZoomDiff));
+            var vPossibleZoom = TL.zoom - (precise ? vZoomDiff : Math.ceil(vZoomDiff));
 
             // initial zoom to fit extent vertically and horizontally
             var initZoom = Math.min(hPossibleZoom, vPossibleZoom);
@@ -283,7 +284,10 @@
             var centerColumn = (TL.column + BR.column) / 2;
             var centerZoom = TL.zoom;
 
-            this.coordinate = new MM.Coordinate(centerRow, centerColumn, centerZoom).zoomTo(initZoom);
+            this.coordinate = new MM.Coordinate(
+                centerRow,
+                centerColumn,
+                centerZoom).zoomTo(initZoom);
             this.draw(); // draw calls enforceLimits
             // (if you switch to getFrame, call enforceLimits first)
 
@@ -293,13 +297,10 @@
 
         // Resize the map's container `<div>`, redrawing the map and triggering
         // `resized` to make sure that the map's presentation is still correct.
-        setSize: function(dimensionsOrX, orY) {
-            if (dimensionsOrX.hasOwnProperty('x') && dimensionsOrX.hasOwnProperty('y')) {
-                this.dimensions = dimensionsOrX;
-            }
-            else if (orY !== undefined && !isNaN(orY)) {
-                this.dimensions = new MM.Point(dimensionsOrX, orY);
-            }
+        setSize: function(dimensions) {
+            // Ensure that, whether a raw object or a Point object is passed,
+            // this.dimensions will be a Point.
+            this.dimensions = new MM.Point(dimensions.x, dimensions.y);
             this.parent.style.width = Math.round(this.dimensions.x) + 'px';
             this.parent.style.height = Math.round(this.dimensions.y) + 'px';
             if (this.autoSize) {
@@ -308,7 +309,7 @@
             }
             this.draw(); // draw calls enforceLimits
             // (if you switch to getFrame, call enforceLimits first)
-            this.dispatchCallback('resized', [this.dimensions]);
+            this.dispatchCallback('resized', this.dimensions);
             return this;
         },
 
@@ -366,9 +367,9 @@
             return extent;
         },
 
-        extent: function(locations, any) {
+        extent: function(locations, precise) {
             if (locations) {
-                return this.setExtent(locations, any);
+                return this.setExtent(locations, precise);
             } else {
                 return this.getExtent();
             }
@@ -392,6 +393,12 @@
             return this.coordinate.zoom;
         },
 
+        // Simple syntatic sugar for making the old behavior of
+        // setExtent attainable.
+        roundZoom: function() {
+            return this.setZoom(Math.round(this.getZoom));
+        },
+
         zoom: function(zoom) {
             if (zoom !== undefined) {
                 return this.setZoom(zoom);
@@ -401,7 +408,6 @@
         },
 
         // layers
-        
         // HACK for 0.x.y - stare at @RandomEtc 
         // this method means we can also pass a URL template or a MapProvider to addLayer
         coerceLayer: function(layerish) {
@@ -416,7 +422,7 @@
                 return new MM.Layer(layerish);
             }
         },
-        
+
         // return a copy of the layers array
         getLayers: function() {
             return this.layers.slice();
@@ -426,7 +432,7 @@
         getLayerAt: function(index) {
             return this.layers[index];
         },
-        
+
         // put the given layer on top of all the others
         addLayer: function(layer) {
             layer = this.coerceLayer(layer);
@@ -438,7 +444,7 @@
             layer.map = this; // TODO: remove map property from MM.Layer?
             return this;
         },
-        
+
         // find the given layer and remove it
         removeLayer: function(layer) {
             for (var i = 0; i < this.layers.length; i++) {
@@ -452,8 +458,8 @@
 
         // replace the current layer at the given index with the given layer
         setLayerAt: function(index, layer) {
-            
-            if(index < 0 || index >= this.layers.length) {
+
+            if (index < 0 || index >= this.layers.length) {
                 throw new Error('invalid index in setLayerAt(): ' + index);
             }
 
@@ -465,22 +471,22 @@
                 if (index < this.layers.length) {
                     this.layers[index].destroy();
                 }
-    
+
                 // pass it on.
                 this.layers[index] = layer;
                 this.parent.appendChild(layer.parent);
-                layer.map = this; // TODO: remove map property from MM.Layer            
-    
+                layer.map = this; // TODO: remove map property from MM.Layer
+
                 MM.getFrame(this.getRedraw());
             }
-            
+
             return this;
         },
 
         // put the given layer at the given index, moving others if necessary
         insertLayerAt: function(index, layer) {
 
-            if(index < 0 || index > this.layers.length) {
+            if (index < 0 || index > this.layers.length) {
                 throw new Error('invalid index in insertLayerAt(): ' + index);
             }
 
@@ -498,15 +504,15 @@
             }
 
             layer.map = this; // TODO: remove map property from MM.Layer
-            
+
             MM.getFrame(this.getRedraw());
-            
+
             return this;
         },
 
         // remove the layer at the given index, call .destroy() on the layer
         removeLayerAt: function(index) {
-            if(index < 0 || index >= this.layers.length) {
+            if (index < 0 || index >= this.layers.length) {
                 throw new Error('invalid index in removeLayer(): ' + index);
             }
 
@@ -514,15 +520,15 @@
             var old = this.layers[index];
             this.layers.splice(index, 1);
             old.destroy();
-            
+
             return this;
         },
 
         // switch the stacking order of two layers, by index
-        swapLayers: function(i, j) {
+        swapLayersAt: function(i, j) {
 
-            if(i < 0 || i >= this.layers.length || j < 0 || j >= this.layers.length) {
-                throw new Error('invalid index in swapLayers(): ' + index);
+            if (i < 0 || i >= this.layers.length || j < 0 || j >= this.layers.length) {
+                throw new Error('invalid index in swapLayersAt(): ' + index);
             }
 
             var layer1 = this.layers[i],
@@ -541,7 +547,7 @@
             // now do it to the layers array
             this.layers[i] = layer2;
             this.layers[j] = layer1;
-            
+
             return this;
         },
 
@@ -549,7 +555,7 @@
 
         enforceZoomLimits: function(coord) {
             var limits = this.coordLimits;
-            if (limits) {            
+            if (limits) {
                 // clamp zoom level:
                 var minZoom = limits[0].zoom;
                 var maxZoom = limits[1].zoom;
@@ -562,21 +568,21 @@
             }
             return coord;
         },
-        
+
         enforcePanLimits: function(coord) {
-        
+
             var limits = this.coordLimits;
-            
-            if (limits) {            
-        
+
+            if (limits) {
+
                 coord = coord.copy();
-                
+
                 // clamp pan:
                 var topLeftLimit = limits[0].zoomTo(coord.zoom);
                 var bottomRightLimit = limits[1].zoomTo(coord.zoom);
                 var currentTopLeft = this.pointCoordinate(new MM.Point(0,0));
                 var currentBottomRight = this.pointCoordinate(this.dimensions);
-    
+
                 // this handles infinite limits:
                 // (Infinity - Infinity) is Nan
                 // NaN is never less than anything
@@ -594,7 +600,7 @@
                 }
                 if (bottomRightLimit.column - topLeftLimit.column < currentBottomRight.column - currentTopLeft.column) {
                     // if the limit is smaller than the current view, center it
-                    coord.column = (bottomRightLimit.column + topLeftLimit.column) / 2;                    
+                    coord.column = (bottomRightLimit.column + topLeftLimit.column) / 2;
                 }
                 else {
                     if (currentTopLeft.column < topLeftLimit.column) {
@@ -605,8 +611,8 @@
                     }
                 }
             }
-            
-            return coord;        
+
+            return coord;
         },
 
         // Prevent accidentally navigating outside the `coordLimits` of the map.

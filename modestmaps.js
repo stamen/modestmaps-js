@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v0.21.0-layers
+ * Modest Maps JS v1.0.0
  * http://modestmaps.com/
  *
  * Copyright (c) 2011 Stamen Design, All Rights Reserved.
@@ -12,7 +12,7 @@
  *
  */
 
-var previous_mm = mm;
+var previousMM = MM;
 
 // namespacing for backwards-compatibility
 if (!com) {
@@ -20,9 +20,9 @@ if (!com) {
     if (!com.modestmaps) com.modestmaps = {};
 }
 
-var mm = com.modestmaps = {
+var MM = com.modestmaps = {
   noConflict: function() {
-    mm = previous_mm;
+    MM = previousMM;
     return this;
   }
 };
@@ -871,40 +871,52 @@ var mm = com.modestmaps = {
 
     // A handler that allows mouse-wheel zooming - zooming in
     // when page would scroll up, and out when the page would scroll down.
-    MM.MouseWheelHandler = function(map) {
-        if (map !== undefined) this.init(map);
+    MM.MouseWheelHandler = function(map, any) {
+        if (map !== undefined) this.init(map, any);
     };
 
     MM.MouseWheelHandler.prototype = {
 
-        init: function(map) {
+        init: function(map, any) {
             this.map = map;
+            this.any = any;
             this._mouseWheel = MM.bind(this.mouseWheel, this);
+
+            this._zoomDiv = document.body.appendChild(document.createElement('div'));
+            this._zoomDiv.style.cssText = 'visibility:hidden;top:0;height:0;width:0;overflow-y:scroll';
+            var innerDiv = this._zoomDiv.appendChild(document.createElement('div'));
+            innerDiv.style.height = '2000px';
             MM.addEvent(map.parent, 'mousewheel', this._mouseWheel);
         },
 
         remove: function() {
             MM.removeEvent(this.map.parent, 'mousewheel', this._mouseWheel);
+            this._zoomDiv.parentNode.removeChild(this._zoomDiv);
         },
 
         mouseWheel: function(e) {
             var delta = 0;
             this.prevTime = this.prevTime || new Date().getTime();
 
-            if (e.wheelDelta) {
-                delta = e.wheelDelta;
-            } else if (e.detail) {
-                delta = -e.detail;
+            try {
+                this._zoomDiv.scrollTop = 1000;
+                this._zoomDiv.dispatchEvent(e);
+                delta = 1000 - this._zoomDiv.scrollTop;
+            } catch (error) {
+                delta = e.wheelDelta || (-e.detail * 5);
             }
 
             // limit mousewheeling to once every 200ms
             var timeSince = new Date().getTime() - this.prevTime;
 
-            if (Math.abs(delta) > 0 && (timeSince > 200)) {
+            if (Math.abs(delta) > 0 && (timeSince > 200) && !this.any) {
                 var point = MM.getMousePoint(e, this.map);
                 this.map.zoomByAbout(delta > 0 ? 1 : -1, point);
 
                 this.prevTime = new Date().getTime();
+            } else if (this.any) {
+                var point = MM.getMousePoint(e, this.map);
+                this.map.zoomByAbout(delta * 0.001, point);
             }
 
             // Cancel the event so that the page doesn't scroll
@@ -1036,6 +1048,9 @@ var mm = com.modestmaps = {
             this.map = map;
             options = options || {};
 
+            // Fail early if this isn't a touch device.
+            if (!this.isTouchable()) return false;
+
             this._touchStartMachine = MM.bind(this.touchStartMachine, this);
             this._touchMoveMachine = MM.bind(this.touchMoveMachine, this);
             this._touchEndMachine = MM.bind(this.touchEndMachine, this);
@@ -1050,7 +1065,16 @@ var mm = com.modestmaps = {
             this.options.snapToZoom = options.snapToZoom || true;
         },
 
+        isTouchable: function() {
+             var el = document.createElement('div');
+             el.setAttribute('ongesturestart', 'return;');
+             return (typeof el.ongesturestart === 'function');
+        },
+
         remove: function() {
+            // Fail early if this isn't a touch device.
+            if (!this.isTouchable()) return false;
+
             MM.removeEvent(this.map.parent, 'touchstart',
                 this._touchStartMachine);
             MM.removeEvent(this.map.parent, 'touchmove',
@@ -1888,7 +1912,11 @@ var mm = com.modestmaps = {
             var theCoord = this.map.coordinate.zoomTo(tile.coord.zoom);
             var scale = Math.pow(2, this.map.coordinate.zoom - tile.coord.zoom);
 
-            tile.style.position = 'absolute';
+            // Start tile positioning and prevent drag for modern browsers
+            tile.style.cssText = 'position:absolute;-webkit-user-select: none;-webkit-user-drag: none;-moz-user-drag: none;';
+
+            // Prevent drag for IE
+            tile.ondragstart = function() { return false; };
 
             var scale = Math.pow(2, this.map.coordinate.zoom - tile.coord.zoom);
             var tx = ((this.map.dimensions.x/2) +
@@ -2056,7 +2084,10 @@ var mm = com.modestmaps = {
             this.requestManager.removeCallback('requestcomplete', this.getTileComplete());
             // TODO: does requestManager need a destroy function too?
             this.provider = null;
-            this.parent.parentNode.removeChild(this.parent);
+            // If this layer was ever attached to the DOM, detach it.
+            if (this.parent.parentNode) {
+              this.parent.parentNode.removeChild(this.parent);
+            }
             this.map = null;
         }
 
@@ -2101,7 +2132,7 @@ var mm = com.modestmaps = {
         if(!(layerOrLayers instanceof Array)) {
             layerOrLayers = [ layerOrLayers ];
         }
-        
+
         for (var i = 0; i < layerOrLayers.length; i++) {
             this.addLayer(layerOrLayers[i]);
         }
@@ -2114,7 +2145,7 @@ var mm = com.modestmaps = {
         this.tileSize = new MM.Point(256, 256);
 
         // default 0-18 zoom level
-        // with infinite horizontal pan and clamped vertical pan        
+        // with infinite horizontal pan and clamped vertical pan
         this.coordLimits = [
             new MM.Coordinate(0,-Infinity,0),           // top left outer
             new MM.Coordinate(1,Infinity,0).zoomTo(18) // bottom right inner
@@ -2150,8 +2181,10 @@ var mm = com.modestmaps = {
 
         // set up handlers last so that all required attributes/functions are in place if needed
         if (eventHandlers === undefined) {
-            this.eventHandlers = [];
-            this.eventHandlers.push(new MM.MouseHandler(this));
+            this.eventHandlers = [
+                new MM.MouseHandler(this),
+                new MM.TouchHandler(this)
+            ];
         } else {
             this.eventHandlers = eventHandlers;
             if (eventHandlers instanceof Array) {
@@ -2216,14 +2249,14 @@ var mm = com.modestmaps = {
             }
             return this._windowResize;
         },
-        
+
         // A convenience function to restrict interactive zoom ranges.
         // (you should also adjust map provider to restrict which tiles get loaded,
         // or modify map.coordLimits and provider.tileLimits for finer control)
         setZoomRange: function(minZoom, maxZoom) {
             this.coordLimits[0] = this.coordLimits[0].zoomTo(minZoom);
             this.coordLimits[1] = this.coordLimits[1].zoomTo(maxZoom);
-        },        
+        },
 
         // zooming
         zoomBy: function(zoomOffset) {
@@ -2290,7 +2323,7 @@ var mm = com.modestmaps = {
             return this;
         },
 
-        setExtent: function(locations, any) {
+        setExtent: function(locations, precise) {
             // coerce locations to an array if it's a MapExtent instance
             if (locations instanceof MM.MapExtent) {
                 locations = locations.toArray();
@@ -2306,8 +2339,7 @@ var mm = com.modestmaps = {
                     BR.row = Math.max(BR.row, coordinate.row);
                     BR.column = Math.max(BR.column, coordinate.column);
                     BR.zoom = Math.max(BR.zoom, coordinate.zoom);
-                }
-                else {
+                } else {
                     TL = coordinate.copy();
                     BR = coordinate.copy();
                 }
@@ -2323,7 +2355,7 @@ var mm = com.modestmaps = {
             var hZoomDiff = Math.log(hFactor) / Math.log(2);
 
             // possible horizontal zoom to fit geographical extent in map width
-            var hPossibleZoom = TL.zoom - (any ? hZoomDiff : Math.ceil(hZoomDiff));
+            var hPossibleZoom = TL.zoom - hZoomDiff;
 
             // multiplication factor between vertical span and map height
             var vFactor = (BR.row - TL.row) / (height / this.tileSize.y);
@@ -2332,7 +2364,7 @@ var mm = com.modestmaps = {
             var vZoomDiff = Math.log(vFactor) / Math.log(2);
 
             // possible vertical zoom to fit geographical extent in map height
-            var vPossibleZoom = TL.zoom - (any ? vZoomDiff : Math.ceil(vZoomDiff));
+            var vPossibleZoom = TL.zoom - (precise ? vZoomDiff : Math.ceil(vZoomDiff));
 
             // initial zoom to fit extent vertically and horizontally
             var initZoom = Math.min(hPossibleZoom, vPossibleZoom);
@@ -2346,7 +2378,10 @@ var mm = com.modestmaps = {
             var centerColumn = (TL.column + BR.column) / 2;
             var centerZoom = TL.zoom;
 
-            this.coordinate = new MM.Coordinate(centerRow, centerColumn, centerZoom).zoomTo(initZoom);
+            this.coordinate = new MM.Coordinate(
+                centerRow,
+                centerColumn,
+                centerZoom).zoomTo(initZoom);
             this.draw(); // draw calls enforceLimits
             // (if you switch to getFrame, call enforceLimits first)
 
@@ -2356,13 +2391,10 @@ var mm = com.modestmaps = {
 
         // Resize the map's container `<div>`, redrawing the map and triggering
         // `resized` to make sure that the map's presentation is still correct.
-        setSize: function(dimensionsOrX, orY) {
-            if (dimensionsOrX.hasOwnProperty('x') && dimensionsOrX.hasOwnProperty('y')) {
-                this.dimensions = dimensionsOrX;
-            }
-            else if (orY !== undefined && !isNaN(orY)) {
-                this.dimensions = new MM.Point(dimensionsOrX, orY);
-            }
+        setSize: function(dimensions) {
+            // Ensure that, whether a raw object or a Point object is passed,
+            // this.dimensions will be a Point.
+            this.dimensions = new MM.Point(dimensions.x, dimensions.y);
             this.parent.style.width = Math.round(this.dimensions.x) + 'px';
             this.parent.style.height = Math.round(this.dimensions.y) + 'px';
             if (this.autoSize) {
@@ -2371,7 +2403,7 @@ var mm = com.modestmaps = {
             }
             this.draw(); // draw calls enforceLimits
             // (if you switch to getFrame, call enforceLimits first)
-            this.dispatchCallback('resized', [this.dimensions]);
+            this.dispatchCallback('resized', this.dimensions);
             return this;
         },
 
@@ -2429,9 +2461,9 @@ var mm = com.modestmaps = {
             return extent;
         },
 
-        extent: function(locations, any) {
+        extent: function(locations, precise) {
             if (locations) {
-                return this.setExtent(locations, any);
+                return this.setExtent(locations, precise);
             } else {
                 return this.getExtent();
             }
@@ -2455,6 +2487,12 @@ var mm = com.modestmaps = {
             return this.coordinate.zoom;
         },
 
+        // Simple syntatic sugar for making the old behavior of
+        // setExtent attainable.
+        roundZoom: function() {
+            return this.setZoom(Math.round(this.getZoom));
+        },
+
         zoom: function(zoom) {
             if (zoom !== undefined) {
                 return this.setZoom(zoom);
@@ -2464,7 +2502,6 @@ var mm = com.modestmaps = {
         },
 
         // layers
-        
         // HACK for 0.x.y - stare at @RandomEtc 
         // this method means we can also pass a URL template or a MapProvider to addLayer
         coerceLayer: function(layerish) {
@@ -2479,7 +2516,7 @@ var mm = com.modestmaps = {
                 return new MM.Layer(layerish);
             }
         },
-        
+
         // return a copy of the layers array
         getLayers: function() {
             return this.layers.slice();
@@ -2489,7 +2526,7 @@ var mm = com.modestmaps = {
         getLayerAt: function(index) {
             return this.layers[index];
         },
-        
+
         // put the given layer on top of all the others
         addLayer: function(layer) {
             layer = this.coerceLayer(layer);
@@ -2501,7 +2538,7 @@ var mm = com.modestmaps = {
             layer.map = this; // TODO: remove map property from MM.Layer?
             return this;
         },
-        
+
         // find the given layer and remove it
         removeLayer: function(layer) {
             for (var i = 0; i < this.layers.length; i++) {
@@ -2515,8 +2552,8 @@ var mm = com.modestmaps = {
 
         // replace the current layer at the given index with the given layer
         setLayerAt: function(index, layer) {
-            
-            if(index < 0 || index >= this.layers.length) {
+
+            if (index < 0 || index >= this.layers.length) {
                 throw new Error('invalid index in setLayerAt(): ' + index);
             }
 
@@ -2528,22 +2565,22 @@ var mm = com.modestmaps = {
                 if (index < this.layers.length) {
                     this.layers[index].destroy();
                 }
-    
+
                 // pass it on.
                 this.layers[index] = layer;
                 this.parent.appendChild(layer.parent);
-                layer.map = this; // TODO: remove map property from MM.Layer            
-    
+                layer.map = this; // TODO: remove map property from MM.Layer
+
                 MM.getFrame(this.getRedraw());
             }
-            
+
             return this;
         },
 
         // put the given layer at the given index, moving others if necessary
         insertLayerAt: function(index, layer) {
 
-            if(index < 0 || index > this.layers.length) {
+            if (index < 0 || index > this.layers.length) {
                 throw new Error('invalid index in insertLayerAt(): ' + index);
             }
 
@@ -2561,15 +2598,15 @@ var mm = com.modestmaps = {
             }
 
             layer.map = this; // TODO: remove map property from MM.Layer
-            
+
             MM.getFrame(this.getRedraw());
-            
+
             return this;
         },
 
         // remove the layer at the given index, call .destroy() on the layer
         removeLayerAt: function(index) {
-            if(index < 0 || index >= this.layers.length) {
+            if (index < 0 || index >= this.layers.length) {
                 throw new Error('invalid index in removeLayer(): ' + index);
             }
 
@@ -2577,15 +2614,15 @@ var mm = com.modestmaps = {
             var old = this.layers[index];
             this.layers.splice(index, 1);
             old.destroy();
-            
+
             return this;
         },
 
         // switch the stacking order of two layers, by index
-        swapLayers: function(i, j) {
+        swapLayersAt: function(i, j) {
 
-            if(i < 0 || i >= this.layers.length || j < 0 || j >= this.layers.length) {
-                throw new Error('invalid index in swapLayers(): ' + index);
+            if (i < 0 || i >= this.layers.length || j < 0 || j >= this.layers.length) {
+                throw new Error('invalid index in swapLayersAt(): ' + index);
             }
 
             var layer1 = this.layers[i],
@@ -2604,7 +2641,7 @@ var mm = com.modestmaps = {
             // now do it to the layers array
             this.layers[i] = layer2;
             this.layers[j] = layer1;
-            
+
             return this;
         },
 
@@ -2612,7 +2649,7 @@ var mm = com.modestmaps = {
 
         enforceZoomLimits: function(coord) {
             var limits = this.coordLimits;
-            if (limits) {            
+            if (limits) {
                 // clamp zoom level:
                 var minZoom = limits[0].zoom;
                 var maxZoom = limits[1].zoom;
@@ -2625,21 +2662,21 @@ var mm = com.modestmaps = {
             }
             return coord;
         },
-        
+
         enforcePanLimits: function(coord) {
-        
+
             var limits = this.coordLimits;
-            
-            if (limits) {            
-        
+
+            if (limits) {
+
                 coord = coord.copy();
-                
+
                 // clamp pan:
                 var topLeftLimit = limits[0].zoomTo(coord.zoom);
                 var bottomRightLimit = limits[1].zoomTo(coord.zoom);
                 var currentTopLeft = this.pointCoordinate(new MM.Point(0,0));
                 var currentBottomRight = this.pointCoordinate(this.dimensions);
-    
+
                 // this handles infinite limits:
                 // (Infinity - Infinity) is Nan
                 // NaN is never less than anything
@@ -2657,7 +2694,7 @@ var mm = com.modestmaps = {
                 }
                 if (bottomRightLimit.column - topLeftLimit.column < currentBottomRight.column - currentTopLeft.column) {
                     // if the limit is smaller than the current view, center it
-                    coord.column = (bottomRightLimit.column + topLeftLimit.column) / 2;                    
+                    coord.column = (bottomRightLimit.column + topLeftLimit.column) / 2;
                 }
                 else {
                     if (currentTopLeft.column < topLeftLimit.column) {
@@ -2668,8 +2705,8 @@ var mm = com.modestmaps = {
                     }
                 }
             }
-            
-            return coord;        
+
+            return coord;
         },
 
         // Prevent accidentally navigating outside the `coordLimits` of the map.
@@ -2765,4 +2802,4 @@ var mm = com.modestmaps = {
           deriveTransformation: MM.deriveTransformation
       };
     }
-})(mm);
+})(MM);

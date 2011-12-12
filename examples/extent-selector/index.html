@@ -36,9 +36,9 @@
             });
             selector.setExtent(extent);
 
-            // when the snap-extent button is pressed, set the selector's
+            // when the from-map button is pressed, set the selector's
             // extent to the map's
-            MM.addEvent(document.getElementById("snap-extent"), "click", function(e) {
+            MM.addEvent(document.getElementById("from-map"), "click", function(e) {
                 selector.setExtent(map.getExtent());
                 return MM.cancelEvent(e);
             });
@@ -46,7 +46,7 @@
             // when the update-extent button is pressed, parse the input
             // field's value as an extent and attempt to set it on the 
             // selector
-            MM.addEvent(document.getElementById("update-extent"), "click", function(e) {
+            MM.addEvent(document.getElementById("from-text"), "click", function(e) {
                 // keep the old extent around in case there's an issue,
                 // so we can reset the field
                 var old = selector.getExtent();
@@ -57,6 +57,13 @@
                     alert("Whoops: " + e);
                     selector.setExtent(old);
                 }
+                return MM.cancelEvent(e);
+            });
+
+            // when the to-map button is pressed, set the map's extent to the
+            // selector's
+            MM.addEvent(document.getElementById("to-map"), "click", function(e) {
+                map.setExtent(selector.extent, false);
                 return MM.cancelEvent(e);
             });
 
@@ -193,8 +200,9 @@
         <h1>ModestMaps JS: Extent Selector</h1>
         <p>Extent (N,W,S,E):
             <input id="extent-string" type="text" size="40">
-            <button id="update-extent">update from input</button>
-            <button id="snap-extent">grab from map</button>
+            <button id="from-text">update from input</button>
+            <button id="from-map">grab from map</button>
+            <button id="to-map">snap map to selector</button>
             <br>
             <label><input id="move-center" type="checkbox" checked> allow moving the extent by its center</label>
         </p>

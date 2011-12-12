@@ -1,5 +1,5 @@
 describe('DoubleClickHandler', function() {
-    var map, mm = com.modestmaps;
+    var map;
 
     beforeEach(function() {
         div = document.createElement('div');
@@ -9,12 +9,12 @@ describe('DoubleClickHandler', function() {
 
         var template = 'http://{S}tile.openstreetmap.org/{Z}/{X}/{Y}.png';
             var subdomains = [ '', 'a.', 'b.', 'c.' ];
-        var provider = new com.modestmaps.TemplatedMapProvider(template, subdomains);
+        var provider = new MM.TemplatedMapProvider(template, subdomains);
 
-        map = new com.modestmaps.Map(div, provider, [
-                                     new mm.DoubleClickHandler()
+        map = new MM.Map(div, provider, [
+                                     new MM.DoubleClickHandler()
         ]);
-        map.setCenterZoom(new com.modestmaps.Location(0, 0), 0);
+        map.setCenterZoom(new MM.Location(0, 0), 0);
     });
 
     it('does not zoom in on single click', function() {

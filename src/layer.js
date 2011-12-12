@@ -344,7 +344,11 @@
             var theCoord = this.map.coordinate.zoomTo(tile.coord.zoom);
             var scale = Math.pow(2, this.map.coordinate.zoom - tile.coord.zoom);
 
-            tile.style.position = 'absolute';
+            // Start tile positioning and prevent drag for modern browsers
+            tile.style.cssText = 'position:absolute;-webkit-user-select: none;-webkit-user-drag: none;-moz-user-drag: none;';
+
+            // Prevent drag for IE
+            tile.ondragstart = function() { return false; };
 
             var scale = Math.pow(2, this.map.coordinate.zoom - tile.coord.zoom);
             var tx = ((this.map.dimensions.x/2) +
@@ -512,7 +516,10 @@
             this.requestManager.removeCallback('requestcomplete', this.getTileComplete());
             // TODO: does requestManager need a destroy function too?
             this.provider = null;
-            this.parent.parentNode.removeChild(this.parent);
+            // If this layer was ever attached to the DOM, detach it.
+            if (this.parent.parentNode) {
+              this.parent.parentNode.removeChild(this.parent);
+            }
             this.map = null;
         }
 
