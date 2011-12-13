@@ -2361,7 +2361,7 @@ var MM = com.modestmaps = {
             var hZoomDiff = Math.log(hFactor) / Math.log(2);
 
             // possible horizontal zoom to fit geographical extent in map width
-            var hPossibleZoom = TL.zoom - hZoomDiff;
+            var hPossibleZoom = TL.zoom - (precise ? hZoomDiff : Math.ceil(hZoomDiff));
 
             // multiplication factor between vertical span and map height
             var vFactor = (BR.row - TL.row) / (height / this.tileSize.y);
