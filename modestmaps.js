@@ -2463,7 +2463,8 @@ var MM = com.modestmaps = {
                     BR.row = Math.max(BR.row, coordinate.row);
                     BR.column = Math.max(BR.column, coordinate.column);
                     BR.zoom = Math.max(BR.zoom, coordinate.zoom);
-                } else {
+                }
+                else {
                     TL = coordinate.copy();
                     BR = coordinate.copy();
                 }
@@ -2502,10 +2503,7 @@ var MM = com.modestmaps = {
             var centerColumn = (TL.column + BR.column) / 2;
             var centerZoom = TL.zoom;
 
-            this.coordinate = new MM.Coordinate(
-                centerRow,
-                centerColumn,
-                centerZoom).zoomTo(initZoom);
+            this.coordinate = new MM.Coordinate(centerRow, centerColumn, centerZoom).zoomTo(initZoom);
             this.draw(); // draw calls enforceLimits
             // (if you switch to getFrame, call enforceLimits first)
 
@@ -2609,12 +2607,6 @@ var MM = com.modestmaps = {
         // Get the current zoom level of the map, returning a number
         getZoom: function() {
             return this.coordinate.zoom;
-        },
-
-        // Simple syntatic sugar for making the old behavior of
-        // setExtent attainable.
-        roundZoom: function() {
-            return this.setZoom(Math.round(this.getZoom));
         },
 
         zoom: function(zoom) {
