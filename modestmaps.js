@@ -1156,7 +1156,11 @@ var MM = com.modestmaps = {
             this.isListening = false;
         }
     };
-    MM.TouchHandler = function() { };
+    MM.TouchHandler = function(map, options) {
+        if (map) {
+            this.init(map, options);
+        }
+    };
 
     MM.TouchHandler.prototype = {
 
