@@ -1,0 +1,44 @@
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0;" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<title>Modest Maps JS - Callback Demo</title>
+<script type="text/javascript" src="kothic.js"></script>
+<script type="text/javascript" src="kothic.mm.js"></script>
+<script type="text/javascript" src="osmosnimki.js"></script>
+<script type="text/javascript" src="../../modestmaps.js"></script>
+<script type="text/javascript">
+
+var map;
+
+function initMap() {
+
+    var container = document.getElementById('container');
+
+    MapCSS.preloadSpriteImage("osmosnimki-maps", "http://osmosnimki.ru/leaf/icons/osmosnimki.png");
+
+    var template = 'http://{S}tile.openstreetmap.org/{Z}/{X}/{Y}.png';
+    var subdomains = [ '', 'a.', 'b.', 'c.' ];
+    var provider = new MM.TemplatedMapProvider(template, subdomains);
+
+    map = new MM.Map('map', new kothicProvider());
+
+    map.setCenterZoom(new MM.Location(53.9, 27.55), 10);
+
+}
+
+</script>
+<style type="text/css">
+div#map:focus {
+  outline: 0;
+}
+</style>
+</head>
+<body onload="initMap()" style="margin:0; padding:0; border:0">
+<div id="container" style="width:400px; height:400px;">
+  <div id="map" style="width:400px; height:400px;" tabindex="0">
+  </div>
+</div>
+</body>
+</html>

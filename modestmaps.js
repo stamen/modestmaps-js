@@ -1537,11 +1537,17 @@ var MM = com.modestmaps = {
             if (!this.requestManager.hasRequest(tile_key)) {
                 if (this.provider.getTile.length == 2) {
                   var _addTileElement = MM.bind(this.addTileElement, this);
-                  this.provider.getTile(tile_coord, function(tile) {
-                    if (tile) {
-                      _addTileElement(tile_key, tile_coord, tile);
-                    }
-                  });
+                  this.provider.getTile(tile_coord, function(tile_key) {
+                    return function(tile) {
+                      if (tile) {
+                        var pts = tile_key.split(',');
+                        var tile_coord = new MM.Coordinate(
+                          pts[1], pts[2], pts[0]);
+                        _addTileElement(tile_key, tile_coord, tile);
+                      }
+                    };
+                  }(tile_key)
+                  );
                 } else {
                   var tileToRequest = this.provider.getTile(tile_coord);
                   if (typeof tileToRequest == 'string') {
@@ -1576,11 +1582,14 @@ var MM = com.modestmaps = {
                         // force load of parent tiles we don't already have
                         if (this.provider.getTile.length == 2) {
                           var _addTileElement = MM.bind(this.addTileElement, this);
-                          this.provider.getTile(tile_coord, function(tile) {
-                            if (tile) {
-                              _addTileElement(tile_key, tile_coord, tile);
-                            }
-                          });
+                          this.provider.getTile(tile_coord, function(tile_key, tile_coord) {
+                            return function(tile) {
+                              if (tile) {
+                                _addTileElement(tile_key, tile_coord, tile);
+                              }
+                            };
+                          }(tile_key_tile_coord)
+                          );
                         } else {
                           var tileToAdd = this.provider.getTile(parent_coord);
 
