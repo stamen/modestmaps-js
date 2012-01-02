@@ -162,12 +162,21 @@
              * Check that the needed tile has even been requested at all.
              */
             if (!this.requestManager.hasRequest(tile_key)) {
-                var tileToRequest = this.provider.getTile(tile_coord);
-                if (typeof tileToRequest == 'string') {
-                    this.addTileImage(tile_key, tile_coord, tileToRequest);
-                // tile must be truish
-                } else if (tileToRequest) {
-                    this.addTileElement(tile_key, tile_coord, tileToRequest);
+                if (this.provider.getTile.length == 2) {
+                  var _addTileElement = MM.bind(this.addTileElement, this);
+                  this.provider.getTile(tile_coord, function(tile) {
+                    if (tile) {
+                      _addTileElement(tile_key, tile_coord, tile);
+                    }
+                  });
+                } else {
+                  var tileToRequest = this.provider.getTile(tile_coord);
+                  if (typeof tileToRequest == 'string') {
+                      this.addTileImage(tile_key, tile_coord, tileToRequest);
+                  // tile must be truish
+                  } else if (tileToRequest) {
+                      this.addTileElement(tile_key, tile_coord, tileToRequest);
+                  }
                 }
             }
 
@@ -192,12 +201,21 @@
                         }
                     } else if (!this.requestManager.hasRequest(parent_key)) {
                         // force load of parent tiles we don't already have
-                        var tileToAdd = this.provider.getTile(parent_coord);
-
-                        if (typeof tileToAdd == 'string') {
-                            this.addTileImage(parent_key, parent_coord, tileToAdd);
+                        if (this.provider.getTile.length == 2) {
+                          var _addTileElement = MM.bind(this.addTileElement, this);
+                          this.provider.getTile(tile_coord, function(tile) {
+                            if (tile) {
+                              _addTileElement(tile_key, tile_coord, tile);
+                            }
+                          });
                         } else {
-                            this.addTileElement(parent_key, parent_coord, tileToAdd);
+                          var tileToAdd = this.provider.getTile(parent_coord);
+
+                          if (typeof tileToAdd == 'string') {
+                              this.addTileImage(parent_key, parent_coord, tileToAdd);
+                          } else {
+                              this.addTileElement(parent_key, parent_coord, tileToAdd);
+                          }
                         }
                     }
                 } else {
