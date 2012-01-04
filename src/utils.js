@@ -76,6 +76,10 @@
     })(this); // use this for node.js global
 
     MM.moveElement = function(el, point) {
+        // always set element sizes; don't assume intrinsic sizing, even for images
+        el.style.width =  Math.ceil(point.width  * point.scale) + 'px';
+        el.style.height = Math.ceil(point.height * point.scale) + 'px';
+
         if (MM.transformProperty) {
             // Optimize for identity transforms, where you don't actually
             // need to change this element's string. Browsers can optimize for
@@ -88,8 +92,6 @@
         } else {
             el.style.left = point.x + 'px';
             el.style.top = point.y + 'px';
-            el.style.width =  Math.ceil(point.width  * point.scale) + 'px';
-            el.style.height = Math.ceil(point.height * point.scale) + 'px';
         }
     };
 
