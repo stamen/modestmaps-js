@@ -4,15 +4,21 @@
         <title>ModestMaps JS: GeoJSON Markers</title>
         <script type="text/javascript" src="../../modestmaps.js"></script>
         <script type="text/javascript" src="modestmaps.markers.js"></script>
+        <script type="text/javascript" src="spotlight.js"></script>
         <script type="text/javascript">
         var MM = com.modestmaps,
             map,
-            markers;
+            markers,
+            spotlight,
+            locationsByType = {};
 
         function initMap() {
             var provider = new MM.TemplatedMapProvider("http://ecn.t{S}.tiles.virtualearth.net/tiles/r{Q}?g=689&mkt=en-us&lbl=l0&stl=m", [0,1,2,3,4,5,6,7]);
             map = new MM.Map("map", provider);
             map.setCenterZoom(new MM.Location(37.764, -122.419), 12);
+
+            spotlight = new SpotlightLayer();
+            map.addLayer(spotlight);
 
             markers = new MM.MarkerLayer();
             map.addLayer(markers);
@@ -32,38 +38,77 @@
             // http://geojson.org/geojson-spec.html#feature-collection-objects
             var features = collection.features,
                 len = features.length,
-                extent = [];
+                locations = [];
             // for each feature in the collection, create a marker and add it
             // to the markers layer
             for (var i = 0; i < len; i++) {
                 var feature = features[i],
+                    type = feature.properties.crime_type,
                     marker = document.createElement("a");
+
+                marker.feature = feature;
+                marker.type = type;
 
                 // give it a title
                 marker.setAttribute("title", [
-                    feature.properties.crime_type,
-                    "on", feature.properties.date_time
+                    type, "on", feature.properties.date_time
                 ].join(" "));
                 // add a class
                 marker.setAttribute("class", "report");
                 // set the href to link to crimespotting's crime page
                 marker.setAttribute("href", "http://sanfrancisco.crimespotting.org/crime/" + [
                     feature.properties.date_time.substr(0, 10),
-                    feature.properties.crime_type.replace(/ /g, "_"),
+                    type.replace(/ /g, "_"),
                     feature.id
                 ].join("/"));
 
                 // create an image icon
                 var img = marker.appendChild(document.createElement("img"));
-                img.setAttribute("src", "icons/" + feature.properties.crime_type.replace(/ /g, "_") + ".png");
+                img.setAttribute("src", "../geojson/icons/" + type.replace(/ /g, "_") + ".png");
 
                 markers.addMarker(marker, feature);
                 // add the marker's location to the extent list
-                extent.push(marker.location);
+                locations.push(marker.location);
+
+                if (type in locationsByType) {
+                    locationsByType[type].push(marker.location);
+                } else {
+                    locationsByType[type] = [marker.location];
+                }
+
+                // listen for mouseover & mouseout events
+                MM.addEvent(marker, "mouseover", onMarkerOver);
+                MM.addEvent(marker, "mouseout", onMarkerOut);
             }
 
             // tell the map to fit all of the locations in the available space
-            map.setExtent(extent);
+            map.setExtent(locations);
+        }
+
+        function getMarker(target) {
+            var marker = target;
+            while (marker && marker.className != "report") {
+                marker = marker.parentNode;
+            }
+            return marker;
+        }
+
+        function onMarkerOver(e) {
+            var marker = getMarker(e.target);
+            if (marker) {
+                var type = marker.type;
+                console.log("over:", type);
+                spotlight.addLocations(locationsByType[type] || []);
+            }
+        }
+
+        function onMarkerOut(e) {
+            var marker = getMarker(e.target);
+            if (marker) {
+                var type = marker.type;
+                console.log("out:", type);
+                spotlight.removeAllLocations();
+            }
         }
 
         </script>

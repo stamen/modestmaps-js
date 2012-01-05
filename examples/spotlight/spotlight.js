@@ -105,6 +105,24 @@ SpotlightLayer.prototype = {
         }
     },
 
+    addLocations: function(locs) {
+        var len = locs.length;
+        if (this.map) {
+            for (var i = 0; i < len; i++) {
+                locs[i].coord = this.map.locationCoordinate(locs[i]);
+            }
+        }
+        for (var i = 0; i < len; i++) {
+            this.locations.push(locs[i]);
+        }
+        this.draw();
+    },
+
+    removeAllLocations: function() {
+        this.locations = [];
+        this.draw();
+    },
+
     draw: function() {
         var map = this.map,
             canvas = this.parent;
