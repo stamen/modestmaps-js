@@ -12,7 +12,7 @@
         function initMap() {
             var provider = new MM.TemplatedMapProvider("http://ecn.t{S}.tiles.virtualearth.net/tiles/r{Q}?g=689&mkt=en-us&lbl=l0&stl=m", [0,1,2,3,4,5,6,7]);
             map = new MM.Map("map", provider);
-            map.setCenterZoom({lat: 37.804, lon: -122.252}, 13);
+            map.setCenterZoom(new MM.Location(37.764, -122.419), 12);
 
             markers = new MM.MarkerLayer();
             map.addLayer(markers);
@@ -23,7 +23,7 @@
         // ghetto JSON-P
         function loadMarkers() {
             var script = document.createElement("script");
-            script.src = "http://oakland.crimespotting.org/crime-data?count=20&format=json&callback=onLoadMarkers";
+            script.src = "http://sanfrancisco.crimespotting.org/crime-data?dstart=2011-12-24&dend=2011-12-25&format=json&callback=onLoadMarkers";
             document.getElementsByTagName("head")[0].appendChild(script);
         }
 
@@ -47,7 +47,7 @@
                 // add a class
                 marker.setAttribute("class", "report");
                 // set the href to link to crimespotting's crime page
-                marker.setAttribute("href", "http://oakland.crimespotting.org/crime/" + [
+                marker.setAttribute("href", "http://sanfrancisco.crimespotting.org/crime/" + [
                     feature.properties.date_time.substr(0, 10),
                     feature.properties.crime_type.replace(/ /g, "_"),
                     feature.id
