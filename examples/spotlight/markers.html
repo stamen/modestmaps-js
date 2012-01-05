@@ -98,7 +98,12 @@
             if (marker) {
                 var type = marker.type;
                 console.log("over:", type);
-                spotlight.addLocations(locationsByType[type] || []);
+                if (type in locationsByType) {
+                    spotlight.addLocations(locationsByType[type] || []);
+                    spotlight.parent.className = "active";
+                } else {
+                    spotlight.parent.className = "inactive";
+                }
             }
         }
 
@@ -108,6 +113,7 @@
                 var type = marker.type;
                 console.log("out:", type);
                 spotlight.removeAllLocations();
+                spotlight.parent.className = "inactive";
             }
         }
 
@@ -144,6 +150,14 @@
 
             .report:hover {
                 z-index: 1000;
+            }
+
+            #map canvas {
+                opacity: 0;
+                -webkit-transition: opacity .5s;
+            }
+            #map canvas.active {
+                opacity: 1;
             }
 
         </style>
