@@ -38,7 +38,6 @@
             var left = 0,
                 top = -this.offset * this.tileSize.y;
             tile.style.backgroundPosition = left + "px " + top + "px";
-            // tile.style.backgroundPosition = -(this.offset * 100) + "% left";
         },
 
         applyOffsets: function() {
@@ -55,13 +54,23 @@
                 var url = this.template_provider.getTileUrl(coord);
                 if (url) {
                     var tile = document.createElement("div");
+                    tile.style.backgroundRepeat = "no-repeat";
                     tile.backgroundTimeout = setTimeout(function() {
                         tile.style.backgroundImage = "url(" + url + ")";
                     }, 100);
-                    tile.style.backgroundRepeat = "no-repeat";
-                    tile.style.width = this.tileSize.x + "px";
-                    tile.style.height = this.tileSize.y + "px";
-                    tile.style.overflow = "hidden";
+
+                    /*
+                     * OTE: because using matrix transforms invalidates
+                     * explicit width and height values, we need to put a
+                     * "strut" inside each tile div that provides its intrinsic
+                     * size. This has the awesome side benefit of scaling
+                     * automatically.
+                     */
+                    var strut = tile.appendChild(document.createElement("span"));
+                    strut.style.display = "block";
+                    strut.style.width = this.tileSize.x + "px";
+                    strut.style.height = this.tileSize.y + "px";
+
                     this.tiles[key] = tile;
                     this.applyOffset(tile);
                     return tile;
