@@ -3,7 +3,6 @@
     <head>
         <title>ModestMaps JS: Hash URLs</title>
         <script type="text/javascript" src="../../modestmaps.js"></script>
-        <!-- <script type="text/javascript" src="modestmaps.hash.js"></script> -->
         <script type="text/javascript">
         var MM = com.modestmaps,
             map, hash;
@@ -11,6 +10,7 @@
         function initMap() {
             var provider = new MM.TemplatedMapProvider("http://acetate.geoiq.com/tiles/acetate/{Z}/{X}/{Y}.png");
             map = new MM.Map("map", provider);
+            map.setCenterZoom(new MM.Location(37.804, -122.252), 12);
             hash = new MM.Hash(map);
         }
 

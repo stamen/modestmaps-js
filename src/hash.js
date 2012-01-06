@@ -66,7 +66,9 @@
         },
 
         onMapMove: function(map) {
-            if (this.movingMap) {
+            // bail if we're moving the map (updating from a hash),
+            // or if the map has no zoom set
+            if (this.movingMap || this.map.zoom === 0) {
                 return false;
             }
             var hash = this.formatHash(map);
@@ -76,7 +78,8 @@
             }
         },
 
-        onHashChange: function() {
+        movingMap: false,
+        update: function() {
             var hash = location.hash;
             if (hash === this.lastHash) {
                 // console.info("(no change)");
@@ -90,8 +93,23 @@
                 this.map.setCenterZoom(parsed.center, parsed.zoom);
                 this.movingMap = false;
             } else {
-                // console.warn("parse error; resetting");
+                // console.warn("parse error; resetting:", this.map.getCenter(), this.map.getZoom());
                 this.onMapMove(this.map);
+            }
+        },
+
+        // defer hash change updates every 100ms
+        changeDefer: 100,
+        changeTimeout: null,
+        onHashChange: function() {
+            // throttle calls to update() so that they only happen every
+            // `changeDefer` ms
+            if (!this.changeTimeout) {
+                var that = this;
+                this.changeTimeout = setTimeout(function() {
+                    that.update();
+                    that.changeTimeout = null;
+                }, this.changeDefer);
             }
         },
 
