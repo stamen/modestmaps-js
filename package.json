@@ -1,7 +1,7 @@
 {
   "name": "modestmaps",
   "description": "a display and interaction library for tile-based maps",
-  "version": "0.21.0",
+  "version": "1.0.0alpha1",
   "author": {
     "name": "Tom Carden",
     "email": "tom@tom-carden.co.uk",
@@ -9,6 +9,7 @@
   },
   "contributors": [
     "Mike Migurski <mike-fromsite@teczno.com>",
+    "Shawn Allen <shawn@stamen.com>",
     "Tom MacWright <tom@macwright.org>"
   ],
   "keywords": ["map", "geo", "browser"],
@@ -20,7 +21,6 @@
   }],
   "devDependencies": {
     "docco": "~0.3.0",
-    "expresso": "~0.7.0",
     "uglify-js": "~1.0.0"
   },
   "directories": { }
