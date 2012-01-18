@@ -1,10 +1,13 @@
-
     // Providers
     // ---------
     // Providers provide tile URLs and possibly elements for layers.
-    MM.MapProvider = function(getTileUrl) {
-        if (getTileUrl) {
-            this.getTileUrl = getTileUrl;
+    //
+    // MapProvider ->
+    //   TemplatedMapProvider
+    //
+    MM.MapProvider = function(getTile) {
+        if (getTile) {
+            this.getTile = getTile;
         }
     };
 
@@ -25,7 +28,7 @@
         },
 
         releaseTile: function(element) {
-            throw "Abstract method not implemented by subclass.";
+          // releaseTile is not required
         },
 
         // use this to tell MapProvider that tiles only exist between certain zoom levels.
@@ -80,8 +83,7 @@
      * var placeholder = new MM.TemplatedMapProvider("http://placehold.it/256/f0f/fff.png&text={Z}/{X}/{Y}");
      *
      */
-    MM.TemplatedMapProvider = function(template, subdomains)
-    {
+    MM.TemplatedMapProvider = function(template, subdomains) {
         var isQuadKey = false;
         if (template.match(/{(Q|quadkey)}/)) {
             isQuadKey = true;
@@ -92,10 +94,8 @@
                 .replace('{quadkey}', '{Q}');
         }
 
-        var hasSubdomains = false;
-        if (subdomains && subdomains.length && template.indexOf("{S}") >= 0) {
-            hasSubdomains = true;
-        }
+        var hasSubdomains = (subdomains &&
+            subdomains.length && template.indexOf("{S}") >= 0);
 
         var getTileUrl = function(coordinate) {
             var coord = this.sourceCoordinate(coordinate);
@@ -104,13 +104,16 @@
             }
             var base = template;
             if (hasSubdomains) {
-                var index = parseInt(coord.zoom + coord.row + coord.column, 10) % subdomains.length;
+                var index = parseInt(coord.zoom + coord.row + coord.column, 10) %
+                    subdomains.length;
                 base = base.replace('{S}', subdomains[index]);
             }
             if (isQuadKey) {
                 return base
                     .replace('{Z}', coord.zoom.toFixed(0))
-                    .replace('{Q}', this.quadKey(coord.row, coord.column, coord.zoom));
+                    .replace('{Q}', this.quadKey(coord.row,
+                        coord.column,
+                        coord.zoom));
             } else {
                 return base
                     .replace('{Z}', coord.zoom.toFixed(0))
@@ -118,38 +121,23 @@
                     .replace('{Y}', coord.row.toFixed(0));
             }
         };
-    
+
         MM.MapProvider.call(this, getTileUrl);
     };
 
     MM.TemplatedMapProvider.prototype = {
         // quadKey generator
         quadKey: function(row, column, zoom) {
-            var key = "";
+            var key = '';
             for (var i = 1; i <= zoom; i++) {
                 key += (((row >> zoom - i) & 1) << 1) | ((column >> zoom - i) & 1);
             }
-            return key || "0";
-        }
+            return key || '0';
+        },
+        getTile: function(coord) {
+          return this.getTileUrl(coord);
+        },
+        releaseTile: function() { }
     };
 
     MM.extend(MM.TemplatedMapProvider, MM.MapProvider);
-
-   /**
-    * Possible new kind of provider that deals in elements.
-    */
-    MM.TilePaintingProvider = function(template_provider) {
-        this.template_provider = template_provider;
-    };
-
-    MM.TilePaintingProvider.prototype = {
-
-        getTile: function(coord) {
-            return this.template_provider.getTileUrl(coord);
-        },
-
-        releaseTile: function(coord) {
-        }
-    };
-
-    MM.extend(MM.TilePaintingProvider, MM.MapProvider);

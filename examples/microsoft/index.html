@@ -5,14 +5,8 @@
 <script type="text/javascript" src="../../modestmaps.js"></script>
 <script type="text/javascript" src="bing.js"></script>
 <script type="text/javascript">
-    
     var map;
-    
     function initMap() {
-    
-        // "import" the namespace
-        var MM = com.modestmaps;
-    
         // please use your own API key!
         var key = "AjBbdc2nn_71Hyc__uvinjvuHX5g8GLMiVYCJdx7XLLfiSenf1qtnmbv_VO8iyOj",
             style = 'AerialWithLabels',
@@ -20,9 +14,7 @@
                 map = new MM.Map(document.body, provider)
                 map.setCenterZoom(new MM.Location(37.804656, -122.263606), 14);
             });
-
     }
-    
 </script>
 <style type="text/css">
   html, body {

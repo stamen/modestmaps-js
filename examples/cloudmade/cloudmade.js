@@ -1,22 +1,19 @@
 // namespacing!
-if (!com) {
-    var com = { };
-    if (!com.modestmaps) {
-        com.modestmaps = { };
-    }
+if (!MM) {
+    var MM = { };
 }
 
-com.modestmaps.CloudMadeProvider = function(key, style) {
+MM.CloudMadeProvider = function(key, style) {
     this.key = key;
     this.style = style;
     this.tileWidth = 256;
     this.tileHeight = 256;
 }
 
-com.modestmaps.CloudMadeProvider.prototype = {
+MM.CloudMadeProvider.prototype = {
     key: null,
     style: null,
-    getTileUrl: function(coord) {
+    getTile: function(coord) {
         coord = this.sourceCoordinate(coord);
         var worldSize = Math.pow(2, coord.zoom);
         var server = new Array('a.', 'b.', 'c.', '')[parseInt(worldSize * coord.row + coord.column) % 4];
@@ -25,4 +22,4 @@ com.modestmaps.CloudMadeProvider.prototype = {
     }
 }
 
-com.modestmaps.extend(com.modestmaps.CloudMadeProvider, com.modestmaps.MapProvider);
+MM.extend(MM.CloudMadeProvider, MM.MapProvider);

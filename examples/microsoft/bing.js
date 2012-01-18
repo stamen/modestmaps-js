@@ -1,12 +1,9 @@
 // namespacing!
-if (!com) {
-    var com = { };
-    if (!com.modestmaps) {
-        com.modestmaps = { };
-    }
+if (!MM) {
+  MM = { };
 }
 
-com.modestmaps.BingProvider = function(key, style, onready) {
+MM.BingProvider = function(key, style, onready) {
 
     this.key = key;
     this.style = style;
@@ -24,19 +21,17 @@ com.modestmaps.BingProvider = function(key, style, onready) {
         // generate zoom string by interleaving row/col bits
         // NB:- this assumes you're only asking for positive row/cols
         var quadKey = "";
-        for (var i = 1; i <= zoom; i++)
-        {
+        for (var i = 1; i <= zoom; i++) {
             var rowBit = (row >> zoom-i) & 1;
             var colBit = (column >> zoom-i) & 1;
             quadKey += (rowBit << 1) + colBit;
-        }        
+        }
         return quadKey;
     }
 
     var provider = this;
 
     window.onBingComplete = function(data) {
-    
         var resourceSets = data.resourceSets;
         for (var i = 0; i < resourceSets.length; i++) {
             var resources = data.resourceSets[i].resources;
@@ -44,15 +39,14 @@ com.modestmaps.BingProvider = function(key, style, onready) {
                 var resource = resources[j];
 
                 var serverSalt = Math.floor(Math.random() * 4);
-                provider.getTileUrl = function(coord) {
+                provider.getTile = function(coord) {
                     var quadKey = toMicrosoft(coord.column, coord.row, coord.zoom);
                     // this is so that requests will be consistent in this session, rather than totally random
                     var server = Math.abs(serverSalt + coord.column + coord.row + coord.zoom) % 4;
                     return resource.imageUrl
                         .replace('{quadkey}',quadKey)
                         .replace('{subdomain}', resource.imageUrlSubdomains[server]);
-                }
-                
+                };
                 // TODO: use resource.imageWidth
                 // TODO: use resource.imageHeight
             }
@@ -60,18 +54,15 @@ com.modestmaps.BingProvider = function(key, style, onready) {
 
         // TODO: display data.brandLogoUri
         // TODO: display data.copyright
-        
         onready(provider);
-    }
-  
+    };
+};
 
-}
-
-com.modestmaps.BingProvider.prototype = {
+MM.BingProvider.prototype = {
     key: null,
     style: null,
     subdomains: null,
     getTileUrl: null
-}
+};
 
-com.modestmaps.extend(com.modestmaps.BingProvider, com.modestmaps.MapProvider);
+MM.extend(MM.BingProvider, MM.MapProvider);

@@ -350,7 +350,6 @@
             // Prevent drag for IE
             tile.ondragstart = function() { return false; };
 
-            var scale = Math.pow(2, this.map.coordinate.zoom - tile.coord.zoom);
             var tx = ((this.map.dimensions.x/2) +
                 (tile.coord.column - theCoord.column) *
                 this.map.tileSize.x * scale);
@@ -358,11 +357,11 @@
                 (tile.coord.row - theCoord.row) *
                 this.map.tileSize.y * scale);
 
+            // TODO: pass only scale or only w/h
             MM.moveElement(tile, {
                 x: Math.round(tx),
                 y: Math.round(ty),
                 scale: scale,
-                // TODO: pass only scale or only w/h
                 width: this.map.tileSize.x,
                 height: this.map.tileSize.y
             });
@@ -446,10 +445,6 @@
         },
 
         setProvider: function(newProvider) {
-            if ('getTileUrl' in newProvider && (typeof newProvider.getTileUrl === 'function')) {
-                newProvider = new MM.TilePaintingProvider(newProvider);
-            }
-
             var firstProvider = (this.provider === null);
 
             // if we already have a provider the we'll need to
