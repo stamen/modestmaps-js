@@ -487,10 +487,10 @@ var MM = com.modestmaps = {
 
         // determine if a location is within this extent
         containsLocation: function(loc) {
-            return loc.lat >= this.south
-                && loc.lat <= this.north
-                && loc.lon >= this.west
-                && loc.lon <= this.east;
+            return loc.lat >= this.south &&
+                loc.lat <= this.north &&
+                loc.lon >= this.west &&
+                loc.lon <= this.east;
         },
 
         // turn an extent into an array of locations containing its northwest
@@ -1041,8 +1041,8 @@ var MM = com.modestmaps = {
 
     var HAS_HASHCHANGE = (function() {
         var doc_mode = window.documentMode;
-        return ('onhashchange' in window)
-            && (doc_mode === undefined || doc_mode > 7);
+        return ('onhashchange' in window) &&
+            (doc_mode === undefined || doc_mode > 7);
     })();
 
     MM.Hash = function(map) {
@@ -1060,7 +1060,7 @@ var MM = com.modestmaps = {
         parseHash: function(hash) {
             var args = hash.split("/");
             if (args.length == 3) {
-                var zoom = parseInt(args[0]),
+                var zoom = parseInt(args[0], 10),
                     lat = parseFloat(args[1]),
                     lon = parseFloat(args[2]);
                 if (isNaN(zoom) || isNaN(lat) || isNaN(lon)) {
@@ -1486,7 +1486,8 @@ var MM = com.modestmaps = {
         this.maxOpenRequests = 4;
         this.requestQueue = [];
 
-        this.callbackManager = new MM.CallbackManager(this, ['requestcomplete']);
+        this.callbackManager = new MM.CallbackManager(this, [
+            'requestcomplete', 'requesterror']);
     };
 
     MM.RequestManager.prototype = {
@@ -1526,12 +1527,12 @@ var MM = com.modestmaps = {
         clear: function() {
             this.clearExcept({});
         },
-        
+
         clearRequest: function(id) {
             if(id in this.requestsById) {
                 delete this.requestsById[id];
             }
-            
+
             for(var i = 0; i < this.requestQueue.length; i++) {
                 var request = this.requestQueue[i];
                 if(request && request.id == id) {
@@ -1539,7 +1540,7 @@ var MM = com.modestmaps = {
                 }
             }
         },
-        
+
         // Clear everything in the queue except for certain keys, specified
         // by an object of the form
         //
@@ -1565,7 +1566,7 @@ var MM = com.modestmaps = {
                     img.src = img.coord = img.onload = img.onerror = null;
                 }
             }
-            
+
             // hasOwnProperty protects against prototype additions
             // > "The standard describes an augmentable Object.prototype.
             //  Ignore standards at your own peril."
@@ -1606,7 +1607,7 @@ var MM = com.modestmaps = {
                 }
             }
         },
-        
+
         getProcessQueue: function() {
             // let's only create this closure once...
             if (!this._processQueue) {
@@ -1617,7 +1618,7 @@ var MM = com.modestmaps = {
             }
             return this._processQueue;
         },
-        
+
         // Select images from the `requestQueue` and create image elements for
         // them, attaching their load events to the function returned by
         // `this.getLoadComplete()` so that they can be added to the map.
@@ -1679,7 +1680,7 @@ var MM = com.modestmaps = {
 
                     // unset these straight away so we don't call this twice
                     img.onload = img.onerror = null;
-                    
+
                     // pull it back out of the (hidden) DOM
                     // so that draw will add it correctly later
                     theManager.loadingBay.removeChild(img);
@@ -1697,6 +1698,7 @@ var MM = com.modestmaps = {
                         // really stops loading
                         // FIXME: we'll never retry because this id is still
                         // in requestsById - is that right?
+                        theManager.dispatchCallback('requesterror', img.src);
                         img.src = null;
                     }
 

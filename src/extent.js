@@ -102,10 +102,10 @@
 
         // determine if a location is within this extent
         containsLocation: function(loc) {
-            return loc.lat >= this.south
-                && loc.lat <= this.north
-                && loc.lon >= this.west
-                && loc.lon <= this.east;
+            return loc.lat >= this.south &&
+                loc.lat <= this.north &&
+                loc.lon >= this.west &&
+                loc.lon <= this.east;
         },
 
         // turn an extent into an array of locations containing its northwest

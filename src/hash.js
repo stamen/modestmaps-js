@@ -1,8 +1,8 @@
 
     var HAS_HASHCHANGE = (function() {
         var doc_mode = window.documentMode;
-        return ('onhashchange' in window)
-            && (doc_mode === undefined || doc_mode > 7);
+        return ('onhashchange' in window) &&
+            (doc_mode === undefined || doc_mode > 7);
     })();
 
     MM.Hash = function(map) {
@@ -20,7 +20,7 @@
         parseHash: function(hash) {
             var args = hash.split("/");
             if (args.length == 3) {
-                var zoom = parseInt(args[0]),
+                var zoom = parseInt(args[0], 10),
                     lat = parseFloat(args[1]),
                     lon = parseFloat(args[2]);
                 if (isNaN(zoom) || isNaN(lat) || isNaN(lon)) {

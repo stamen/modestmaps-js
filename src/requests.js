@@ -14,7 +14,8 @@
         this.maxOpenRequests = 4;
         this.requestQueue = [];
 
-        this.callbackManager = new MM.CallbackManager(this, ['requestcomplete']);
+        this.callbackManager = new MM.CallbackManager(this, [
+            'requestcomplete', 'requesterror']);
     };
 
     MM.RequestManager.prototype = {
@@ -54,12 +55,12 @@
         clear: function() {
             this.clearExcept({});
         },
-        
+
         clearRequest: function(id) {
             if(id in this.requestsById) {
                 delete this.requestsById[id];
             }
-            
+
             for(var i = 0; i < this.requestQueue.length; i++) {
                 var request = this.requestQueue[i];
                 if(request && request.id == id) {
@@ -67,7 +68,7 @@
                 }
             }
         },
-        
+
         // Clear everything in the queue except for certain keys, specified
         // by an object of the form
         //
@@ -93,7 +94,7 @@
                     img.src = img.coord = img.onload = img.onerror = null;
                 }
             }
-            
+
             // hasOwnProperty protects against prototype additions
             // > "The standard describes an augmentable Object.prototype.
             //  Ignore standards at your own peril."
@@ -134,7 +135,7 @@
                 }
             }
         },
-        
+
         getProcessQueue: function() {
             // let's only create this closure once...
             if (!this._processQueue) {
@@ -145,7 +146,7 @@
             }
             return this._processQueue;
         },
-        
+
         // Select images from the `requestQueue` and create image elements for
         // them, attaching their load events to the function returned by
         // `this.getLoadComplete()` so that they can be added to the map.
@@ -207,7 +208,7 @@
 
                     // unset these straight away so we don't call this twice
                     img.onload = img.onerror = null;
-                    
+
                     // pull it back out of the (hidden) DOM
                     // so that draw will add it correctly later
                     theManager.loadingBay.removeChild(img);
@@ -225,6 +226,7 @@
                         // really stops loading
                         // FIXME: we'll never retry because this id is still
                         // in requestsById - is that right?
+                        theManager.dispatchCallback('requesterror', img.src);
                         img.src = null;
                     }
 
