@@ -9,10 +9,8 @@ describe('Projection', function() {
         // TODO: row is a very small number because of odd javascript math.
         expect(m.locationCoordinate(new MM.Location(0, 0)).column).toEqual(0);
         expect(m.locationCoordinate(new MM.Location(0, 0)).zoom).toEqual(10);
-        expect(m.coordinateLocation(new MM.Coordinate(0, 0, 10))).toEqual({
-          lon: 0,
-          lat: 0
-        });
+        expect(m.coordinateLocation(new MM.Coordinate(0, 0, 10)))
+            .toEqual(new MM.Location(0, 0));
     });
 
     it('is accurate up to 3 decimals', function() {

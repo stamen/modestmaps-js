@@ -6,9 +6,9 @@ describe('Transformation', function() {
         var p_ = t.transform(p);
         var p__ = t.untransform(p_);
 
-        expect(p).toEqual({ x: 1, y: 1 });
-        expect(p_).toEqual({ x: 1, y: 1 });
-        expect(p__).toEqual({ x: 1, y: 1 });
+        expect(p).toEqual(new MM.Point(1, 1));
+        expect(p_).toEqual(new MM.Point(1, 1));
+        expect(p__).toEqual(new MM.Point(1, 1));
     });
 
     it('can do an inverse transform', function() {
@@ -18,9 +18,9 @@ describe('Transformation', function() {
         var p_ = t.transform(p);
         var p__ = t.untransform(p_);
 
-        expect(p).toEqual({ x: 0, y: 1 });
-        expect(p_).toEqual({ x: 1, y: 0 });
-        expect(p__).toEqual({ x: 0, y: 1 });
+        expect(p).toEqual(new MM.Point(0, 1));
+        expect(p_).toEqual(new MM.Point(1, 0));
+        expect(p__).toEqual(new MM.Point(0, 1));
     });
 
     it('can do an addition transform', function() {
@@ -30,8 +30,8 @@ describe('Transformation', function() {
         var p_ = t.transform(p);
         var p__ = t.untransform(p_);
 
-        expect(p).toEqual({ x: 0, y: 0 });
-        expect(p_).toEqual({ x: 1, y: 1 });
-        expect(p__).toEqual({ x: 0, y: 0 });
+        expect(p).toEqual(new MM.Point(0, 0));
+        expect(p_).toEqual(new MM.Point(1,  1));
+        expect(p__).toEqual(new MM.Point(0, 0));
     });
 });

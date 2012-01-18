@@ -1106,7 +1106,9 @@ var MM = com.modestmaps = {
         },
 
         onMapMove: function(map) {
-            if (this.movingMap) {
+            // bail if we're moving the map (updating from a hash),
+            // or if the map has no zoom set
+            if (this.movingMap || this.map.zoom === 0) {
                 return false;
             }
             var hash = this.formatHash(map);
@@ -1126,12 +1128,12 @@ var MM = com.modestmaps = {
             var sansHash = hash.substr(1),
                 parsed = this.parseHash(sansHash);
             if (parsed) {
-                console.log("parsed:", parsed.zoom, parsed.center.toString());
+                // console.log("parsed:", parsed.zoom, parsed.center.toString());
                 this.movingMap = true;
                 this.map.setCenterZoom(parsed.center, parsed.zoom);
                 this.movingMap = false;
             } else {
-                console.warn("parse error; resetting:", this.map.getCenter(), this.map.getZoom());
+                // console.warn("parse error; resetting:", this.map.getCenter(), this.map.getZoom());
                 this.onMapMove(this.map);
             }
         },
