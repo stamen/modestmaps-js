@@ -5,7 +5,7 @@ describe('Providers', function() {
         var p = new MM.TemplatedMapProvider(
             'http://{S}.tile.openstreetmap.org/{Z}/{X}/{Y}.png', ['a']);
 
-       expect(p.getTileUrl(new MM.Coordinate(1225, 1832, 12))).toEqual(
+       expect(p.getTile(new MM.Coordinate(1225, 1832, 12))).toEqual(
           'http://a.tile.openstreetmap.org/12/1832/1225.png');
     });
 });

@@ -506,6 +506,8 @@
             };
         },
 
+        // Remove this layer from the DOM, cancel all of its requests
+        // and unbind any callbacks that are bound to it.
         destroy: function() {
             this.requestManager.clear();
             this.requestManager.removeCallback('requestcomplete', this.getTileComplete());

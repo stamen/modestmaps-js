@@ -5,10 +5,7 @@
 <script type="text/javascript" src="../../modestmaps.js"></script>
 <script type="text/javascript">
 window.onload = function() {
-
     // "import" the namespace
-    var MM = com.modestmaps;
-    
     var provider = new MM.TemplatedMapProvider("http://otile1.mqcdn.com/tiles/1.0.0/osm/{Z}/{X}/{Y}.png");
 
     map = new MM.Map(document.body, provider)
@@ -19,12 +16,16 @@ window.onload = function() {
     var bottomRight = new MM.Location(21.5, -50.5);
 
     // override map limits so that panning and zooming are constrained within these bounds:
-    map.coordLimits = [ map.locationCoordinate(topLeft).zoomTo(minZoom),
-                        map.locationCoordinate(bottomRight).zoomTo(maxZoom) ];
+    map.coordLimits = [
+      map.locationCoordinate(topLeft).zoomTo(minZoom),
+      map.locationCoordinate(bottomRight).zoomTo(maxZoom)
+    ];
 
     // override provider limits so that tiles are not loaded unless they are inside these bounds:
-    provider.tileLimits = [ map.locationCoordinate(topLeft).zoomTo(minZoom),
-                            map.locationCoordinate(bottomRight).zoomTo(maxZoom) ];
+    provider.tileLimits = [
+      map.locationCoordinate(topLeft).zoomTo(minZoom),
+      map.locationCoordinate(bottomRight).zoomTo(maxZoom)
+   ];
 
     // override sourceCoordinate so that it doesn't use coord limits to wrap tiles
     // but so that it rejects any tile coordinates that lie outside the limits
@@ -44,7 +45,6 @@ window.onload = function() {
     }
 
     map.setCenterZoom(new MM.Location(37.811530, -122.2666097), 5);
-    
 }
 </script>
 <style>

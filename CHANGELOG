@@ -8,6 +8,10 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment
     the major version." -- http://semver.org/
 
+v1.0.0-alpha
+- Removes TilePaintingProvider and auto-casting to it in setProvider,
+  updating all examples.
+
 v1.0.0 (dev)
 - `map.setSize` now only accepts an object of the form `{x: 0, y: 0}` or a
   `MM.Point` object, and it calls its callback with a `MM.Point` argument.
