@@ -741,7 +741,7 @@ var MM = com.modestmaps = {
             var TL = this.tileLimits[0].zoomTo(coord.zoom);
             var BR = this.tileLimits[1].zoomTo(coord.zoom);
             var vSize = BR.row - TL.row;
-            if (coord.row < 0 | coord.row >= vSize) {
+            if (coord.row < 0 || coord.row >= vSize) {
                 // it's too high or too low:
                 return null;
             }
@@ -2210,6 +2210,8 @@ var MM = com.modestmaps = {
             };
         },
 
+        // Remove this layer from the DOM, cancel all of its requests
+        // and unbind any callbacks that are bound to it.
         destroy: function() {
             this.requestManager.clear();
             this.requestManager.removeCallback('requestcomplete', this.getTileComplete());
