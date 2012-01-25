@@ -9,7 +9,7 @@
         // "import" the namespace
         var MM = com.modestmaps;
         
-        var provider = new MM.TemplatedMapProvider("http://placehold.it/256/ccc/000.png&text={Z}/{X}/{Y}");
+        var provider = new MM.TemplatedLayer("http://placehold.it/256/ccc/000.png&text={Z}/{X}/{Y}");
         map = new MM.Map('map', provider)
         map.setCenterZoom(new MM.Location(37.804656, -122.263606), 14);
     }

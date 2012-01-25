@@ -13,9 +13,9 @@ function initMaps() {
     var container = document.getElementById('container');
     
     leftMap = new MM.Map('leftMap', 
-                         new MM.TemplatedMapProvider("http://tile.openstreetmap.org/{Z}/{X}/{Y}.png")); 
+                         new MM.TemplatedLayer("http://tile.openstreetmap.org/{Z}/{X}/{Y}.png")); 
     rightMap = new MM.Map('rightMap', 
-                         new MM.TemplatedMapProvider("http://s3.amazonaws.com/com.modestmaps.bluemarble/{Z}-r{Y}-c{X}.jpg")); 
+                         new MM.TemplatedLayer("http://s3.amazonaws.com/com.modestmaps.bluemarble/{Z}-r{Y}-c{X}.jpg")); 
      
     leftMap.parent.style.position = 'absolute';
     leftMap.parent.style.left = '0px';

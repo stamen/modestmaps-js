@@ -7,7 +7,7 @@
         <script type="text/javascript">
             var map, layer;
             function initMap() {
-                var tiles = new MM.TemplatedMapProvider("http://spaceclaw.stamen.com/toner/{Z}/{X}/{Y}.png");
+                var tiles = new MM.TemplatedLayer("http://spaceclaw.stamen.com/toner/{Z}/{X}/{Y}.png");
                 map = new MM.Map("map", tiles);
 
                 layer = new SpotlightLayer();
