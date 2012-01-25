@@ -137,7 +137,7 @@ function initMap() {
     var container = document.getElementById('container');
 
     map = new com.modestmaps.Map('map', 
-                                 new com.modestmaps.TemplatedMapProvider('http://tile.openstreetmap.org/{Z}/{X}/{Y}.png'), 
+                                 new com.modestmaps.TemplatedLayer('http://tile.openstreetmap.org/{Z}/{X}/{Y}.png'), 
                                  new com.modestmaps.Point(container.offsetWidth, container.offsetHeight));
 
     map.setCenterZoom(new com.modestmaps.Location(0, 0), 1);

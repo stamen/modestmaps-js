@@ -160,7 +160,7 @@ var map;
 
 function initMap() {
 
-    var provider = new MM.TemplatedMapProvider('http://oatile1.mqcdn.com/naip/{Z}/{X}/{Y}.jpg')
+    var provider = new MM.TemplatedLayer('http://oatile1.mqcdn.com/naip/{Z}/{X}/{Y}.jpg')
     // new MM.TemplatedMapProvider('http://tile.openstreetmap.org/{Z}/{X}/{Y}.png')
 
     var handler = new MM.ThrowableHandler();

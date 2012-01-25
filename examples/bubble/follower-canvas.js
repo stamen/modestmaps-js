@@ -89,13 +89,9 @@ if (!com) {
         dimensions: null,
         margin: null,
     
-        draw: function(map)
-        {
-            console.log(Date.now());
-        
+        draw: function(map) {
             try {
                 var point = map.coordinatePoint(this.coord);
-    
             } catch(e) {
                 console.error(e);
                 // too soon?

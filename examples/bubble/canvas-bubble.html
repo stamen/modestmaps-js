@@ -23,9 +23,9 @@
 // "import" the namespace
 var mm = com.modestmaps;
 
-var provider = new mm.TemplatedMapProvider('http://osm-bayarea.s3.amazonaws.com/{Z}-r{Y}-c{X}.jpg');
+var layer = new mm.TemplatedLayer('http://osm-bayarea.s3.amazonaws.com/{Z}-r{Y}-c{X}.jpg');
 
-map = new mm.Map('map', provider, new mm.Point(1024,768))
+map = new mm.Map('map', layer, new mm.Point(1024,768))
 
 var f = new mm.Follower(map, new mm.Location(37.811530, -122.2666097), 'Broadway and Grand');
 

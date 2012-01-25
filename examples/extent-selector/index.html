@@ -10,8 +10,8 @@
 
         function initMap() {
             // the map
-            var provider = new MM.TemplatedMapProvider("http://acetate.geoiq.com/tiles/acetate-base/{Z}/{X}/{Y}.png");
-            map = new MM.Map("map", provider);
+            var layer = new MM.TemplatedLayer("http://acetate.geoiq.com/tiles/acetate-base/{Z}/{X}/{Y}.png");
+            map = new MM.Map("map", layer);
 
             // the initial extent
             var extent = new MM.MapExtent(37.837, -122.522, 37.691, -122.350);
