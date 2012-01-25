@@ -65,11 +65,9 @@
         if (!dimensions) {
             dimensions = new MM.Point(this.parent.offsetWidth,
                                       this.parent.offsetHeight);
-            this.autoSize = true;
-            // use destroy to get rid of this handler from the DOM
-            MM.addEvent(window, 'resize', this.windowResize());
+            this.autoSize(true);
         } else {
-            this.autoSize = false;
+            this.autoSize(false);
             // don't call setSize here because it calls draw()
             this.parent.style.width = Math.round(dimensions.x) + 'px';
             this.parent.style.height = Math.round(dimensions.y) + 'px';
@@ -119,7 +117,25 @@
 
         eventHandlers: null,   // Array of interaction handlers, just a MM.MouseHandler by default
 
-        autoSize: null,        // Boolean, true if we have a window resize listener
+        // Boolean, true if we have a window resize listener
+        _autoSize: null,
+
+        autoSize: function(x) {
+            // accessor
+            if (x === undefined) return this._autoSize;
+            // no change to setting
+            if (x === this._autoSize) return;
+            // setter
+            if (!x) {
+                if (this._autoSize === true) {
+                    MM.removeEvent(window, 'resize', this.windowResize());
+                }
+                this._autoSize = false;
+            } else {
+                MM.addEvent(window, 'resize', this.windowResize());
+                this._autoSize = true;
+            }
+        },
 
         toString: function() {
             return 'Map(#' + this.parent.id + ')';
@@ -301,10 +317,7 @@
             this.dimensions = new MM.Point(dimensions.x, dimensions.y);
             this.parent.style.width = Math.round(this.dimensions.x) + 'px';
             this.parent.style.height = Math.round(this.dimensions.y) + 'px';
-            if (this.autoSize) {
-                MM.removeEvent(window, 'resize', this.windowResize());
-                this.autoSize = false;
-            }
+            this.autoSize(false);
             this.draw(); // draw calls enforceLimits
             // (if you switch to getFrame, call enforceLimits first)
             this.dispatchCallback('resized', this.dimensions);
@@ -366,11 +379,8 @@
         },
 
         extent: function(locations, precise) {
-            if (locations) {
-                return this.setExtent(locations, precise);
-            } else {
-                return this.getExtent();
-            }
+            return (location !== undefined) ? this.setExtent(locations, precise) :
+                this.getExtent();
         },
 
         // Get the current centerpoint of the map, returning a `Location`
@@ -379,11 +389,7 @@
         },
 
         center: function(location) {
-            if (location) {
-                return this.setCenter(location);
-            } else {
-                return this.getCenter();
-            }
+            return (location !== undefined) ? this.setCenter(location) : this.getCenter();
         },
 
         // Get the current zoom level of the map, returning a number
@@ -392,11 +398,7 @@
         },
 
         zoom: function(zoom) {
-            if (zoom !== undefined) {
-                return this.setZoom(zoom);
-            } else {
-                return this.getZoom();
-            }
+            return (zoom !== undefined) ? this.setZoom(zoom) : this.getZoom();
         },
 
         // layers
@@ -429,10 +431,7 @@
         addLayer: function(layer) {
             layer = this.coerceLayer(layer);
             this.layers.push(layer);
-            // make sure layer.parent doesn't already have a parentNode
-            if (!layer.parent.parentNode) {
-                this.parent.appendChild(layer.parent); 
-            }
+            this.parent.appendChild(layer.parent);
             layer.map = this; // TODO: remove map property from MM.Layer?
             return this;
         },
@@ -484,7 +483,7 @@
 
             layer = this.coerceLayer(layer);
 
-            if(index == this.layers.length) {
+            if (index == this.layers.length) {
                 // it just gets tacked on to the end
                 this.layers.push(layer);
                 this.parent.appendChild(layer.parent);
@@ -553,8 +552,7 @@
                 var maxZoom = limits[1].zoom;
                 if (coord.zoom < minZoom) {
                     coord = coord.zoomTo(minZoom);
-                }
-                else if (coord.zoom > maxZoom) {
+                } else if (coord.zoom > maxZoom) {
                     coord = coord.zoomTo(maxZoom);
                 }
             }
@@ -570,15 +568,16 @@
                 coord = coord.copy();
 
                 // clamp pan:
-                var topLeftLimit = limits[0].zoomTo(coord.zoom);
-                var bottomRightLimit = limits[1].zoomTo(coord.zoom);
-                var currentTopLeft = this.pointCoordinate(new MM.Point(0,0));
-                var currentBottomRight = this.pointCoordinate(this.dimensions);
+                var topLeftLimit = limits[0].zoomTo(coord.zoom),
+                    bottomRightLimit = limits[1].zoomTo(coord.zoom),
+                    currentTopLeft = this.pointCoordinate(new MM.Point(0,0)),
+                    currentBottomRight = this.pointCoordinate(this.dimensions);
 
                 // this handles infinite limits:
                 // (Infinity - Infinity) is Nan
                 // NaN is never less than anything
-                if (bottomRightLimit.row - topLeftLimit.row < currentBottomRight.row - currentTopLeft.row) {
+                if (bottomRightLimit.row - topLeftLimit.row <
+                    currentBottomRight.row - currentTopLeft.row) {
                     // if the limit is smaller than the current view center it
                     coord.row = (bottomRightLimit.row + topLeftLimit.row) / 2;
                 }
@@ -590,7 +589,8 @@
                         coord.row -= currentBottomRight.row - bottomRightLimit.row;
                     }
                 }
-                if (bottomRightLimit.column - topLeftLimit.column < currentBottomRight.column - currentTopLeft.column) {
+                if (bottomRightLimit.column - topLeftLimit.column <
+                    currentBottomRight.column - currentTopLeft.column) {
                     // if the limit is smaller than the current view, center it
                     coord.column = (bottomRightLimit.column + topLeftLimit.column) / 2;
                 }
@@ -621,7 +621,7 @@
 
             // if we don't have dimensions, check the parent size
             if (this.dimensions.x <= 0 || this.dimensions.y <= 0) {
-                if (this.autoSize) {
+                if (this.autoSize()) {
                     // maybe the parent size has changed?
                     var w = this.parent.offsetWidth,
                         h = this.parent.offsetHeight;
@@ -681,8 +681,6 @@
             for (var i = 0; i < this.eventHandlers.length; i++) {
                 this.eventHandlers[i].remove();
             }
-            if (this.autoSize) {
-                MM.removeEvent(window, 'resize', this.windowResize());
-            }
+            this.autoSize(false);
         }
     };
