@@ -110,6 +110,9 @@ var MM = com.modestmaps = {
             // Optimize for identity transforms, where you don't actually
             // need to change this element's string. Browsers can optimize for
             // the .style.left case but not for this CSS case.
+            if (!point.scale) point.scale = 1;
+            if (!point.width) point.width = 0;
+            if (!point.height) point.height = 0;
             var ms = MM.matrixString(point);
             if (el[MM.transformProperty] !== ms) {
                 el.style[MM.transformProperty] =
@@ -118,8 +121,12 @@ var MM = com.modestmaps = {
         } else {
             el.style.left = point.x + 'px';
             el.style.top = point.y + 'px';
-            el.style.width =  Math.ceil(point.width  * point.scale) + 'px';
-            el.style.height = Math.ceil(point.height * point.scale) + 'px';
+            // Don't set width unless asked to: this is performance-intensive
+            // and not always necessary
+            if (point.width && point.height && point.scale) {
+                el.style.width =  Math.ceil(point.width  * point.scale) + 'px';
+                el.style.height = Math.ceil(point.height * point.scale) + 'px';
+            }
         }
     };
 
@@ -2656,10 +2663,7 @@ var MM = com.modestmaps = {
         addLayer: function(layer) {
             layer = this.coerceLayer(layer);
             this.layers.push(layer);
-            // make sure layer.parent doesn't already have a parentNode
-            if (!layer.parent.parentNode) {
-                this.parent.appendChild(layer.parent); 
-            }
+            this.parent.appendChild(layer.parent);
             layer.map = this; // TODO: remove map property from MM.Layer?
             return this;
         },
