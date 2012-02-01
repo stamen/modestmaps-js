@@ -9,7 +9,7 @@ describe('DoubleClickHandler', function() {
 
         var template = 'http://{S}tile.openstreetmap.org/{Z}/{X}/{Y}.png';
             var subdomains = [ '', 'a.', 'b.', 'c.' ];
-        var provider = new MM.TemplatedMapProvider(template, subdomains);
+        var provider = new MM.TemplatedLayer(template, subdomains);
 
         map = new MM.Map(div, provider, [
                                      new MM.DoubleClickHandler()
