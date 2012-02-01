@@ -346,10 +346,10 @@
 
         // inspecting
         getExtent: function() {
-            return [
+            return new MM.MapExtent(
                 this.pointLocation(new MM.Point(0, 0)),
                 this.pointLocation(this.dimensions)
-            ];
+            );
         },
 
         extent: function(locations, precise) {
