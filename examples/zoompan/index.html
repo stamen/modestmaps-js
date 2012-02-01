@@ -13,7 +13,7 @@ window.onload = function() {
     // http://blog.mapquest.com/2010/07/09/mapquest-opens-up/
     var template = 'http://{S}.mqcdn.com/tiles/1.0.0/osm/{Z}/{X}/{Y}.png';
     var subdomains = [ 'otile1', 'otile2', 'otile3', 'otile4'];
-    var provider = new MM.TemplatedMapProvider(template, subdomains);
+    var provider = new MM.TemplatedLayer(template, subdomains);
 
     map = new MM.Map('map', provider);
     

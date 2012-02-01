@@ -101,7 +101,7 @@ renderStaticMap(provider, dimensions, 11, location, function(err, canvas) {
 
 // just one for now...
 var providers = {
-  osm: new MM.TemplatedMapProvider("http://tile.openstreetmap.org/{Z}/{X}/{Y}.png")
+  osm: new MM.TemplatedLayer("http://tile.openstreetmap.org/{Z}/{X}/{Y}.png")
 }
 
 var app = express.createServer();

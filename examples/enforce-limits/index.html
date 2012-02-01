@@ -5,10 +5,8 @@
 <script type="text/javascript" src="../../modestmaps.js"></script>
 <script type="text/javascript">
 window.onload = function() {
-    // "import" the namespace
-    var provider = new MM.TemplatedMapProvider("http://otile1.mqcdn.com/tiles/1.0.0/osm/{Z}/{X}/{Y}.png");
-
-    map = new MM.Map(document.body, provider)
+    var layer = new MM.TemplatedLayer("http://otile1.mqcdn.com/tiles/1.0.0/osm/{Z}/{X}/{Y}.png");
+    map = new MM.Map(document.body, layer)
 
     var minZoom = 2;
     var maxZoom = 10;
@@ -22,14 +20,14 @@ window.onload = function() {
     ];
 
     // override provider limits so that tiles are not loaded unless they are inside these bounds:
-    provider.tileLimits = [
+    layer.tileLimits = [
       map.locationCoordinate(topLeft).zoomTo(minZoom),
       map.locationCoordinate(bottomRight).zoomTo(maxZoom)
    ];
 
     // override sourceCoordinate so that it doesn't use coord limits to wrap tiles
     // but so that it rejects any tile coordinates that lie outside the limits
-    provider.sourceCoordinate = function(coord) {
+    layer.sourceCoordinate = function(coord) {
         // don't need .container() stuff here but it means *something* will get loaded at low zoom levels
         // e.g. at level 0 the base tile could contain the entire extent
         // skip the .container() stuff if you don't want to load/render tiles outside the extent *at all*

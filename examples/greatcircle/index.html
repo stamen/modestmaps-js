@@ -9,7 +9,7 @@ var map;
 
 window.onload = function() {
 
-    var provider = new com.modestmaps.TemplatedMapProvider('http://tile.openstreetmap.org/{Z}/{X}/{Y}.png');
+    var provider = new com.modestmaps.TemplatedLayer('http://tile.openstreetmap.org/{Z}/{X}/{Y}.png');
 
     map = new com.modestmaps.Map(document.body, provider); 
 

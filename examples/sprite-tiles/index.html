@@ -17,13 +17,13 @@
 
         function initMap() {
             var baseURL = "http://tiles-523195119.us-east-1.elb.amazonaws.com/";
-            var tiles = new MM.TemplatedMapProvider(baseURL + "inundated/{Z}/{X}/{Y}.png");
+            var tiles = new MM.TemplatedLayer(baseURL + "inundated/{Z}/{X}/{Y}.png");
 
             map = new MM.Map("map", tiles);
             map.setZoomRange(8, 16);
             map.setCenterZoom({lat: 37.804, lon: -122.252}, 9);
 
-            var template = new MM.TemplatedMapProvider(baseURL + "inundation_b/{Z}/{X}/{Y}.png");
+            var template = new MM.TemplatedLayer(baseURL + "inundation_b/{Z}/{X}/{Y}.png");
             sprite = new MM.SpriteMapProvider(template);
             map.addLayer(sprite);
 

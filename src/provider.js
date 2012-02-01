@@ -141,3 +141,7 @@
     };
 
     MM.extend(MM.TemplatedMapProvider, MM.MapProvider);
+
+    MM.TemplatedLayer = function(template, subdomains) {
+      return new MM.Layer(new MM.TemplatedMapProvider(template, subdomains));
+    };

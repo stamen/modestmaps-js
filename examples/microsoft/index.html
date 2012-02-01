@@ -11,7 +11,7 @@
         var key = "AjBbdc2nn_71Hyc__uvinjvuHX5g8GLMiVYCJdx7XLLfiSenf1qtnmbv_VO8iyOj",
             style = 'AerialWithLabels',
             provider = new MM.BingProvider(key, style, function() {
-                map = new MM.Map(document.body, provider)
+                map = new MM.Map(document.body, new MM.Layer(provider))
                 map.setCenterZoom(new MM.Location(37.804656, -122.263606), 14);
             });
     }

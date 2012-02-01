@@ -15,7 +15,7 @@
       // defaults to Google-style Mercator projection, so works
       // out of the box with OpenStreetMap and friends:
       var template = 'http://tile.openstreetmap.org/{Z}/{X}/{Y}.png';
-      var provider = new MM.TemplatedMapProvider(template);
+      var provider = new MM.TemplatedLayer(template);
 
       // without a size, it will expand to fit the parent:
       map = new MM.Map(parent, provider);

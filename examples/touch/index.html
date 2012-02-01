@@ -11,7 +11,7 @@
             function initMap() {
                 var template = 'http://{S}tile.openstreetmap.org/{Z}/{X}/{Y}.png';
                 var subdomains = [ '', 'a.', 'b.', 'c.' ];
-                var provider = new com.modestmaps.TemplatedMapProvider(template, subdomains);
+                var provider = new com.modestmaps.TemplatedLayer(template, subdomains);
                 map = new com.modestmaps.Map('map',
                   provider,
                   null, [

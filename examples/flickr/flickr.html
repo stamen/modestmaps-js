@@ -25,7 +25,7 @@
 // "import" the namespace
 var MM = com.modestmaps;
 
-var provider = new MM.BlueMarbleProvider();
+var provider = new MM.Layer(new MM.BlueMarbleProvider());
 
 map = new MM.Map('map', provider, new MM.Point(1024,512))
 
