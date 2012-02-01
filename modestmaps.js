@@ -718,8 +718,10 @@ var MM = com.modestmaps = {
         // these are limits for available *tiles*
         // panning limits will be different (since you can wrap around columns)
         // but if you put Infinity in here it will screw up sourceCoordinate
-        tileLimits: [ new MM.Coordinate(0,0,0),             // top left outer
-                      new MM.Coordinate(1,1,0).zoomTo(18) ], // bottom right inner
+        tileLimits: [
+            new MM.Coordinate(0,0,0),             // top left outer
+            new MM.Coordinate(1,1,0).zoomTo(18)   // bottom right inner
+        ],
 
         getTileUrl: function(coordinate) {
             throw "Abstract method not implemented by subclass.";
@@ -729,9 +731,8 @@ var MM = com.modestmaps = {
             throw "Abstract method not implemented by subclass.";
         },
 
-        releaseTile: function(element) {
-          // releaseTile is not required
-        },
+        // releaseTile is not required
+        releaseTile: function(element) { },
 
         // use this to tell MapProvider that tiles only exist between certain zoom levels.
         // should be set separately on Map to restrict interactive zoom/pan ranges
@@ -745,20 +746,24 @@ var MM = com.modestmaps = {
         // ... you should override this function if you change the tile limits
         // ... see enforce-limits in examples for details
         sourceCoordinate: function(coord) {
-            var TL = this.tileLimits[0].zoomTo(coord.zoom);
-            var BR = this.tileLimits[1].zoomTo(coord.zoom);
-            var vSize = BR.row - TL.row;
-            if (coord.row < 0 || coord.row >= vSize) {
-                // it's too high or too low:
+            var TL = this.tileLimits[0].zoomTo(coord.zoom),
+                BR = this.tileLimits[1].zoomTo(coord.zoom),
+                columnSize = Math.pow(2, coord.zoom),
+                wrappedColumn;
+
+            if (coord.column < 0) {
+                wrappedColumn = (coord.column + columnSize) % columnSize;
+            } else {
+                wrappedColumn = coord.column % columnSize;
+            }
+
+            if (coord.row < TL.row || coord.row >= BR.row) {
                 return null;
+            } else if (wrappedColumn < TL.column || wrappedColumn >= BR.column) {
+                return null;
+            } else {
+                return new MM.Coordinate(coord.row, wrappedColumn, coord.zoom);
             }
-            var hSize = BR.column - TL.column;
-            // assume infinite horizontal scrolling
-            var wrappedColumn = coord.column % hSize;
-            while (wrappedColumn < 0) {
-                wrappedColumn += hSize;
-            }
-            return new MM.Coordinate(coord.row, wrappedColumn, coord.zoom);
         }
     };
 
@@ -786,15 +791,12 @@ var MM = com.modestmaps = {
      *
      */
     MM.TemplatedMapProvider = function(template, subdomains) {
-        var isQuadKey = false;
-        if (template.match(/{(Q|quadkey)}/)) {
-            isQuadKey = true;
-            // replace Microsoft style substitution strings
-            template = template
-                .replace('{subdomains}', '{S}')
-                .replace('{zoom}', '{Z}')
-                .replace('{quadkey}', '{Q}');
-        }
+        var isQuadKey = template.match(/{(Q|quadkey)}/);
+        // replace Microsoft style substitution strings
+        if (isQuadKey) template = template
+            .replace('{subdomains}', '{S}')
+            .replace('{zoom}', '{Z}')
+            .replace('{quadkey}', '{Q}');
 
         var hasSubdomains = (subdomains &&
             subdomains.length && template.indexOf("{S}") >= 0);
@@ -838,8 +840,7 @@ var MM = com.modestmaps = {
         },
         getTile: function(coord) {
           return this.getTileUrl(coord);
-        },
-        releaseTile: function() { }
+        }
     };
 
     MM.extend(MM.TemplatedMapProvider, MM.MapProvider);
