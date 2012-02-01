@@ -14,7 +14,7 @@
             map = new MM.Map("map", layer);
 
             // the initial extent
-            var extent = new MM.MapExtent(37.837, -122.522, 37.691, -122.350);
+            var extent = new MM.Extent(37.837, -122.522, 37.691, -122.350);
             map.setExtent(extent);
 
             // the selector is a map "layer"
@@ -28,7 +28,7 @@
                 extentField = document.getElementById("extent-string");
             selector.addCallback("extentset", function(o, ext) {
                 // these setters all coerce to strings, which implicitly
-                // calls toString() on the Location and MapExtent instances
+                // calls toString() on the Location and Extent instances
                 nwLabel.innerText = ext.northWest();
                 seLabel.innerText = ext.southEast();
                 // and update the extent string field for good measure
@@ -51,7 +51,7 @@
                 // so we can reset the field
                 var old = selector.getExtent();
                 try {
-                    var ext = MM.MapExtent.fromString(extentField.value);
+                    var ext = MM.Extent.fromString(extentField.value);
                     selector.setExtent(ext);
                 } catch (e) {
                     alert("Whoops: " + e);

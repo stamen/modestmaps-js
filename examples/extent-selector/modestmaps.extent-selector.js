@@ -18,7 +18,7 @@ if (!com.modestmaps) {
     };
 
     MM.ExtentSelector.prototype = {
-        // an MM.MapExtent instance
+        // an MM.Extent instance
         extent: null,
         // if this is false, we won't allow moving the extent from the
         // center
@@ -46,10 +46,10 @@ if (!com.modestmaps) {
             this.draw();
         },
 
-        // coerces arguments into a MapExtent instance
+        // coerces arguments into a Extent instance
         coerceExtent: function(extent) {
             if (extent instanceof Array) {
-                return MM.MapExtent.fromArray(extent);
+                return MM.Extent.fromArray(extent);
             } else {
                 return extent;
             }

@@ -217,8 +217,8 @@
         },
 
         setExtent: function(locations, precise) {
-            // coerce locations to an array if it's a MapExtent instance
-            if (locations instanceof MM.MapExtent) {
+            // coerce locations to an array if it's a Extent instance
+            if (locations instanceof MM.Extent) {
                 locations = locations.toArray();
             }
 
@@ -346,7 +346,7 @@
 
         // inspecting
         getExtent: function() {
-            return new MM.MapExtent(
+            return new MM.Extent(
                 this.pointLocation(new MM.Point(0, 0)),
                 this.pointLocation(this.dimensions)
             );

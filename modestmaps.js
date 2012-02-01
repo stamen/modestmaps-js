@@ -391,12 +391,12 @@ var MM = com.modestmaps = {
         return new MM.Location(latN / deg2rad, lonN / deg2rad);
     };
 
-    // MapExtent
+    // Extent
     // ----------
     // An object representing a map's rectangular extent, defined by its north,
     // south, east and west bounds.
 
-    MM.MapExtent = function(north, west, south, east) {
+    MM.Extent = function(north, west, south, east) {
         if (arguments[0] instanceof MM.Location) {
             var northwest = arguments[0];
             north = northwest.lat;
@@ -415,7 +415,7 @@ var MM = com.modestmaps = {
         this.west = Math.min(east, west);
     };
 
-    MM.MapExtent.prototype = {
+    MM.Extent.prototype = {
         // boundary attributes
         north: 0,
         south: 0,
@@ -423,7 +423,7 @@ var MM = com.modestmaps = {
         west: 0,
 
         copy: function() {
-            return new MM.MapExtent(this.north, this.west, this.south, this.east);
+            return new MM.Extent(this.north, this.west, this.south, this.east);
         },
 
         toString: function(precision) {
@@ -507,12 +507,12 @@ var MM = com.modestmaps = {
         }
     };
 
-    MM.MapExtent.fromString = function(str) {
+    MM.Extent.fromString = function(str) {
         var parts = str.split(/\s*,\s*/);
         if (parts.length != 4) {
             throw "Invalid extent string (expecting 4 comma-separated numbers)";
         }
-        return new MM.MapExtent(
+        return new MM.Extent(
             parseFloat(parts[0]),
             parseFloat(parts[1]),
             parseFloat(parts[2]),
@@ -520,8 +520,8 @@ var MM = com.modestmaps = {
         );
     };
 
-    MM.MapExtent.fromArray = function(locations) {
-        var extent = new MM.MapExtent();
+    MM.Extent.fromArray = function(locations) {
+        var extent = new MM.Extent();
         extent.setFromLocations(locations);
         return extent;
     };
@@ -2455,8 +2455,8 @@ var MM = com.modestmaps = {
         },
 
         setExtent: function(locations, precise) {
-            // coerce locations to an array if it's a MapExtent instance
-            if (locations instanceof MM.MapExtent) {
+            // coerce locations to an array if it's a Extent instance
+            if (locations instanceof MM.Extent) {
                 locations = locations.toArray();
             }
 
@@ -2584,7 +2584,7 @@ var MM = com.modestmaps = {
 
         // inspecting
         getExtent: function() {
-            return new MM.MapExtent(
+            return new MM.Extent(
                 this.pointLocation(new MM.Point(0, 0)),
                 this.pointLocation(this.dimensions)
             );
