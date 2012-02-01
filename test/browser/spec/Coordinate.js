@@ -2,7 +2,7 @@ describe('Coordinate', function() {
   var coordinate;
 
   beforeEach(function() {
-    coordinate = new com.modestmaps.Coordinate(0, 0, 2);
+    coordinate = new MM.Coordinate(0, 0, 2);
   });
 
   it('generates a key', function() {

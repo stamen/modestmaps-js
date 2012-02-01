@@ -20,9 +20,6 @@
 </div>
 <p>The above div is a map initialized like so:</p>
 <pre id="src">
-// "import" the namespace
-var MM = com.modestmaps;
-
 var layer = new MM.Layer(new MM.MapProvider(function(coord) {
     var img = parseInt(coord.zoom) +'-r'+ parseInt(coord.row) +'-c'+ parseInt(coord.column) + '.jpg';
     return 'http://osm-bayarea.s3.amazonaws.com/' + img;
