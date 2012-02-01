@@ -23,8 +23,18 @@ describe('Map', function() {
       expect(map.parent).toEqual(div);
   });
 
-  it('has set a proper zoom level', function() {
-      expect(map.getZoom()).toEqual(0);
+  describe('zoom restrictions and ranges', function() {
+
+    it('has set a proper zoom level', function() {
+        expect(map.getZoom()).toEqual(0);
+    });
+
+    it('can restrict its zoomlevel', function() {
+        map.setZoomRange(5, 6);
+        map.setZoom(7);
+        expect(map.getZoom()).toEqual(6);
+    });
+
   });
 
   it('has a center coordinate', function() {
