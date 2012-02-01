@@ -2437,19 +2437,6 @@ var MM = com.modestmaps = {
             return this;
         },
 
-        /*
-        panZoom: function(dx, dy, zoom) {
-            this.coordinate.column -= dx / this.tileSize.x;
-            this.coordinate.row -= dy / this.tileSize.y;
-            this.coordinate = this.coordinate.zoomTo(zoom);
-
-            // Defer until the browser is ready to draw.
-            MM.getFrame(this.getRedraw());
-            this.dispatchCallback('panned', [dx, dy]);
-            return this;
-        },
-        */
-
         panLeft: function() { return this.panBy(100, 0); },
         panRight: function() { return this.panBy(-100, 0); },
         panDown: function() { return this.panBy(0, -100); },
