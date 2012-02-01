@@ -359,10 +359,10 @@
 
         // inspecting
         getExtent: function() {
-            var extent = [];
-            extent.push(this.pointLocation(new MM.Point(0, 0)));
-            extent.push(this.pointLocation(this.dimensions));
-            return extent;
+            return [
+                this.pointLocation(new MM.Point(0, 0)),
+                this.pointLocation(this.dimensions)
+            ];
         },
 
         extent: function(locations, precise) {
@@ -554,7 +554,8 @@
                 // this handles infinite limits:
                 // (Infinity - Infinity) is Nan
                 // NaN is never less than anything
-                if (bottomRightLimit.row - topLeftLimit.row < currentBottomRight.row - currentTopLeft.row) {
+                if (bottomRightLimit.row - topLeftLimit.row <
+                    currentBottomRight.row - currentTopLeft.row) {
                     // if the limit is smaller than the current view center it
                     coord.row = (bottomRightLimit.row + topLeftLimit.row) / 2;
                 }
@@ -566,7 +567,8 @@
                         coord.row -= currentBottomRight.row - bottomRightLimit.row;
                     }
                 }
-                if (bottomRightLimit.column - topLeftLimit.column < currentBottomRight.column - currentTopLeft.column) {
+                if (bottomRightLimit.column - topLeftLimit.column <
+                    currentBottomRight.column - currentTopLeft.column) {
                     // if the limit is smaller than the current view, center it
                     coord.column = (bottomRightLimit.column + topLeftLimit.column) / 2;
                 }
