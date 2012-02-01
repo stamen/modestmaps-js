@@ -10,33 +10,25 @@
 
     function initMap() {
         // "import" the namespace
-        var mm = com.modestmaps;
-        
         // please use your own API key, see http://developers.cloudmade.com/ for more details
-        var provider = new mm.CloudMadeProvider('1a914755a77758e49e19a26e799268b7','999');
-        
-        map = new mm.Map('map', provider, new mm.Point(640,480))
-        
-        map.setCenterZoom(new mm.Location(37.774, -122.422), 11);
+        var provider = new MM.Layer(new MM.CloudMadeProvider('1a914755a77758e49e19a26e799268b7','999'));
+        map = new MM.Map('map', provider, new MM.Point(640,480))
+        map.setCenterZoom(new MM.Location(37.774, -122.422), 11);
 
         loadYQL("http://cabspotting.org/cabs.xml.php", 'cablist');
     }
-    
     function loadYQL(url, callback) {
 
         var yqlURL = 'http://query.yahooapis.com/v1/public/yql';
-        
-        var yqlArgs = { 
+        var yqlArgs = {
           q: 'select * from xml where url="'+url+'"',
           format: 'json',
           callback: callback
         };
-        
         var queries = [];
         for (var prop in yqlArgs) {
             queries.push(prop + '=' + yqlArgs[prop]);
         }
-        
         var script = document.createElement('script');
         script.src = yqlURL + '?' + queries.join('&');
         document.getElementsByTagName('head')[0].appendChild(script);

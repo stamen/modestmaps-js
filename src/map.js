@@ -399,22 +399,6 @@
             }
         },
 
-        // layers
-        // HACK for 0.x.y - stare at @RandomEtc 
-        // this method means we can also pass a URL template or a MapProvider to addLayer
-        coerceLayer: function(layerish) {
-            if ('draw' in layerish && typeof layerish.draw == 'function') {
-                // good enough, though we should probably enforce .parent and .destroy() too
-                return layerish;
-            } else if (typeof layerish == 'string') {
-                // probably a template string
-                return new MM.Layer(new MM.TemplatedMapProvider(layerish));
-            } else {
-                // probably a MapProvider
-                return new MM.Layer(layerish);
-            }
-        },
-
         // return a copy of the layers array
         getLayers: function() {
             return this.layers.slice();
@@ -427,7 +411,6 @@
 
         // put the given layer on top of all the others
         addLayer: function(layer) {
-            layer = this.coerceLayer(layer);
             this.layers.push(layer);
             this.parent.appendChild(layer.parent);
             layer.map = this; // TODO: remove map property from MM.Layer?
@@ -451,8 +434,6 @@
             if (index < 0 || index >= this.layers.length) {
                 throw new Error('invalid index in setLayerAt(): ' + index);
             }
-
-            layer = this.coerceLayer(layer);
 
             if (this.layers[index] != layer) {
 
@@ -479,9 +460,7 @@
                 throw new Error('invalid index in insertLayerAt(): ' + index);
             }
 
-            layer = this.coerceLayer(layer);
-
-            if(index == this.layers.length) {
+            if (index == this.layers.length) {
                 // it just gets tacked on to the end
                 this.layers.push(layer);
                 this.parent.appendChild(layer.parent);

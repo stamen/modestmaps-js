@@ -95,7 +95,7 @@ var map, markerClip;
 function initMap() {
 
     map = new MM.Map('map', 
-                      new MM.TemplatedMapProvider('http://tile.openstreetmap.org/{Z}/{X}/{Y}.png')); 
+                      new MM.TemplatedLayer('http://tile.openstreetmap.org/{Z}/{X}/{Y}.png')); 
 
     map.setCenterZoom(new MM.Location(0, 0), 1);
 

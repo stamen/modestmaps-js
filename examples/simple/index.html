@@ -23,12 +23,12 @@
 // "import" the namespace
 var MM = com.modestmaps;
 
-var provider = new MM.MapProvider(function(coord) {
+var layer = new MM.Layer(new MM.MapProvider(function(coord) {
     var img = parseInt(coord.zoom) +'-r'+ parseInt(coord.row) +'-c'+ parseInt(coord.column) + '.jpg';
     return 'http://osm-bayarea.s3.amazonaws.com/' + img;
-});
+}));
 
-map = new MM.Map('map', provider, new MM.Point(900,900))
+map = new MM.Map('map', layer, new MM.Point(900,900))
 
 var f = new MM.Follower(map, new MM.Location(37.811530, -122.2666097), '&#xB0; Broadway and Grand');
 

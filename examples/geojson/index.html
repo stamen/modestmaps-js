@@ -10,7 +10,7 @@
             markers;
 
         function initMap() {
-            var provider = new MM.TemplatedMapProvider("http://ecn.t{S}.tiles.virtualearth.net/tiles/r{Q}?g=689&mkt=en-us&lbl=l0&stl=m", [0,1,2,3,4,5,6,7]);
+            var provider = new MM.TemplatedLayer("http://ecn.t{S}.tiles.virtualearth.net/tiles/r{Q}?g=689&mkt=en-us&lbl=l0&stl=m", [0,1,2,3,4,5,6,7]);
             map = new MM.Map("map", provider);
             map.setCenterZoom(new MM.Location(37.764, -122.419), 12);
 

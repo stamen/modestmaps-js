@@ -14,15 +14,15 @@ function initMaps() {
 
     var subdomains = [ 'a.', 'b.', 'c.', '' ];
     var providers = [
-        new MM.TemplatedMapProvider('http://osm-bayarea.s3.amazonaws.com/{Z}-r{Y}-c{X}.png'),
-        new MM.TemplatedMapProvider('http://oakland-1967.s3.amazonaws.com/{Z}-r{Y}-c{X}.jpg'),
-        new MM.TemplatedMapProvider('http://oakland-1950s.s3.amazonaws.com/{Z}-r{Y}-c{X}.jpg'),
-        new MM.TemplatedMapProvider('http://oakland-sf-1936.s3.amazonaws.com/{Z}-r{Y}-c{X}.jpg'),
-        new MM.TemplatedMapProvider('http://oakland-1912.s3.amazonaws.com/{Z}-r{Y}-c{X}.jpg'),
-        new MM.TemplatedMapProvider('http://oakland-1877.s3.amazonaws.com/{Z}-r{Y}-c{X}.jpg'),
-        new MM.TemplatedMapProvider('http://{S}tile.cloudmade.com/1a914755a77758e49e19a26e799268b7/997/256/{Z}/{X}/{Y}.png', subdomains),
-        new MM.TemplatedMapProvider('http://{S}tile.cloudmade.com/1a914755a77758e49e19a26e799268b7/998/256/{Z}/{X}/{Y}.png', subdomains),
-        new MM.TemplatedMapProvider('http://{S}tile.cloudmade.com/1a914755a77758e49e19a26e799268b7/999/256/{Z}/{X}/{Y}.png', subdomains)
+        new MM.TemplatedLayer('http://osm-bayarea.s3.amazonaws.com/{Z}-r{Y}-c{X}.png'),
+        new MM.TemplatedLayer('http://oakland-1967.s3.amazonaws.com/{Z}-r{Y}-c{X}.jpg'),
+        new MM.TemplatedLayer('http://oakland-1950s.s3.amazonaws.com/{Z}-r{Y}-c{X}.jpg'),
+        new MM.TemplatedLayer('http://oakland-sf-1936.s3.amazonaws.com/{Z}-r{Y}-c{X}.jpg'),
+        new MM.TemplatedLayer('http://oakland-1912.s3.amazonaws.com/{Z}-r{Y}-c{X}.jpg'),
+        new MM.TemplatedLayer('http://oakland-1877.s3.amazonaws.com/{Z}-r{Y}-c{X}.jpg'),
+        new MM.TemplatedLayer('http://{S}tile.cloudmade.com/1a914755a77758e49e19a26e799268b7/997/256/{Z}/{X}/{Y}.png', subdomains),
+        new MM.TemplatedLayer('http://{S}tile.cloudmade.com/1a914755a77758e49e19a26e799268b7/998/256/{Z}/{X}/{Y}.png', subdomains),
+        new MM.TemplatedLayer('http://{S}tile.cloudmade.com/1a914755a77758e49e19a26e799268b7/999/256/{Z}/{X}/{Y}.png', subdomains)
     ];
     
     for (var i = 0; i < providers.length; i++) {

@@ -7,8 +7,7 @@ if (!com) {
 }
 
 (function(MM){
-MM.Follower = function(map, location, content, dimensions)
-{
+MM.Follower = function(map, location, content, dimensions) {
     this.coord = map.locationCoordinate(location);
     
     this.offset = new MM.Point(0, 0);

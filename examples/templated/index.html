@@ -20,7 +20,7 @@ function initMap() {
         } 
     }
 
-    map = new MM.Map('map', new MM.TemplatedMapProvider(input.value))
+    map = new MM.Map('map', new MM.TemplatedLayer(input.value))
 
     var f = new MM.Follower(map, new MM.Location(37.811530, -122.2666097), '&#xB0; Broadway and Grand');
 

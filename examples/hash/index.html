@@ -8,7 +8,7 @@
             map, hash;
 
         function initMap() {
-            var provider = new MM.TemplatedMapProvider("http://acetate.geoiq.com/tiles/acetate/{Z}/{X}/{Y}.png");
+            var provider = new MM.TemplatedLayer("http://acetate.geoiq.com/tiles/acetate/{Z}/{X}/{Y}.png");
             map = new MM.Map("map", provider);
             map.setCenterZoom(new MM.Location(37.804, -122.252), 12);
             hash = new MM.Hash(map);
