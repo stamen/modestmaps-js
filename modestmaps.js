@@ -992,6 +992,7 @@ var MM = com.modestmaps = {
 
         mouseMove: function(e) {
             if (this.prevMouse) {
+                this.map.fastForward = true;
                 this.map.panBy(
                     e.clientX - this.prevMouse.x,
                     e.clientY - this.prevMouse.y);
@@ -1006,6 +1007,8 @@ var MM = com.modestmaps = {
         mouseUp: function(e) {
             MM.removeEvent(document, 'mouseup', this._mouseUp);
             MM.removeEvent(document, 'mousemove', this._mouseMove);
+            this.map.fastForward = false;
+            this.map.requestRedraw();
 
             this.prevMouse = null;
             this.map.parent.style.cursor = '';
@@ -1105,10 +1108,10 @@ var MM = com.modestmaps = {
             }
         },
 
-        onMapMove: function(map) {
+        onMapMove: function(map, ff) {
             // bail if we're moving the map (updating from a hash),
             // or if the map has no zoom set
-            if (this.movingMap || this.map.zoom === 0) {
+            if (ff || this.movingMap || this.map.zoom === 0) {
                 return false;
             }
             var hash = this.formatHash(map);
@@ -2360,6 +2363,8 @@ var MM = com.modestmaps = {
 
         autoSize: null,        // Boolean, true if we have a window resize listener
 
+        fastForward: false,    // Boolean, true if current map moves are caused by a transient action
+
         toString: function() {
             return 'Map(#' + this.parent.id + ')';
         },
@@ -2844,7 +2849,7 @@ var MM = com.modestmaps = {
                 this.layers[i].draw();
             }
 
-            this.dispatchCallback('drawn');
+            this.dispatchCallback('drawn', this.fastForward);
         },
 
         _redrawTimer: undefined,

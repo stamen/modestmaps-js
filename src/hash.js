@@ -65,10 +65,10 @@
             }
         },
 
-        onMapMove: function(map) {
+        onMapMove: function(map, ff) {
             // bail if we're moving the map (updating from a hash),
             // or if the map has no zoom set
-            if (this.movingMap || this.map.zoom === 0) {
+            if (ff || this.movingMap || this.map.zoom === 0) {
                 return false;
             }
             var hash = this.formatHash(map);
