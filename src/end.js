@@ -5,6 +5,7 @@
           MercatorProjection: MM.MercatorProjection,
           LinearProjection: MM.LinearProjection,
           Transformation: MM.Transformation,
+          deriveTransformation: MM.deriveTransformation,
           Location: MM.Location,
           MapProvider: MM.MapProvider,
           TemplatedMapProvider: MM.TemplatedMapProvider,
