@@ -1,9 +1,30 @@
----
-title: Home
-layout: default
----
-
-<div class='intro copy'>
+<!DOCTYPE html >
+<html>
+<head>
+  <meta charset='utf-8'/>
+  <title>Modest Maps | Home</title>
+  <link rel='shortcut icon' href='images/favicon.ico' type='image/x-icon' />
+  <link href='site.css' rel='stylesheet' type='text/css' />
+</head>
+<body>
+  <div class='header'>
+    <h1><a href='index.html' class='icon title'>{ modest maps }</a></h1>
+  </div>
+  <div class='limiter clearfix'>
+     <div class='sidebar'>
+      <div class='sidebar-inner'>
+        <ul>
+            <li><a href='index.html' class='home active'>Home</a></li>
+          
+            <li><a href='extending.html' class=''>Extensions</a></li>
+          
+            <li><a class='external' href='https://github.com/stamen/modestmaps-js'>Repository</a></li>
+            <li><a class='external' href='https://github.com/stamen/modestmaps-js/wiki'>API Docs</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class='content'>
+      <div class='intro copy'>
   <p><span class='first-letter'>M</span>odest Maps is a small,
   extensible, and <a href='http://www.opensource.org/licenses/bsd-license.php'>free</a>
   library for
@@ -14,16 +35,17 @@ layout: default
 </div>
 
 <div class='live'>
-{% highlight html %}
-<div class='map' id='map'></div>
+<div class="highlight"><pre><code class="html"><span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">&#39;map&#39;</span> <span class="na">id=</span><span class="s">&#39;map&#39;</span><span class="nt">&gt;&lt;/div&gt;</span>
 
-<script>
-  var template = 'http://a.tiles.mapbox.com/mapbox/2.0.0/mapbox.world-bright/{Z}/{X}/{Y}.png';
-  var provider = new com.modestmaps.TemplatedMapProvider(template);
-  var map = new com.modestmaps.Map('map', provider);
-  map.setZoom(2);
-</script>
-{% endhighlight %}
+<span class="nt">&lt;script&gt;</span>
+  <span class="kd">var</span> <span class="nx">template</span> <span class="o">=</span> <span class="s1">&#39;http://a.tiles.mapbox.com/mapbox/2.0.0/mapbox.world-bright/{Z}/{X}/{Y}.png&#39;</span><span class="p">;</span>
+  <span class="kd">var</span> <span class="nx">provider</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">com</span><span class="p">.</span><span class="nx">modestmaps</span><span class="p">.</span><span class="nx">TemplatedMapProvider</span><span class="p">(</span><span class="nx">template</span><span class="p">);</span>
+  <span class="kd">var</span> <span class="nx">map</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">com</span><span class="p">.</span><span class="nx">modestmaps</span><span class="p">.</span><span class="nx">Map</span><span class="p">(</span><span class="s1">&#39;map&#39;</span><span class="p">,</span> <span class="nx">provider</span><span class="p">);</span>
+  <span class="nx">map</span><span class="p">.</span><span class="nx">setZoom</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
+<span class="nt">&lt;/script&gt;</span>
+</code></pre>
+</div>
+
 </div>
 
 <div class='premiere clearfix'>
@@ -79,3 +101,9 @@ layout: default
     </div>
   </div>
 </div>
+
+    </div>
+  </div>
+<script src='site.js'></script>
+</body>
+</html>
