@@ -398,7 +398,7 @@ img.left {
       color: inherit;
       }
 .option {
-  opacity: 0.20;
+  opacity: 0.80;
   -moz-opacity: 0.20;
   filter:alpha(opacity=20);
   margin-bottom: 20px;
