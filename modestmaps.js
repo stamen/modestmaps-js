@@ -91,7 +91,8 @@ var MM = com.modestmaps = {
             var unit = (MM.transformProperty == 'MozTransform') ? 'px' : '';
             return 'matrix(' +
                 (point.scale || '1') + ',' + 0 + ',' + 0 + ',' +
-                (point.scale || '1') + ',' + ((point.x + (((point.width  * point.scale) - point.width) / 2)) + unit) + ',' +
+                (point.scale || '1') + ',' +
+                ((point.x + (((point.width  * point.scale) - point.width) / 2)) + unit) + ',' +
                 ((point.y + (((point.height * point.scale) - point.height) / 2)) + unit) + ')';
         }
     };
@@ -1081,10 +1082,9 @@ var MM = com.modestmaps = {
             var center = map.getCenter(),
                 zoom = map.getZoom(),
                 precision = Math.max(0, Math.ceil(Math.log(zoom) / Math.LN2));
-            return "#" + [zoom,
-                center.lat.toFixed(precision),
-                center.lon.toFixed(precision)
-            ].join("/");
+            return "#" + zoom + '/' +
+                center.lat.toFixed(precision) + '/' +
+                center.lon.toFixed(precision);
         },
 
         init: function(map) {

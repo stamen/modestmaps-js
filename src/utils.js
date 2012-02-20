@@ -61,7 +61,8 @@
             var unit = (MM.transformProperty == 'MozTransform') ? 'px' : '';
             return 'matrix(' +
                 (point.scale || '1') + ',' + 0 + ',' + 0 + ',' +
-                (point.scale || '1') + ',' + ((point.x + (((point.width  * point.scale) - point.width) / 2)) + unit) + ',' +
+                (point.scale || '1') + ',' +
+                ((point.x + (((point.width  * point.scale) - point.width) / 2)) + unit) + ',' +
                 ((point.y + (((point.height * point.scale) - point.height) / 2)) + unit) + ')';
         }
     };

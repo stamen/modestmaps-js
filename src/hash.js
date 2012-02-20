@@ -40,10 +40,9 @@
             var center = map.getCenter(),
                 zoom = map.getZoom(),
                 precision = Math.max(0, Math.ceil(Math.log(zoom) / Math.LN2));
-            return "#" + [zoom,
-                center.lat.toFixed(precision),
-                center.lon.toFixed(precision)
-            ].join("/");
+            return "#" + zoom + '/' +
+                center.lat.toFixed(precision) + '/' +
+                center.lon.toFixed(precision);
         },
 
         init: function(map) {
