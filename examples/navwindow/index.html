@@ -10,7 +10,7 @@ var map, nav;
 
 window.onload = function() {
     var provider = new MM.TemplatedLayer('http://tile.openstreetmap.org/{Z}/{X}/{Y}.png');
-    map = new MM.Map('map', provider); 
+    map = new MM.Map('map', provider);
     nav = new MM.Map('nav', provider);
 
     var changingMap = null;

@@ -11,16 +11,11 @@
 <script type="text/javascript">
 
     var MM = com.modestmaps; // "import" the namespace
-        
     var map;
-    
     function initMap() {
-        
         // please use your own API key, see http://developers.cloudmade.com/ for more details
         var provider = new MM.CloudMadeProvider('1a914755a77758e49e19a26e799268b7','998');
-        
-        map = new MM.Map('map', provider, new MM.Point(640,480))
-        
+        map = new MM.Map('map', new MM.Layer(provider), new MM.Point(640,480))
         map.setCenterZoom(new MM.Location(40.547, -78.091), 3);
 
         $.ajax({
@@ -28,18 +23,18 @@
             url: "KATRINA23_2005.xml",
             dataType: "xml",
             success: onDataLoaded
-        });        
+        });
     }
-    
+
     function onDataLoaded(xml) {
         $(xml).find('ForecastErrorSwath').each(renderSwath);
         $(xml).find('PastWindSwath').each(renderSwath);
         $(xml).find('ForecastWindSwath').each(renderSwath);
         $(xml).find('CurrentWindRing').each(renderSwath);
 
-        new MM.MapControls(map);        
+        new MM.MapControls(map);
     }
-    
+
     function renderSwath(i, swath) {
         var pairs = $(swath).find('Coordinates').text().split('  ');
         var locations = [];
@@ -56,11 +51,9 @@
             }
         }
         if (locations.length > 0) {
-            
             var fillStyle = '#f00';
             var fillAlpha = 1.0;
             var strokeStyle = 'black';
-            
             if (swath.nodeName == 'PastWindSwath') {
                 fillStyle = '#630';
                 fillAlpha = 0.5;
@@ -80,10 +73,8 @@
                 fillStyle = null;
                 strokeStyle = 'rgb(80,80,80)';
             }
-            
-            
             var polygon = new MM.PolygonMarker(map, locations, fillStyle, fillAlpha, strokeStyle);
-        }        
+        }
     }
 
 </script>

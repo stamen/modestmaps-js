@@ -28,7 +28,7 @@
             // them out. Contributions welcome but watch out for collisions when the
             // row or column are negative and check thoroughly (exhaustively) before
             // committing.
-            return [ this.zoom, this.row, this.column ].join(',');
+            return this.zoom + ',' + this.row + ',' + this.column;
         },
         // Clone this object.
         copy: function() {

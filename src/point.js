@@ -17,14 +17,14 @@
 
     // Get the euclidean distance between two points
     MM.Point.distance = function(p1, p2) {
-        var dx = (p2.x - p1.x);
-        var dy = (p2.y - p1.y);
-        return Math.sqrt(dx*dx + dy*dy);
+        return Math.sqrt(
+            Math.pow(p2.x - p1.x, 2) +
+            Math.pow(p2.y - p1.y, 2));
     };
 
     // Get a point between two other points, biased by `t`.
     MM.Point.interpolate = function(p1, p2, t) {
-        var px = p1.x + (p2.x - p1.x) * t;
-        var py = p1.y + (p2.y - p1.y) * t;
-        return new MM.Point(px, py);
+        return new MM.Point(
+            p1.x + (p2.x - p1.x) * t,
+            p1.y + (p2.y - p1.y) * t);
     };

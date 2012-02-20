@@ -6,11 +6,10 @@
     <script type="text/javascript">
 
 window.onload = function() {
-  var MM = com.modestmaps;
   var provider = new MM.TemplatedLayer('http://tile.openstreetmap.org/{Z}/{X}/{Y}.png');
   var map = new MM.Map(document.body, provider)
-                      .setCenter(new MM.Location(51.5001524, -0.1262362))
-                      .setZoom(11);
+      .setCenter(new MM.Location(51.5001524, -0.1262362))
+      .setZoom(11);
 };
 
     </script>
