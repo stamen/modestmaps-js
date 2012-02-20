@@ -100,8 +100,8 @@
             //  Ignore standards at your own peril."
             // -- http://www.yuiblog.com/blog/2006/09/26/for-in-intrigue/
             for (var id in this.requestsById) {
-                if (this.requestsById.hasOwnProperty(id)) {
-                    if (!(id in validIds)) {
+                if (!(id in validIds)) {
+                    if (this.requestsById.hasOwnProperty(id)) {
                         var requestToRemove = this.requestsById[id];
                         // whether we've done the request or not...
                         delete this.requestsById[id];
