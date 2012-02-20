@@ -7,10 +7,8 @@
     //  * `location` (required MM.Location)
     //      Location for map to show
     //  * `zoom` (required number)
-    MM.mapByCenterZoom = function(parent, provider, location, zoom)
-    {
-        if (typeof provider == 'string')
-        {
+    MM.mapByCenterZoom = function(parent, provider, location, zoom) {
+        if(typeof provider == 'string') {
             provider = new MM.TemplatedMapProvider(provider);
         }
 
@@ -32,10 +30,8 @@
     //      Location of one map corner
     //  * `locationB` (required MM.Location)
     //      Location of other map corner
-    MM.mapByExtent = function(parent, provider, locationA, locationB)
-    {
-        if (typeof provider == 'string')
-        {
+    MM.mapByExtent = function(parent, provider, locationA, locationB) {
+        if(typeof provider == 'string') {
             provider = new MM.TemplatedMapProvider(provider);
         }
 
