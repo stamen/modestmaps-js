@@ -281,23 +281,21 @@
                     this.provider.releaseTile(tile.coord);
                     this.requestManager.clearRequest(tile.coord.toKey());
                     level.removeChild(tile);
-                } else {
-                    // position tiles
-                    MM.moveElement(tile, {
-                        x: Math.round(center.x +
-                            (tile.coord.column - theCoord.column) * tileWidth),
-                        y: Math.round(center.y +
-                            (tile.coord.row - theCoord.row) * tileHeight),
-                        scale: scale,
-                        // TODO: pass only scale or only w/h
-                        width: this.map.tileSize.x,
-                        height: this.map.tileSize.y
-                    });
-
-                    // log last-touched-time of currently cached tiles
-                    this.recentTilesById[tile.id].lastTouchedTime = now;
                 }
+                // log last-touched-time of currently cached tiles
+                this.recentTilesById[tile.id].lastTouchedTime = now;
             }
+
+            // position tiles
+            MM.moveElement(level, {
+                x: Math.round(center.x - (theCoord.column * tileWidth)),
+                y: Math.round(center.y - (theCoord.row * tileHeight)),
+                scale: scale,
+                // TODO: pass only scale or only w/h
+                // width: this.map.tileSize.x,
+                width: Math.pow(2, theCoord.zoom) * this.map.tileSize.x,
+                height: Math.pow(2, theCoord.zoom) * this.map.tileSize.y
+            });
         },
 
         createOrGetLevel: function(zoom) {
@@ -342,7 +340,6 @@
         positionTile: function(tile) {
             // position this tile (avoids a full draw() call):
             var theCoord = this.map.coordinate.zoomTo(tile.coord.zoom);
-            var scale = Math.pow(2, this.map.coordinate.zoom - tile.coord.zoom);
 
             // Start tile positioning and prevent drag for modern browsers
             tile.style.cssText = 'position:absolute;-webkit-user-select: none;-webkit-user-drag: none;-moz-user-drag: none;';
@@ -350,18 +347,15 @@
             // Prevent drag for IE
             tile.ondragstart = function() { return false; };
 
-            var tx = ((this.map.dimensions.x/2) +
-                (tile.coord.column - theCoord.column) *
-                this.map.tileSize.x * scale);
-            var ty = ((this.map.dimensions.y/2) +
-                (tile.coord.row - theCoord.row) *
-                this.map.tileSize.y * scale);
+            var tx = tile.coord.column *
+                this.map.tileSize.x;
+            var ty = tile.coord.row *
+                this.map.tileSize.y;
 
             // TODO: pass only scale or only w/h
             MM.moveElement(tile, {
                 x: Math.round(tx),
                 y: Math.round(ty),
-                scale: scale,
                 width: this.map.tileSize.x,
                 height: this.map.tileSize.y
             });
