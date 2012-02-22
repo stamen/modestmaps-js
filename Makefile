@@ -15,6 +15,7 @@ JS_FILES = \
 	src/requests.js \
 	src/layer.js \
 	src/map.js \
+	src/convenience.js \
 	src/end.js
 
 all: modestmaps.js modestmaps.min.js
