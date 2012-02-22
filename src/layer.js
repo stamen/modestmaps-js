@@ -285,20 +285,36 @@
                     this.requestManager.clearRequest(tile.coord.toKey());
                     level.removeChild(tile);
                 }
+
+                if (!(MM.transformProperty && MM._browser.webkit3d)) {
+                    // position tiles
+                    MM.moveElement(tile, {
+                        x: Math.round(center.x +
+                            (tile.coord.column - theCoord.column) * tileWidth),
+                        y: Math.round(center.y +
+                            (tile.coord.row - theCoord.row) * tileHeight),
+                        scale: scale,
+                        // TODO: pass only scale or only w/h
+                        width: this.map.tileSize.x,
+                        height: this.map.tileSize.y
+                    });
+                }
                 // log last-touched-time of currently cached tiles
                 this.recentTilesById[tile.id].lastTouchedTime = now;
             }
 
             var squareSize = Math.pow(2, zoom) * 256;
 
-            // position tiles
-            MM.moveElement(level, {
-                x: center.x - (theCoord.column * 256),
-                y: center.y - (theCoord.row * 256),
-                scale: scale,
-                width: squareSize,
-                height: squareSize
-            });
+            if (MM.transformProperty && MM._browser.webkit3d) {
+                // position tiles
+                MM.moveElement(level, {
+                    x: center.x - (theCoord.column * 256),
+                    y: center.y - (theCoord.row * 256),
+                    scale: scale,
+                    width: squareSize,
+                    height: squareSize
+                });
+            }
         },
 
         createOrGetLevel: function(zoom) {

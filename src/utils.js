@@ -49,22 +49,13 @@
             point.scale += (1 - point.scale * point.width % 1) / point.width;
         }
 
-        if (MM._browser.webkit3d) {
-            return 'matrix3d(' +
-                1 + ',' + 0 +                  ',' + 0 + ',' + 0 + ',' +
-                0 +                  ',' + 1 + ',' + 0 + ',' + 0 + ',' +
-                0 +                  ',' + 0 + ',' + 1 + ',' + 0 + ',' +
-                point.x.toFixed(4) + ',' +
-                point.y.toFixed(4) + ',' +
-                0 + ',' + ((1 / point.scale) || 1) + ')';
-        } else {
-            var unit = (MM.transformProperty == 'MozTransform') ? 'px' : '';
-            return 'matrix(' +
-                (point.scale || '1') + ',' + 0 + ',' + 0 + ',' +
-                (point.scale || '1') + ',' +
-                ((point.x + (((point.width  * point.scale) - point.width) / 2)) + unit) + ',' +
-                ((point.y + (((point.height * point.scale) - point.height) / 2)) + unit) + ')';
-        }
+        return 'matrix3d(' +
+            1 + ',' + 0 +        ',' + 0 + ',' + 0 + ',' +
+            0 +                  ',' + 1 + ',' + 0 + ',' + 0 + ',' +
+            0 +                  ',' + 0 + ',' + 1 + ',' + 0 + ',' +
+            point.x.toFixed(4) + ',' +
+            point.y.toFixed(4) + ',' +
+            0 + ',' + ((1 / point.scale) || 1) + ')';
     };
 
     MM._browser = (function(window) {
@@ -75,7 +66,7 @@
     })(this); // use this for node.js global
 
     MM.moveElement = function(el, point) {
-        if (MM.transformProperty) {
+        if (MM.transformProperty && MM._browser.webkit3d) {
             // Optimize for identity transforms, where you don't actually
             // need to change this element's string. Browsers can optimize for
             // the .style.left case but not for this CSS case.

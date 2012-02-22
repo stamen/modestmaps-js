@@ -79,22 +79,13 @@ var MM = com.modestmaps = {
             point.scale += (1 - point.scale * point.width % 1) / point.width;
         }
 
-        if (MM._browser.webkit3d) {
-            return 'matrix3d(' +
-                1 + ',' + 0 +                  ',' + 0 + ',' + 0 + ',' +
-                0 +                  ',' + 1 + ',' + 0 + ',' + 0 + ',' +
-                0 +                  ',' + 0 + ',' + 1 + ',' + 0 + ',' +
-                point.x.toFixed(4) + ',' +
-                point.y.toFixed(4) + ',' +
-                0 + ',' + ((1 / point.scale) || 1) + ')';
-        } else {
-            var unit = (MM.transformProperty == 'MozTransform') ? 'px' : '';
-            return 'matrix(' +
-                (point.scale || '1') + ',' + 0 + ',' + 0 + ',' +
-                (point.scale || '1') + ',' +
-                ((point.x + (((point.width  * point.scale) - point.width) / 2)) + unit) + ',' +
-                ((point.y + (((point.height * point.scale) - point.height) / 2)) + unit) + ')';
-        }
+        return 'matrix3d(' +
+            1 + ',' + 0 +        ',' + 0 + ',' + 0 + ',' +
+            0 +                  ',' + 1 + ',' + 0 + ',' + 0 + ',' +
+            0 +                  ',' + 0 + ',' + 1 + ',' + 0 + ',' +
+            point.x.toFixed(4) + ',' +
+            point.y.toFixed(4) + ',' +
+            0 + ',' + ((1 / point.scale) || 1) + ')';
     };
 
     MM._browser = (function(window) {
@@ -105,7 +96,7 @@ var MM = com.modestmaps = {
     })(this); // use this for node.js global
 
     MM.moveElement = function(el, point) {
-        if (MM.transformProperty) {
+        if (MM.transformProperty && MM._browser.webkit3d) {
             // Optimize for identity transforms, where you don't actually
             // need to change this element's string. Browsers can optimize for
             // the .style.left case but not for this CSS case.
@@ -2028,20 +2019,36 @@ var MM = com.modestmaps = {
                     this.requestManager.clearRequest(tile.coord.toKey());
                     level.removeChild(tile);
                 }
+
+                if (!(MM.transformProperty && MM._browser.webkit3d)) {
+                    // position tiles
+                    MM.moveElement(tile, {
+                        x: Math.round(center.x +
+                            (tile.coord.column - theCoord.column) * tileWidth),
+                        y: Math.round(center.y +
+                            (tile.coord.row - theCoord.row) * tileHeight),
+                        scale: scale,
+                        // TODO: pass only scale or only w/h
+                        width: this.map.tileSize.x,
+                        height: this.map.tileSize.y
+                    });
+                }
                 // log last-touched-time of currently cached tiles
                 this.recentTilesById[tile.id].lastTouchedTime = now;
             }
 
             var squareSize = Math.pow(2, zoom) * 256;
 
-            // position tiles
-            MM.moveElement(level, {
-                x: center.x - (theCoord.column * 256),
-                y: center.y - (theCoord.row * 256),
-                scale: scale,
-                width: squareSize,
-                height: squareSize
-            });
+            if (MM.transformProperty && MM._browser.webkit3d) {
+                // position tiles
+                MM.moveElement(level, {
+                    x: center.x - (theCoord.column * 256),
+                    y: center.y - (theCoord.row * 256),
+                    scale: scale,
+                    width: squareSize,
+                    height: squareSize
+                });
+            }
         },
 
         createOrGetLevel: function(zoom) {
