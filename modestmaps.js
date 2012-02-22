@@ -81,20 +81,19 @@ var MM = com.modestmaps = {
 
         if (MM._browser.webkit3d) {
             return 'matrix3d(' +
-                [(point.scale || '1'), '0,0,0,0',
-                 (point.scale || '1'), '0,0',
-                '0,0,1,0',
-                (point.x + (((point.width  * point.scale) - point.width) / 2)).toFixed(4),
-                (point.y + (((point.height * point.scale) - point.height) / 2)).toFixed(4),
-                0,1].join(',') + ')';
+                1 + ',' + 0 +                  ',' + 0 + ',' + 0 + ',' +
+                0 +                  ',' + 1 + ',' + 0 + ',' + 0 + ',' +
+                0 +                  ',' + 0 + ',' + 1 + ',' + 0 + ',' +
+                point.x.toFixed(4) + ',' +
+                point.y.toFixed(4) + ',' +
+                0 + ',' + ((1 / point.scale) || 1) + ')';
         } else {
             var unit = (MM.transformProperty == 'MozTransform') ? 'px' : '';
             return 'matrix(' +
-                [(point.scale || '1'), 0, 0,
-                (point.scale || '1'),
-                (point.x + (((point.width  * point.scale) - point.width) / 2)) + unit,
-                (point.y + (((point.height * point.scale) - point.height) / 2)) + unit
-                ].join(',') + ')';
+                (point.scale || '1') + ',' + 0 + ',' + 0 + ',' +
+                (point.scale || '1') + ',' +
+                ((point.x + (((point.width  * point.scale) - point.width) / 2)) + unit) + ',' +
+                ((point.y + (((point.height * point.scale) - point.height) / 2)) + unit) + ')';
         }
     };
 
@@ -1005,6 +1004,7 @@ var MM = com.modestmaps = {
 
         mouseMove: function(e) {
             if (this.prevMouse) {
+                this.map.fastForward = true;
                 this.map.panBy(
                     e.clientX - this.prevMouse.x,
                     e.clientY - this.prevMouse.y);
@@ -1019,6 +1019,8 @@ var MM = com.modestmaps = {
         mouseUp: function(e) {
             MM.removeEvent(document, 'mouseup', this._mouseUp);
             MM.removeEvent(document, 'mousemove', this._mouseMove);
+            this.map.fastForward = false;
+            this.map.requestRedraw();
 
             this.prevMouse = null;
             this.map.parent.style.cursor = '';
@@ -1093,10 +1095,9 @@ var MM = com.modestmaps = {
             var center = map.getCenter(),
                 zoom = map.getZoom(),
                 precision = Math.max(0, Math.ceil(Math.log(zoom) / Math.LN2));
-            return "#" + [zoom,
-                center.lat.toFixed(precision),
-                center.lon.toFixed(precision)
-            ].join("/");
+            return "#" + zoom + '/' +
+                center.lat.toFixed(precision) + '/' +
+                center.lon.toFixed(precision);
         },
 
         init: function(map) {
@@ -1118,10 +1119,10 @@ var MM = com.modestmaps = {
             }
         },
 
-        onMapMove: function(map) {
+        onMapMove: function(map, ff) {
             // bail if we're moving the map (updating from a hash),
             // or if the map has no zoom set
-            if (this.movingMap || this.map.zoom === 0) {
+            if (ff || this.movingMap || this.map.zoom === 0) {
                 return false;
             }
             var hash = this.formatHash(map);
@@ -1285,6 +1286,17 @@ var MM = com.modestmaps = {
                     break;
             }
             this.updateTouches(e);
+            this.map.fastForward = true;
+            var m = this.map;
+            if (typeof _touchEndMiss !== 'undefined') {
+                window.clearTimeout(_touchEndMiss);
+            }
+
+            _touchEndMiss = window.setTimeout(function() {
+                m.fastForward = false;
+                m.draw();
+            }, 100);
+
             return MM.cancelEvent(e);
         },
 
@@ -1293,6 +1305,8 @@ var MM = com.modestmaps = {
             // round zoom if we're done pinching
             if (e.touches.length === 0 && this.wasPinching) {
                 this.onPinched(this.lastPinchCenter);
+                this.map.fastForward = false;
+                this.map.draw();
             }
 
             // Look at each changed touch in turn.
@@ -1827,9 +1841,9 @@ var MM = com.modestmaps = {
             // scaled too small (and tiles would be too numerous)
             for (var name in this.levels) {
                 if (this.levels.hasOwnProperty(name)) {
-                    var zoom = parseInt(name,10);
+                    var zoom = parseInt(name, 10);
 
-                    if (zoom >= startCoord.zoom-5 && zoom < startCoord.zoom+2) {
+                    if (zoom >= startCoord.zoom - 5 && zoom < startCoord.zoom + 2) {
                         continue;
                     }
 
@@ -1857,11 +1871,12 @@ var MM = com.modestmaps = {
             // cancel requests that aren't visible:
             this.requestManager.clearExcept(validTileKeys);
 
-            // get newly requested tiles, sort according to current view:
-            this.requestManager.processQueue(this.getCenterDistanceCompare());
-
-            // make sure we don't have too much stuff:
-            this.checkCache();
+            if (!this.map.fastForward) {
+                // get newly requested tiles, sort according to current view:
+                this.requestManager.processQueue(this.getCenterDistanceCompare());
+                // make sure we don't have too much stuff:
+                this.checkCache();
+            }
         },
 
         /**
@@ -1946,7 +1961,7 @@ var MM = com.modestmaps = {
             }
 
             // if we didn't find a parent, look at the children:
-            if(!tileCovered && !this.enablePyramidLoading) {
+            if (!tileCovered && !this.enablePyramidLoading) {
                 var child_coord = tile_coord.zoomBy(1);
 
                 // mark everything valid whether or not we have it:
@@ -2000,7 +2015,9 @@ var MM = com.modestmaps = {
 
             var tileWidth = this.map.tileSize.x * scale;
             var tileHeight = this.map.tileSize.y * scale;
-            var center = new MM.Point(this.map.dimensions.x/2, this.map.dimensions.y/2);
+            var center = new MM.Point(
+                this.map.dimensions.x / 2,
+                this.map.dimensions.y / 2);
             var tiles = this.tileElementsInLevel(level);
 
             while (tiles.length) {
@@ -2015,15 +2032,15 @@ var MM = com.modestmaps = {
                 this.recentTilesById[tile.id].lastTouchedTime = now;
             }
 
+            var squareSize = Math.pow(2, zoom) * 256;
+
             // position tiles
             MM.moveElement(level, {
-                x: Math.round(center.x - (theCoord.column * tileWidth)),
-                y: Math.round(center.y - (theCoord.row * tileHeight)),
+                x: center.x - (theCoord.column * 256),
+                y: center.y - (theCoord.row * 256),
                 scale: scale,
-                // TODO: pass only scale or only w/h
-                // width: this.map.tileSize.x,
-                width: Math.pow(2, theCoord.zoom) * this.map.tileSize.x,
-                height: Math.pow(2, theCoord.zoom) * this.map.tileSize.y
+                width: squareSize,
+                height: squareSize
             });
         },
 
@@ -2159,7 +2176,7 @@ var MM = com.modestmaps = {
                 var tile = this.tiles[tileRecord.id];
                 if (tile.parentNode) {
                     // I'm leaving this uncommented for now but you should never see it:
-                    alert("Gah: trying to removing cached tile even though it's still in the DOM");
+                    alert("Gah: trying to remove cached tile even though it's still in the DOM");
                 } else {
                     delete this.tiles[tileRecord.id];
                     this.tileCacheSize--;
@@ -2366,6 +2383,8 @@ var MM = com.modestmaps = {
         eventHandlers: null,   // Array of interaction handlers, just a MM.MouseHandler by default
 
         autoSize: null,        // Boolean, true if we have a window resize listener
+
+        fastForward: false,    // Boolean, true if current map moves are caused by a transient action
 
         toString: function() {
             return 'Map(#' + this.parent.id + ')';
@@ -2851,7 +2870,7 @@ var MM = com.modestmaps = {
                 this.layers[i].draw();
             }
 
-            this.dispatchCallback('drawn');
+            this.dispatchCallback('drawn', this.fastForward);
         },
 
         _redrawTimer: undefined,

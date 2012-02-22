@@ -121,6 +121,8 @@
 
         autoSize: null,        // Boolean, true if we have a window resize listener
 
+        fastForward: false,    // Boolean, true if current map moves are caused by a transient action
+
         toString: function() {
             return 'Map(#' + this.parent.id + ')';
         },
@@ -605,7 +607,7 @@
                 this.layers[i].draw();
             }
 
-            this.dispatchCallback('drawn');
+            this.dispatchCallback('drawn', this.fastForward);
         },
 
         _redrawTimer: undefined,
