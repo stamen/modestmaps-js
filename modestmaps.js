@@ -2042,8 +2042,8 @@ var MM = com.modestmaps = {
             if (MM.transformProperty && MM._browser.webkit3d) {
                 // position tiles
                 MM.moveElement(level, {
-                    x: center.x - (theCoord.column * 256),
-                    y: center.y - (theCoord.row * 256),
+                    x: this.map.fastForward ? (center.x - (theCoord.column * 256)) : Math.round(center.x - (theCoord.column * 256)),
+                    y: this.map.fastForward ? (center.y - (theCoord.row * 256)) : Math.round(center.y - (theCoord.row * 256)),
                     scale: scale,
                     width: squareSize,
                     height: squareSize
