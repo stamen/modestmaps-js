@@ -1762,7 +1762,7 @@ var MM = com.modestmaps = {
 
         provider: null,
         recentTiles: null,
-        recentTilesById: null,
+        recentTilesById: {},
 
         enablePyramidLoading: false,
 
@@ -2172,7 +2172,7 @@ var MM = com.modestmaps = {
                 });
             }
 
-            while (this.tileCacheSize > maxTiles) {
+            while (this.recentTiles.length && this.tileCacheSize > maxTiles) {
                 // delete the oldest record
                 var tileRecord = this.recentTiles.pop();
                 var now = new Date().getTime();
@@ -2183,7 +2183,7 @@ var MM = com.modestmaps = {
                 var tile = this.tiles[tileRecord.id];
                 if (tile.parentNode) {
                     // I'm leaving this uncommented for now but you should never see it:
-                    alert("Gah: trying to remove cached tile even though it's still in the DOM");
+                    // alert("Gah: trying to remove cached tile even though it's still in the DOM");
                 } else {
                     delete this.tiles[tileRecord.id];
                     this.tileCacheSize--;
