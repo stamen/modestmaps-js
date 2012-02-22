@@ -125,6 +125,19 @@
         };
     };
 
+    MM.coerceLayer = function(layerish) {
+        if (typeof layerish == 'string') {
+            // Probably a template string
+            return new MM.Layer(new MM.TemplatedMapProvider(layerish));
+        } else if ('draw' in layerish && typeof layerish.draw == 'function') {
+            // good enough, though we should probably enforce .parent and .destroy() too
+            return layerish;
+        } else {
+            // probably a MapProvider
+            return new MM.Layer(layerish);
+        }
+    };
+
     // see http://ejohn.org/apps/jselect/event.html for the originals
     MM.addEvent = function(obj, type, fn) {
         if (obj.addEventListener) {
