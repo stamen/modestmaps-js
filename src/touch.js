@@ -96,17 +96,6 @@
                     break;
             }
             this.updateTouches(e);
-            this.map.fastForward = true;
-            var m = this.map;
-            if (typeof _touchEndMiss !== 'undefined') {
-                window.clearTimeout(_touchEndMiss);
-            }
-
-            _touchEndMiss = window.setTimeout(function() {
-                m.fastForward = false;
-                m.draw();
-            }, 100);
-
             return MM.cancelEvent(e);
         },
 
@@ -115,8 +104,6 @@
             // round zoom if we're done pinching
             if (e.touches.length === 0 && this.wasPinching) {
                 this.onPinched(this.lastPinchCenter);
-                this.map.fastForward = false;
-                this.map.draw();
             }
 
             // Look at each changed touch in turn.

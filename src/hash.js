@@ -40,9 +40,10 @@
             var center = map.getCenter(),
                 zoom = map.getZoom(),
                 precision = Math.max(0, Math.ceil(Math.log(zoom) / Math.LN2));
-            return "#" + zoom + '/' +
-                center.lat.toFixed(precision) + '/' +
-                center.lon.toFixed(precision);
+            return "#" + [zoom,
+                center.lat.toFixed(precision),
+                center.lon.toFixed(precision)
+            ].join("/");
         },
 
         init: function(map) {
@@ -64,10 +65,10 @@
             }
         },
 
-        onMapMove: function(map, ff) {
+        onMapMove: function(map) {
             // bail if we're moving the map (updating from a hash),
             // or if the map has no zoom set
-            if (ff || this.movingMap || this.map.zoom === 0) {
+            if (this.movingMap || this.map.zoom === 0) {
                 return false;
             }
             var hash = this.formatHash(map);

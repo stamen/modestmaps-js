@@ -98,9 +98,9 @@
             // scaled too small (and tiles would be too numerous)
             for (var name in this.levels) {
                 if (this.levels.hasOwnProperty(name)) {
-                    var zoom = parseInt(name, 10);
+                    var zoom = parseInt(name,10);
 
-                    if (zoom >= startCoord.zoom - 5 && zoom < startCoord.zoom + 2) {
+                    if (zoom >= startCoord.zoom-5 && zoom < startCoord.zoom+2) {
                         continue;
                     }
 
@@ -128,12 +128,11 @@
             // cancel requests that aren't visible:
             this.requestManager.clearExcept(validTileKeys);
 
-            if (!this.map.fastForward) {
-                // get newly requested tiles, sort according to current view:
-                this.requestManager.processQueue(this.getCenterDistanceCompare());
-                // make sure we don't have too much stuff:
-                this.checkCache();
-            }
+            // get newly requested tiles, sort according to current view:
+            this.requestManager.processQueue(this.getCenterDistanceCompare());
+
+            // make sure we don't have too much stuff:
+            this.checkCache();
         },
 
         /**
@@ -218,7 +217,7 @@
             }
 
             // if we didn't find a parent, look at the children:
-            if (!tileCovered && !this.enablePyramidLoading) {
+            if(!tileCovered && !this.enablePyramidLoading) {
                 var child_coord = tile_coord.zoomBy(1);
 
                 // mark everything valid whether or not we have it:
@@ -272,9 +271,7 @@
 
             var tileWidth = this.map.tileSize.x * scale;
             var tileHeight = this.map.tileSize.y * scale;
-            var center = new MM.Point(
-                this.map.dimensions.x / 2,
-                this.map.dimensions.y / 2);
+            var center = new MM.Point(this.map.dimensions.x/2, this.map.dimensions.y/2);
             var tiles = this.tileElementsInLevel(level);
 
             while (tiles.length) {
@@ -285,36 +282,20 @@
                     this.requestManager.clearRequest(tile.coord.toKey());
                     level.removeChild(tile);
                 }
-
-                if (!(MM.transformProperty && MM._browser.webkit3d)) {
-                    // position tiles
-                    MM.moveElement(tile, {
-                        x: Math.round(center.x +
-                            (tile.coord.column - theCoord.column) * tileWidth),
-                        y: Math.round(center.y +
-                            (tile.coord.row - theCoord.row) * tileHeight),
-                        scale: scale,
-                        // TODO: pass only scale or only w/h
-                        width: this.map.tileSize.x,
-                        height: this.map.tileSize.y
-                    });
-                }
                 // log last-touched-time of currently cached tiles
                 this.recentTilesById[tile.id].lastTouchedTime = now;
             }
 
-            var squareSize = Math.pow(2, zoom) * 256;
-
-            if (MM.transformProperty && MM._browser.webkit3d) {
-                // position tiles
-                MM.moveElement(level, {
-                    x: this.map.fastForward ? (center.x - (theCoord.column * 256)) : Math.round(center.x - (theCoord.column * 256)),
-                    y: this.map.fastForward ? (center.y - (theCoord.row * 256)) : Math.round(center.y - (theCoord.row * 256)),
-                    scale: scale,
-                    width: squareSize,
-                    height: squareSize
-                });
-            }
+            // position tiles
+            MM.moveElement(level, {
+                x: Math.round(center.x - (theCoord.column * tileWidth)),
+                y: Math.round(center.y - (theCoord.row * tileHeight)),
+                scale: scale,
+                // TODO: pass only scale or only w/h
+                // width: this.map.tileSize.x,
+                width: Math.pow(2, theCoord.zoom) * this.map.tileSize.x,
+                height: Math.pow(2, theCoord.zoom) * this.map.tileSize.y
+            });
         },
 
         createOrGetLevel: function(zoom) {
@@ -449,7 +430,7 @@
                 var tile = this.tiles[tileRecord.id];
                 if (tile.parentNode) {
                     // I'm leaving this uncommented for now but you should never see it:
-                    alert("Gah: trying to remove cached tile even though it's still in the DOM");
+                    alert("Gah: trying to removing cached tile even though it's still in the DOM");
                 } else {
                     delete this.tiles[tileRecord.id];
                     this.tileCacheSize--;
