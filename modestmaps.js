@@ -1757,7 +1757,7 @@ var MM = com.modestmaps = {
 
         provider: null,
         recentTiles: null,
-        recentTilesById: null,
+        recentTilesById: {},
 
         enablePyramidLoading: false,
 
@@ -2148,7 +2148,7 @@ var MM = com.modestmaps = {
                 });
             }
 
-            while (this.tileCacheSize > maxTiles) {
+            while (this.recentTiles.length && this.tileCacheSize > maxTiles) {
                 // delete the oldest record
                 var tileRecord = this.recentTiles.pop();
                 var now = new Date().getTime();
