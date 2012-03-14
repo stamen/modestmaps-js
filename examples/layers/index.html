@@ -9,10 +9,10 @@
         {
             var mm = com.modestmaps,
                 bust = '?q=005',
-                bg = new MM.Layer(new mm.TemplatedLayer('http://acetate.geoiq.com/tiles/terrain/{Z}/{X}/{Y}.png'+bust)),
-                fg = new MM.Layer(new mm.TemplatedLayer('http://acetate.geoiq.com/tiles/acetate-fg/{Z}/{X}/{Y}.png'+bust)),
-                osm = new MM.Layer(new mm.TemplatedLayer('http://tile.openstreetmap.org/{Z}/{X}/{Y}.png'+bust)),
-                mq = new MM.Layer(new mm.TemplatedLayer('http://otile1.mqcdn.com/tiles/1.0.0/osm/{Z}/{X}/{Y}.jpg'+bust));
+                bg = new mm.TemplatedLayer('http://acetate.geoiq.com/tiles/terrain/{Z}/{X}/{Y}.png'+bust),
+                fg = new mm.TemplatedLayer('http://acetate.geoiq.com/tiles/acetate-fg/{Z}/{X}/{Y}.png'+bust),
+                osm = new mm.TemplatedLayer('http://tile.openstreetmap.org/{Z}/{X}/{Y}.png'+bust),
+                mq = new mm.TemplatedLayer('http://otile1.mqcdn.com/tiles/1.0.0/osm/{Z}/{X}/{Y}.jpg'+bust);
             
             var map = new mm.Map('map', [bg, fg], new mm.Point(800, 360));
         
