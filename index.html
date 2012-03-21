@@ -5,6 +5,9 @@
   <title>Modest Maps | Home</title>
   <link rel='shortcut icon' href='images/favicon.ico' type='image/x-icon' />
   <link href='site.css' rel='stylesheet' type='text/css' />
+  <link href="prettify.css" type="text/css" rel="stylesheet" />
+  <script type='text/javascript' src='prettify.js'></script>
+  <script type='text/javascript' src='site.js'></script>
 </head>
 <body>
   <div class='header'>
@@ -15,9 +18,7 @@
       <div class='sidebar-inner'>
         <ul>
             <li><a href='index.html' class='home active'>Home</a></li>
-          
             <li><a href='extending.html' class=''>Extensions</a></li>
-          
             <li><a class='external' href='https://github.com/stamen/modestmaps-js'>Repository</a></li>
             <li><a class='external' href='https://github.com/stamen/modestmaps-js/wiki'>API Docs</a></li>
         </ul>
@@ -34,19 +35,12 @@
   additional functionality.</p>
 </div>
 
-<div class='live'>
-<div class="highlight"><pre><code class="html"><span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">&#39;map&#39;</span> <span class="na">id=</span><span class="s">&#39;map&#39;</span><span class="nt">&gt;&lt;/div&gt;</span>
-
-<span class="nt">&lt;script&gt;</span>
-  <span class="kd">var</span> <span class="nx">template</span> <span class="o">=</span> <span class="s1">&#39;http://a.tiles.mapbox.com/mapbox/2.0.0/mapbox.world-bright/{Z}/{X}/{Y}.png&#39;</span><span class="p">;</span>
-  <span class="kd">var</span> <span class="nx">provider</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">com</span><span class="p">.</span><span class="nx">modestmaps</span><span class="p">.</span><span class="nx">TemplatedMapProvider</span><span class="p">(</span><span class="nx">template</span><span class="p">);</span>
-  <span class="kd">var</span> <span class="nx">map</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">com</span><span class="p">.</span><span class="nx">modestmaps</span><span class="p">.</span><span class="nx">Map</span><span class="p">(</span><span class="s1">&#39;map&#39;</span><span class="p">,</span> <span class="nx">provider</span><span class="p">);</span>
-  <span class="nx">map</span><span class="p">.</span><span class="nx">setZoom</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
-<span class="nt">&lt;/script&gt;</span>
-</code></pre>
-</div>
-
-</div>
+<div id='map'></div>
+<pre class='prettyprint'>var template = 'http://c.tiles.mapbox.com/v3/mapbox.mapbox-streets/{Z}/{X}/{Y}.png';
+var provider = new MM.TemplatedLayer(template);
+var map = new MM.Map('map', provider);
+map.setCenter({ lat: 37, lon: 139 }).setZoom(8);
+</pre>
 
 <div class='premiere clearfix'>
   <h2>Get the code</h2>
@@ -56,6 +50,14 @@
     <a class='button' href='https://raw.github.com/stamen/modestmaps-js/master/modestmaps.min.js'>modestmaps.min.js</a> 10KB minified &amp; gzipped
   </div>
 </div>
+
+<p>Modest Maps doesn't include every possible map control or layer type:
+it's designed to be a simple platform to build upon. <a href='http://github.com/stamen/modestmaps-js'>The code</a>
+is well-designed and tested, and deployed widely - thousands of maps
+already use the toolkit. And while we aim for the highest performance
+and compatibility with new technology, it is tested against older browsers,
+including Internet Explorer.
+</p>
 
 <div class='contributors clearfix'>
   <h2>Modest Maps is a project by</h2>
@@ -101,9 +103,8 @@
     </div>
   </div>
 </div>
-
     </div>
   </div>
-<script src='site.js'></script>
+<script src='modestmaps.min.js'></script>
 </body>
 </html>

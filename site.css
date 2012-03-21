@@ -162,7 +162,7 @@ p code {
 pre {
   color: #888;
   overflow: auto;
-  padding: 20px 20px 10px;
+  padding: 10px 10px 10px;
   transition: background-color .2s, color .2s;
   -moz-transition: background-color .2s, color .2s;
   -webkit-transition: background-color .2s, color .2s;
@@ -321,14 +321,15 @@ img.left {
 .live {
   position: relative;
   }
-  body .map {
+  body #map {
     border: 1px solid #ddd;
-    height: 340px!important;
+    height: 340px !important;
     }
-  .highlight {
+  pre {
     background: #fefefe url(images/code-bg.png) repeat 0 0;
     width: 100%;
     margin-bottom: 20px;
+    padding:10px;
     }
 
 /*-----------------------------------
