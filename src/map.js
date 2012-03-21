@@ -545,12 +545,10 @@
                     currentBottomRight.row - currentTopLeft.row) {
                     // if the limit is smaller than the current view center it
                     coord.row = (bottomRightLimit.row + topLeftLimit.row) / 2;
-                }
-                else {
+                } else {
                     if (currentTopLeft.row < topLeftLimit.row) {
                         coord.row += topLeftLimit.row - currentTopLeft.row;
-                    }
-                    else if (currentBottomRight.row > bottomRightLimit.row) {
+                    } else if (currentBottomRight.row > bottomRightLimit.row) {
                         coord.row -= currentBottomRight.row - bottomRightLimit.row;
                     }
                 }
@@ -558,12 +556,10 @@
                     currentBottomRight.column - currentTopLeft.column) {
                     // if the limit is smaller than the current view, center it
                     coord.column = (bottomRightLimit.column + topLeftLimit.column) / 2;
-                }
-                else {
+                } else {
                     if (currentTopLeft.column < topLeftLimit.column) {
                         coord.column += topLeftLimit.column - currentTopLeft.column;
-                    }
-                    else if (currentBottomRight.column > bottomRightLimit.column) {
+                    } else if (currentBottomRight.column > bottomRightLimit.column) {
                         coord.column -= currentBottomRight.column - bottomRightLimit.column;
                     }
                 }

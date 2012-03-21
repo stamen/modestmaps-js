@@ -35,7 +35,7 @@
         _tileComplete: null,
 
         getTileComplete: function() {
-            if(!this._tileComplete) {
+            if (!this._tileComplete) {
                 var theLayer = this;
                 this._tileComplete = function(manager, tile) {
 
@@ -100,7 +100,7 @@
                 if (this.levels.hasOwnProperty(name)) {
                     var zoom = parseInt(name,10);
 
-                    if (zoom >= startCoord.zoom-5 && zoom < startCoord.zoom+2) {
+                    if (zoom >= startCoord.zoom - 5 && zoom < startCoord.zoom + 2) {
                         continue;
                     }
 
@@ -135,20 +135,16 @@
             this.checkCache();
         },
 
-        /**
-         * For a given tile coordinate in a given level element, ensure that it's
-         * correctly represented in the DOM including potentially-overlapping
-         * parent and child tiles for pyramid loading.
-         *
-         * Return a list of valid (i.e. loadable?) tile keys.
-         */
+        // For a given tile coordinate in a given level element, ensure that it's
+        // correctly represented in the DOM including potentially-overlapping
+        // parent and child tiles for pyramid loading.
+        //
+        // Return a list of valid (i.e. loadable?) tile keys.
         inventoryVisibleTile: function(layer_element, tile_coord) {
             var tile_key = tile_coord.toKey(),
                 valid_tile_keys = [tile_key];
 
-            /*
-             * Check that the needed tile already exists someplace - add it to the DOM if it does.
-             */
+            // Check that the needed tile already exists someplace - add it to the DOM if it does.
             if (tile_key in this.tiles) {
                 var tile = this.tiles[tile_key];
 
@@ -164,9 +160,7 @@
                 return valid_tile_keys;
             }
 
-            /*
-             * Check that the needed tile has even been requested at all.
-             */
+            // Check that the needed tile has even been requested at all.
             if (!this.requestManager.hasRequest(tile_key)) {
                 var tileToRequest = this.provider.getTile(tile_coord);
                 if (typeof tileToRequest == 'string') {
@@ -217,7 +211,7 @@
             }
 
             // if we didn't find a parent, look at the children:
-            if(!tileCovered && !this.enablePyramidLoading) {
+            if (!tileCovered && !this.enablePyramidLoading) {
                 var child_coord = tile_coord.zoomBy(1);
 
                 // mark everything valid whether or not we have it:
@@ -237,8 +231,8 @@
             // this is somewhat future proof, we're looking for DOM elements
             // not necessarily <img> elements
             var tiles = [];
-            for(var tile = level.firstChild; tile; tile = tile.nextSibling) {
-                if(tile.nodeType == 1) {
+            for (var tile = level.firstChild; tile; tile = tile.nextSibling) {
+                if (tile.nodeType == 1) {
                     tiles.push(tile);
                 }
             }
@@ -281,9 +275,10 @@
                     this.provider.releaseTile(tile.coord);
                     this.requestManager.clearRequest(tile.coord.toKey());
                     level.removeChild(tile);
+                } else {
+                    // log last-touched-time of currently cached tiles
+                    this.recentTilesById[tile.id].lastTouchedTime = now;
                 }
-                // log last-touched-time of currently cached tiles
-                this.recentTilesById[tile.id].lastTouchedTime = now;
             }
 
             // position tiles
