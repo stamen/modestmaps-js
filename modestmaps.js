@@ -2129,11 +2129,21 @@ var MM = com.modestmaps = {
             return this._redraw;
         },
 
+        numTilesOnScreen: function() {
+            var tileCount = 0;
+            for (var name in this.levels) {
+                if (this.levels.hasOwnProperty(name)) {
+                    var level = this.levels[name];
+                    tileCount += this.tileElementsInLevel(level).length;
+                }
+            }
+            return tileCount;
+        },
+
         // keeps cache below max size
         // (called every time we receive a new tile and add it to the cache)
         checkCache: function() {
-            var numTilesOnScreen = this.parent.getElementsByTagName('img').length;
-            var maxTiles = Math.max(numTilesOnScreen, this.maxTileCacheSize);
+            var maxTiles = Math.max(this.numTilesOnScreen(), this.maxTileCacheSize);
 
             if (this.tileCacheSize > maxTiles) {
                 // sort from newest (highest) to oldest (lowest)
