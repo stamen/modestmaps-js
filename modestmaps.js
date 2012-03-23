@@ -2777,17 +2777,17 @@ var MM = com.modestmaps = {
 
         enforcePanLimits: function(coord) {
 
-            var limits = this.coordLimits;
-
-            if (limits) {
+            if (this.coordLimits) {
 
                 coord = coord.copy();
 
                 // clamp pan:
-                var topLeftLimit = limits[0].zoomTo(coord.zoom);
-                var bottomRightLimit = limits[1].zoomTo(coord.zoom);
-                var currentTopLeft = this.pointCoordinate(new MM.Point(0,0));
-                var currentBottomRight = this.pointCoordinate(this.dimensions);
+                var topLeftLimit = this.coordLimits[0].zoomTo(coord.zoom);
+                var bottomRightLimit = this.coordLimits[1].zoomTo(coord.zoom);
+                var currentTopLeft = this.pointCoordinate(new MM.Point(0, 0))
+                    .zoomTo(coord.zoom);
+                var currentBottomRight = this.pointCoordinate(this.dimensions)
+                    .zoomTo(coord.zoom);
 
                 // this handles infinite limits:
                 // (Infinity - Infinity) is Nan
