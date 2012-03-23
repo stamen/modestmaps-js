@@ -8,7 +8,8 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment
     the major version." -- http://semver.org/
 
-v1.0.0-alpha
+v1.0.0-beta1
+- Fixes coordLimits enforcement
 - Removes TilePaintingProvider and auto-casting to it in setProvider,
   updating all examples.
 
