@@ -49,22 +49,12 @@
             point.scale += (1 - point.scale * point.width % 1) / point.width;
         }
 
+        var scale = point.scale || 1;
         if (MM._browser.webkit3d) {
-            return 'matrix3d(' +
-                [(point.scale || '1'), '0,0,0,0',
-                 (point.scale || '1'), '0,0',
-                '0,0,1,0',
-                (point.x + (((point.width  * point.scale) - point.width) / 2)).toFixed(4),
-                (point.y + (((point.height * point.scale) - point.height) / 2)).toFixed(4),
-                0,1].join(',') + ')';
+            return 'scale3d(' + scale + ',' + scale + ', 1) translate3d(' + point.x.toFixed(6) + 'px,' + point.y.toFixed(6) + 'px, 0px)';
         } else {
             var unit = (MM.transformProperty == 'MozTransform') ? 'px' : '';
-            return 'matrix(' +
-                [(point.scale || '1'), 0, 0,
-                (point.scale || '1'),
-                (point.x + (((point.width  * point.scale) - point.width) / 2)) + unit,
-                (point.y + (((point.height * point.scale) - point.height) / 2)) + unit
-                ].join(',') + ')';
+            return 'scale(' + scale + ',' + scale + ') translate(' + point.x.toFixed(6) + 'px,' + point.y.toFixed(6) + 'px)';
         }
     };
 

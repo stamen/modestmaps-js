@@ -283,13 +283,9 @@
 
             // position tiles
             MM.moveElement(level, {
-                x: Math.round(center.x - (theCoord.column * tileWidth)),
-                y: Math.round(center.y - (theCoord.row * tileHeight)),
-                scale: scale,
-                // TODO: pass only scale or only w/h
-                // width: this.map.tileSize.x,
-                width: Math.pow(2, theCoord.zoom) * this.map.tileSize.x,
-                height: Math.pow(2, theCoord.zoom) * this.map.tileSize.y
+                x: -(theCoord.column * 256) + center.x,
+                y: -(theCoord.row * 256) + center.y,
+                scale: scale
             });
         },
 
