@@ -25,21 +25,28 @@
       </div>
     </div>
     <div class='content'>
-      <div class='intro copy'>
-  <p><span class='first-letter'>M</span>odest Maps is a small,
-  extensible, and <a href='http://www.opensource.org/licenses/bsd-license.php'>free</a>
-  library for
-  designers and developers who want to use interactive maps
-  in their own projects. It provides a core set of
-  features in a tight, clean package with plenty of hooks for
-  additional functionality.</p>
-</div>
+      <div class='copy'>
+        <p class='introduction'><span class='first-letter'>M</span>odest Maps is a small,
+        extensible, and <a href='http://www.opensource.org/licenses/bsd-license.php'>free</a>
+        library for
+        designers and developers who want to use interactive maps
+        in their own projects. It provides a core set of
+        features in a tight, clean package with plenty of hooks for
+        additional functionality.</p>
+
+        <p class='paragraph'>It doesn't try to include every possible map control or layer type.
+        It's designed to be a simple platform to build upon. <a href='http://github.com/stamen/modestmaps-js'>The code</a>
+        is well-designed, tested and deployed widely - thousands of maps
+        already use the toolkit. And while we aim for the highest performance
+        and compatibility with new technology, it is tested against older browsers,
+        including Internet Explorer.</p>
+      </div>
 
 <div id='map'></div>
-<pre class='prettyprint'>var template = 'http://c.tiles.mapbox.com/v3/mapbox.mapbox-streets/{Z}/{X}/{Y}.png';
+<pre class='prettyprint'>var template = 'http://c.tiles.mapbox.com/v3/mapbox.mapbox-light/{Z}/{X}/{Y}.png';
 var provider = new MM.TemplatedLayer(template);
 var map = new MM.Map('map', provider);
-map.setCenter({ lat: 37, lon: 139 }).setZoom(8);
+map.setCenter({ lat: 51.55, lon: 0.1 }).setZoom(10);
 </pre>
 
 <div class='premiere clearfix'>
@@ -50,14 +57,6 @@ map.setCenter({ lat: 37, lon: 139 }).setZoom(8);
     <a class='button' href='https://raw.github.com/stamen/modestmaps-js/master/modestmaps.min.js'>modestmaps.min.js</a> 10KB minified &amp; gzipped
   </div>
 </div>
-
-<p>Modest Maps doesn't include every possible map control or layer type:
-it's designed to be a simple platform to build upon. <a href='http://github.com/stamen/modestmaps-js'>The code</a>
-is well-designed and tested, and deployed widely - thousands of maps
-already use the toolkit. And while we aim for the highest performance
-and compatibility with new technology, it is tested against older browsers,
-including Internet Explorer.
-</p>
 
 <div class='contributors clearfix'>
   <h2>Modest Maps is a project by</h2>
@@ -99,7 +98,7 @@ including Internet Explorer.
     <div class='option clearfix'>
       <a href='https://github.com/RandomEtc/modestmaps-of' class='of icon'>modestmaps of</a>
       <a href='https://github.com/RandomEtc/modestmaps-of' class='source'>modestmaps of</a>
-      <p>Utilities in the <a href='http://www.openframeworks.cc/'>OpenFrameworks</a> library, another C++ environment for visual code</p>
+      <p>Utilities in the <a href='http://www.openframeworks.cc/'>OpenFrameworks</a> library, a C++ environment for visual code</p>
     </div>
   </div>
 </div>
