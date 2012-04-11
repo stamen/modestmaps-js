@@ -51,9 +51,9 @@
 
         var scale = point.scale || 1;
         if (MM._browser.webkit3d) {
-            return 'scale3d(' + scale + ',' + scale + ', 1) translate3d(' + point.x.toFixed(6) + 'px,' + point.y.toFixed(6) + 'px, 0px)';
+            // return 'scale3d(' + scale + ',' + scale + ', 1) translate3d(' + point.x.toFixed(6) + 'px,' + point.y.toFixed(6) + 'px, 0px)';
+            return 'scale3d(' + scale + ',' + scale + ', 1) translate3d(' + point.x.toFixed(0) + 'px,' + point.y.toFixed(0) + 'px, 0px)';
         } else {
-            var unit = (MM.transformProperty == 'MozTransform') ? 'px' : '';
             return 'scale(' + scale + ',' + scale + ') translate(' + point.x.toFixed(6) + 'px,' + point.y.toFixed(6) + 'px)';
         }
     };
