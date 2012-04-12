@@ -1772,16 +1772,13 @@ var MM = com.modestmaps = {
                 theCoord = theCoord.zoomTo(zoom);
             } else {
                 level.style.display = 'none';
+                return false;
             }
 
-            var tileWidth = this.map.tileSize.x * scale;
-            var tileHeight = this.map.tileSize.y * scale;
-            var center = new MM.Point(this.map.dimensions.x/2, this.map.dimensions.y/2);
             var tiles = this.tileElementsInLevel(level);
 
             while (tiles.length) {
                 var tile = tiles.pop();
-
                 if (!valid_tile_keys[tile.id]) {
                     this.provider.releaseTile(tile.coord);
                     this.requestManager.clearRequest(tile.coord.toKey());
@@ -1790,6 +1787,9 @@ var MM = com.modestmaps = {
             }
 
             // position tiles
+            var center = new MM.Point(this.map.dimensions.x / 2,
+                this.map.dimensions.y / 2);
+
             MM.moveElement(level, {
                 x: -(theCoord.column * 256) + center.x,
                 y: -(theCoord.row * 256) + center.y,
