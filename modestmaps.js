@@ -872,174 +872,164 @@ var MM = com.modestmaps = {
         return point;
     };
 
-    // A handler that allows mouse-wheel zooming - zooming in
-    // when page would scroll up, and out when the page would scroll down.
-    MM.MouseWheelHandler = function(map, precise) {
-        // only init() if we get a map
-        if (map) {
-            this.init(map, precise);
-        // allow (null, true) as constructor args
-        } else if (arguments.length > 1) {
-            this.precise = precise ? true : false;
-        }
-    };
+    MM.MouseWheelHandler = function() {
+        var handler = {},
+            map,
+            _zoomDiv,
+            prevTime,
+            precise = false;
 
-    MM.MouseWheelHandler.prototype = {
-        precise: false,
-
-        init: function(map) {
-            this.map = map;
-            this._mouseWheel = MM.bind(this.mouseWheel, this);
-
-            this._zoomDiv = document.body.appendChild(document.createElement('div'));
-            this._zoomDiv.style.cssText = 'visibility:hidden;top:0;height:0;width:0;overflow-y:scroll';
-            var innerDiv = this._zoomDiv.appendChild(document.createElement('div'));
-            innerDiv.style.height = '2000px';
-            MM.addEvent(map.parent, 'mousewheel', this._mouseWheel);
-        },
-
-        remove: function() {
-            MM.removeEvent(this.map.parent, 'mousewheel', this._mouseWheel);
-            this._zoomDiv.parentNode.removeChild(this._zoomDiv);
-        },
-
-        mouseWheel: function(e) {
+        function mouseWheel(e) {
             var delta = 0;
-            this.prevTime = this.prevTime || new Date().getTime();
+            prevTime = prevTime || new Date().getTime();
 
             try {
-                this._zoomDiv.scrollTop = 1000;
-                this._zoomDiv.dispatchEvent(e);
-                delta = 1000 - this._zoomDiv.scrollTop;
+                _zoomDiv.scrollTop = 1000;
+                _zoomDiv.dispatchEvent(e);
+                delta = 1000 - _zoomDiv.scrollTop;
             } catch (error) {
                 delta = e.wheelDelta || (-e.detail * 5);
             }
 
             // limit mousewheeling to once every 200ms
-            var timeSince = new Date().getTime() - this.prevTime;
+            var timeSince = new Date().getTime() - prevTime;
+            var point = MM.getMousePoint(e, map);
 
-            if (Math.abs(delta) > 0 && (timeSince > 200) && !this.precise) {
-                var point = MM.getMousePoint(e, this.map);
-                this.map.zoomByAbout(delta > 0 ? 1 : -1, point);
-
-                this.prevTime = new Date().getTime();
-            } else if (this.precise) {
-                var point = MM.getMousePoint(e, this.map);
-                this.map.zoomByAbout(delta * 0.001, point);
+            if (Math.abs(delta) > 0 && (timeSince > 200) && !precise) {
+                map.zoomByAbout(delta > 0 ? 1 : -1, point);
+                prevTime = new Date().getTime();
+            } else if (precise) {
+                map.zoomByAbout(delta * 0.001, point);
             }
 
             // Cancel the event so that the page doesn't scroll
             return MM.cancelEvent(e);
         }
+
+        handler.add = function(x) {
+            map = x;
+            _zoomDiv = document.body.appendChild(document.createElement('div'));
+            _zoomDiv.style.cssText = 'visibility:hidden;top:0;height:0;width:0;overflow-y:scroll';
+            var innerDiv = _zoomDiv.appendChild(document.createElement('div'));
+            innerDiv.style.height = '2000px';
+            MM.addEvent(map.parent, 'mousewheel', mouseWheel);
+            return handler;
+        };
+
+        handler.precise = function(x) {
+            if (!arguments.length) return precise;
+            precise = x;
+            return handler;
+        };
+
+        handler.remove = function() {
+            MM.removeEvent(map.parent, 'mousewheel', mouseWheel);
+            _zoomDiv.parentNode.removeChild(_zoomDiv);
+        };
+
+        return handler;
     };
 
-    // Handle double clicks, that zoom the map in one zoom level.
-    MM.DoubleClickHandler = function(map) {
-        if (map !== undefined) {
-            this.init(map);
-        }
-    };
+    MM.DoubleClickHandler = function() {
+        var handler = {},
+            map;
 
-    MM.DoubleClickHandler.prototype = {
-
-        init: function(map) {
-            this.map = map;
-            this._doubleClick = MM.bind(this.doubleClick, this);
-            MM.addEvent(map.parent, 'dblclick', this._doubleClick);
-        },
-
-        remove: function() {
-            MM.removeEvent(this.map.parent, 'dblclick', this._doubleClick);
-        },
-
-        doubleClick: function(e) {
+        function doubleClick(e) {
             // Ensure that this handler is attached once.
             // Get the point on the map that was double-clicked
-            var point = MM.getMousePoint(e, this.map);
-
+            var point = MM.getMousePoint(e, map);
             // use shift-double-click to zoom out
-            this.map.zoomByAbout(e.shiftKey ? -1 : 1, point);
-
+            map.zoomByAbout(e.shiftKey ? -1 : 1, point);
             return MM.cancelEvent(e);
         }
+
+        handler.add = function(x) {
+            map = x;
+            MM.addEvent(map.parent, 'dblclick', doubleClick);
+            return handler;
+        };
+
+        handler.remove = function() {
+            MM.removeEvent(map.parent, 'dblclick', doubleClick);
+        };
+
+        return handler;
     };
 
     // Handle the use of mouse dragging to pan the map.
-    MM.DragHandler = function(map) {
-        if (map !== undefined) {
-            this.init(map);
-        }
-    };
+    MM.DragHandler = function() {
+        var handler = {},
+            prevMouse,
+            map;
 
-    MM.DragHandler.prototype = {
+        function mouseDown(e) {
+            MM.addEvent(document, 'mouseup', mouseUp);
+            MM.addEvent(document, 'mousemove', mouseMove);
 
-        init: function(map) {
-            this.map = map;
-            this._mouseDown = MM.bind(this.mouseDown, this);
-            MM.addEvent(map.parent, 'mousedown', this._mouseDown);
-        },
-
-        remove: function() {
-            MM.removeEvent(this.map.parent, 'mousedown', this._mouseDown);
-        },
-
-        mouseDown: function(e) {
-            MM.addEvent(document, 'mouseup', this._mouseUp = MM.bind(this.mouseUp, this));
-            MM.addEvent(document, 'mousemove', this._mouseMove = MM.bind(this.mouseMove, this));
-
-            this.prevMouse = new MM.Point(e.clientX, e.clientY);
-            this.map.parent.style.cursor = 'move';
+            prevMouse = new MM.Point(e.clientX, e.clientY);
+            map.parent.style.cursor = 'move';
 
             return MM.cancelEvent(e);
-        },
+        }
 
-        mouseMove: function(e) {
-            if (this.prevMouse) {
-                this.map.panBy(
-                    e.clientX - this.prevMouse.x,
-                    e.clientY - this.prevMouse.y);
-                this.prevMouse.x = e.clientX;
-                this.prevMouse.y = e.clientY;
-                this.prevMouse.t = +new Date();
+        function mouseUp(e) {
+            MM.removeEvent(document, 'mouseup', mouseUp);
+            MM.removeEvent(document, 'mousemove', mouseMove);
+
+            prevMouse = null;
+            map.parent.style.cursor = '';
+
+            return MM.cancelEvent(e);
+        }
+
+        function mouseMove(e) {
+            if (prevMouse) {
+                map.panBy(
+                    e.clientX - prevMouse.x,
+                    e.clientY - prevMouse.y);
+                prevMouse.x = e.clientX;
+                prevMouse.y = e.clientY;
+                prevMouse.t = +new Date();
             }
 
             return MM.cancelEvent(e);
-        },
-
-        mouseUp: function(e) {
-            MM.removeEvent(document, 'mouseup', this._mouseUp);
-            MM.removeEvent(document, 'mousemove', this._mouseMove);
-
-            this.prevMouse = null;
-            this.map.parent.style.cursor = '';
-
-            return MM.cancelEvent(e);
         }
+
+        handler.add = function(x) {
+            map = x;
+            MM.addEvent(map.parent, 'mousedown', mouseDown);
+            return handler;
+        };
+
+        handler.remove = function() {
+            MM.removeEvent(map.parent, 'mousedown', mouseDown);
+        };
+
+        return handler;
     };
 
-    // A shortcut for adding drag, double click,
-    // and mouse wheel events to the map. This is the default
-    // handler attached to a map if the handlers argument isn't given.
-    MM.MouseHandler = function(map) {
-        if (map !== undefined) {
-            this.init(map);
-        }
-    };
+    MM.MouseHandler = function() {
+        var handler = {},
+            handlers;
 
-    MM.MouseHandler.prototype = {
-        init: function(map) {
-            this.map = map;
-            this.handlers = [
-                new MM.DragHandler(map),
-                new MM.DoubleClickHandler(map),
-                new MM.MouseWheelHandler(map)
+        handler.add = function(x) {
+            map = x;
+            handlers = [
+                MM.DragHandler().add(map),
+                MM.DoubleClickHandler().add(map),
+                MM.MouseWheelHandler().add(map)
             ];
-        },
-        remove: function() {
-            for (var i = 0; i < this.handlers.length; i++) {
-                this.handlers[i].remove();
+            return handler;
+        };
+
+        handler.remove = function() {
+            for (var i = 0; i < handlers.length; i++) {
+                handlers[i].remove();
             }
-        }
+            return handler;
+        };
+
+        return handler;
     };
 
     var HAS_HASHCHANGE = (function() {
@@ -1177,72 +1167,34 @@ var MM = com.modestmaps = {
             this.isListening = false;
         }
     };
-    MM.TouchHandler = function(map, options) {
-        if (map) {
-            this.init(map, options);
-        }
-    };
+    MM.TouchHandler = function() {
+        var handler = {},
+            maxTapTime = 250,
+            maxTapDistance = 30,
+            maxDoubleTapDelay = 350,
+            locations = {},
+            taps = [],
+            snapToZoom = true,
+            wasPinching = false,
+            lastPinchCenter = null;
 
-    MM.TouchHandler.prototype = {
-
-        maxTapTime: 250,
-        maxTapDistance: 30,
-        maxDoubleTapDelay: 350,
-        locations: {},
-        taps: [],
-        wasPinching: false,
-        lastPinchCenter: null,
-
-        init: function(map, options) {
-            this.map = map;
-            options = options || {};
-
-            // Fail early if this isn't a touch device.
-            if (!this.isTouchable()) return false;
-
-            this._touchStartMachine = MM.bind(this.touchStartMachine, this);
-            this._touchMoveMachine = MM.bind(this.touchMoveMachine, this);
-            this._touchEndMachine = MM.bind(this.touchEndMachine, this);
-            MM.addEvent(map.parent, 'touchstart',
-                this._touchStartMachine);
-            MM.addEvent(map.parent, 'touchmove',
-                this._touchMoveMachine);
-            MM.addEvent(map.parent, 'touchend',
-                this._touchEndMachine);
-
-            this.options = {};
-            this.options.snapToZoom = options.snapToZoom || true;
-        },
-
-        isTouchable: function() {
+        function isTouchable () {
              var el = document.createElement('div');
              el.setAttribute('ongesturestart', 'return;');
              return (typeof el.ongesturestart === 'function');
-        },
+        }
 
-        remove: function() {
-            // Fail early if this isn't a touch device.
-            if (!this.isTouchable()) return false;
-
-            MM.removeEvent(this.map.parent, 'touchstart',
-                this._touchStartMachine);
-            MM.removeEvent(this.map.parent, 'touchmove',
-                this._touchMoveMachine);
-            MM.removeEvent(this.map.parent, 'touchend',
-                this._touchEndMachine);
-        },
-
-        updateTouches: function(e) {
+        function updateTouches(e) {
             for (var i = 0; i < e.touches.length; i += 1) {
                 var t = e.touches[i];
-                if (t.identifier in this.locations) {
+                if (t.identifier in locations) {
                     var l = this.locations[t.identifier];
                     l.x = t.screenX;
                     l.y = t.screenY;
                     l.scale = e.scale;
                 }
                 else {
-                    this.locations[t.identifier] = {
+                    locations[t.identifier] = {
                         scale: e.scale,
                         startPos: { x: t.screenX, y: t.screenY },
                         x: t.screenX,
@@ -1251,44 +1203,44 @@ var MM = com.modestmaps = {
                     };
                 }
             }
-        },
+        }
 
         // Test whether touches are from the same source -
         // whether this is the same touchmove event.
-        sameTouch: function(event, touch) {
+        function sameTouch (event, touch) {
             return (event && event.touch) &&
                 (touch.identifier == event.touch.identifier);
-        },
+        }
 
-        touchStartMachine: function(e) {
-            this.updateTouches(e);
+        function touchStart(e) {
+            updateTouches(e);
             return MM.cancelEvent(e);
-        },
+        }
 
-        touchMoveMachine: function(e) {
+        function touchMove(e) {
             switch (e.touches.length) {
                 case 1:
-                    this.onPanning(e.touches[0]);
+                    onPanning(e.touches[0]);
                     break;
                 case 2:
-                    this.onPinching(e);
+                    onPinching(e);
                     break;
             }
-            this.updateTouches(e);
+            updateTouches(e);
             return MM.cancelEvent(e);
-        },
+        }
 
-        touchEndMachine: function(e) {
+        function touchEnd(e) {
             var now = new Date().getTime();
             // round zoom if we're done pinching
-            if (e.touches.length === 0 && this.wasPinching) {
-                this.onPinched(this.lastPinchCenter);
+            if (e.touches.length === 0 && wasPinching) {
+                onPinched(lastPinchCenter);
             }
 
             // Look at each changed touch in turn.
             for (var i = 0; i < e.changedTouches.length; i += 1) {
                 var t = e.changedTouches[i],
-                    loc = this.locations[t.identifier];
+                    loc = locations[t.identifier];
                 // if we didn't see this one (bug?)
                 // or if it was consumed by pinching already
                 // just skip to the next one
@@ -1303,17 +1255,17 @@ var MM = com.modestmaps = {
                 var pos = { x: t.screenX, y: t.screenY },
                     time = now - loc.time,
                     travel = MM.Point.distance(pos, loc.startPos);
-                if (travel > this.maxTapDistance) {
+                if (travel > maxTapDistance) {
                     // we will to assume that the drag has been handled separately
-                } else if (time > this.maxTapTime) {
+                } else if (time > maxTapTime) {
                     // close in space, but not in time: a hold
                     pos.end = now;
                     pos.duration = time;
-                    this.onHold(pos);
+                    onHold(pos);
                 } else {
                     // close in both time and space: a tap
                     pos.time = now;
-                    this.onTap(pos);
+                    onTap(pos);
                 }
             }
 
@@ -1325,57 +1277,57 @@ var MM = com.modestmaps = {
             for (var j = 0; j < e.touches.length; j++) {
                 validTouchIds[e.touches[j].identifier] = true;
             }
-            for (var id in this.locations) {
+            for (var id in locations) {
                 if (!(id in validTouchIds)) {
                     delete validTouchIds[id];
                 }
             }
 
             return MM.cancelEvent(e);
-        },
+        }
 
-        onHold: function(hold) {
+        function onHold (hold) {
             // TODO
-        },
+        }
 
         // Handle a tap event - mainly watch for a doubleTap
-        onTap: function(tap) {
-            if (this.taps.length &&
-                (tap.time - this.taps[0].time) < this.maxDoubleTapDelay) {
-                this.onDoubleTap(tap);
-                this.taps = [];
+        function onTap(tap) {
+            if (taps.length &&
+                (tap.time - taps[0].time) < maxDoubleTapDelay) {
+                onDoubleTap(tap);
+                taps = [];
                 return;
             }
-            this.taps = [tap];
-        },
+            taps = [tap];
+        }
 
         // Handle a double tap by zooming in a single zoom level to a
         // round zoom.
-        onDoubleTap: function(tap) {
+        function onDoubleTap(tap) {
 
-            var z = this.map.getZoom(), // current zoom
+            var z = map.getZoom(), // current zoom
                 tz = Math.round(z) + 1, // target zoom
                 dz = tz - z;            // desired delate
             // zoom in to a round number
             var p = new MM.Point(tap.x, tap.y);
-            this.map.zoomByAbout(dz, p);
-        },
+            map.zoomByAbout(dz, p);
+        }
 
         // Re-transform the actual map parent's CSS transformation
-        onPanning: function(touch) {
+        function onPanning (touch) {
             var pos = { x: touch.screenX, y: touch.screenY },
-                prev = this.locations[touch.identifier];
-            this.map.panBy(pos.x - prev.x, pos.y - prev.y);
-        },
+                prev = locations[touch.identifier];
+            map.panBy(pos.x - prev.x, pos.y - prev.y);
+        }
 
-        onPinching: function(e) {
+        function onPinching(e) {
             // use the first two touches and their previous positions
             var t0 = e.touches[0],
                 t1 = e.touches[1],
                 p0 = new MM.Point(t0.screenX, t0.screenY),
                 p1 = new MM.Point(t1.screenX, t1.screenY),
-                l0 = this.locations[t0.identifier],
-                l1 = this.locations[t1.identifier];
+                l0 = locations[t0.identifier],
+                l1 = locations[t1.identifier];
 
             // mark these touches so they aren't used as taps/holds
             l0.wasPinch = true;
@@ -1384,7 +1336,7 @@ var MM = com.modestmaps = {
             // scale about the center of these touches
             var center = MM.Point.interpolate(p0, p1, 0.5);
 
-            this.map.zoomByAbout(
+            map.zoomByAbout(
                 Math.log(e.scale) / Math.LN2 -
                 Math.log(l0.scale) / Math.LN2,
                 center );
@@ -1392,22 +1344,48 @@ var MM = com.modestmaps = {
             // pan from the previous center of these touches
             var prevCenter = MM.Point.interpolate(l0, l1, 0.5);
 
-            this.map.panBy(center.x - prevCenter.x,
+            map.panBy(center.x - prevCenter.x,
                            center.y - prevCenter.y);
-            this.wasPinching = true;
-            this.lastPinchCenter = center;
-        },
+            wasPinching = true;
+            lastPinchCenter = center;
+        }
 
         // When a pinch event ends, round the zoom of the map.
-        onPinched: function(p) {
+        function onPinched(p) {
             // TODO: easing
-            if (this.options.snapToZoom) {
-                var z = this.map.getZoom(), // current zoom
-                    tz = Math.round(z);     // target zoom
-                this.map.zoomByAbout(tz - z, p);
+            if (snapToZoom) {
+                var z = map.getZoom(), // current zoom
+                    tz =Math.round(z);     // target zoom
+                map.zoomByAbout(tz - z, p);
             }
-            this.wasPinching = false;
+            wasPinching = false;
         }
+
+        handler.add = function(x) {
+            map = x;
+
+            // Fail early if this isn't a touch device.
+            if (!isTouchable()) return handler;
+
+            MM.addEvent(map.parent, 'touchstart', touchStart);
+            MM.addEvent(map.parent, 'touchmove', touchMove);
+            MM.addEvent(map.parent, 'touchend', touchEnd);
+            return handler;
+        };
+
+        handler.remove = function() {
+            // Fail early if this isn't a touch device.
+            if (!isTouchable()) return handler;
+
+            MM.removeEvent(map.parent, 'touchstart', touchStart);
+            MM.removeEvent(map.parent, 'touchmove', touchMove);
+            MM.removeEvent(map.parent, 'touchend', touchEnd);
+            return handler;
+        };
+
+
+
+        return handler;
     };
     // CallbackManager
     // ---------------
@@ -2226,14 +2204,14 @@ var MM = com.modestmaps = {
         // set up handlers last so that all required attributes/functions are in place if needed
         if (eventHandlers === undefined) {
             this.eventHandlers = [
-                new MM.MouseHandler(this),
-                new MM.TouchHandler(this)
+                MM.MouseHandler().add(this),
+                MM.TouchHandler().add(this)
             ];
         } else {
             this.eventHandlers = eventHandlers;
             if (eventHandlers instanceof Array) {
                 for (var j = 0; j < eventHandlers.length; j++) {
-                    eventHandlers[j].init(this);
+                    eventHandlers[j].add(this);
                 }
             }
         }
