@@ -9,7 +9,6 @@ JS_FILES = \
 	src/projection.js \
 	src/provider.js \
 	src/mouse.js \
-	src/hash.js \
 	src/touch.js \
 	src/callbacks.js \
 	src/requests.js \

@@ -102,19 +102,6 @@
         return false;
     };
 
-    // From underscore.js
-    MM.bind = function(func, obj) {
-        var slice = Array.prototype.slice;
-        var nativeBind = Function.prototype.bind;
-        if (func.bind === nativeBind && nativeBind) {
-            return nativeBind.apply(func, slice.call(arguments, 1));
-        }
-        var args = slice.call(arguments, 2);
-        return function() {
-          return func.apply(obj, args.concat(slice.call(arguments)));
-        };
-    };
-
     MM.coerceLayer = function(layerish) {
         if (typeof layerish == 'string') {
             // Probably a template string
