@@ -92,26 +92,23 @@ describe('Map', function() {
 
   describe('Layer Interface', function() {
       it('Can set a new layer at 0', function() {
-          var p = new MM.TemplatedMapProvider(
+          var l = new MM.TemplatedLayer(
               'http://{S}.tile.openstreetmap.org/{Z}/{X}/{Y}.png', ['a']);
-          var l = new MM.Layer(p);
           map.setLayerAt(0, l);
 
           expect(map.getLayerAt(0)).toEqual(l);
       });
       it('Can insert a new layer at 0', function() {
-          var p = new MM.TemplatedMapProvider(
+          var l = new MM.TemplatedLayer(
               'http://{S}.tile.openstreetmap.org/{Z}/{X}/{Y}.png', ['a']);
-          var l = new MM.Layer(p);
 
           expect(map.insertLayerAt(0, l)).toEqual(map);
           expect(map.getLayerAt(0)).toEqual(l);
           expect(map.getLayers().length).toEqual(2);
       });
       it('Can remove a new layer at 0', function() {
-          var p = new MM.TemplatedMapProvider(
+          var l = new MM.TemplatedLayer(
               'http://{S}.tile.openstreetmap.org/{Z}/{X}/{Y}.png', ['a']);
-          var l = new MM.Layer(p);
 
           expect(map.insertLayerAt(0, l)).toEqual(map);
 
@@ -123,9 +120,8 @@ describe('Map', function() {
       });
 
       it('Can swap a new layer at 0', function() {
-          var p = new MM.TemplatedMapProvider(
+          var l = new MM.TemplatedLayer(
               'http://{S}.tile.openstreetmap.org/{Z}/{X}/{Y}.png', ['a']);
-          var l = new MM.Layer(p);
 
           var l1 = map.getLayerAt(0);
 
@@ -138,9 +134,8 @@ describe('Map', function() {
       });
 
       it('Can remove a specific layer', function() {
-          var p = new MM.TemplatedMapProvider(
+          var l = new MM.TemplatedLayer(
               'http://{S}.tile.openstreetmap.org/{Z}/{X}/{Y}.png', ['a']);
-          var l = new MM.Layer(p);
 
           expect(map.insertLayerAt(1, l)).toEqual(map);
           expect(map.removeLayer(l)).toEqual(map);

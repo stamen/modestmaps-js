@@ -88,7 +88,7 @@
      * var placeholder = new MM.TemplatedMapProvider("http://placehold.it/256/f0f/fff.png&text={Z}/{X}/{Y}");
      *
      */
-    MM.TemplatedMapProvider = function(template, subdomains) {
+    MM.Template = function(template, subdomains) {
         var isQuadKey = template.match(/{(Q|quadkey)}/);
         // replace Microsoft style substitution strings
         if (isQuadKey) template = template
@@ -98,6 +98,14 @@
 
         var hasSubdomains = (subdomains &&
             subdomains.length && template.indexOf("{S}") >= 0);
+
+        function quadKey (row, column, zoom) {
+            var key = '';
+            for (var i = 1; i <= zoom; i++) {
+                key += (((row >> zoom - i) & 1) << 1) | ((column >> zoom - i) & 1);
+            }
+            return key || '0';
+        }
 
         var getTileUrl = function(coordinate) {
             var coord = this.sourceCoordinate(coordinate);
@@ -113,7 +121,7 @@
             if (isQuadKey) {
                 return base
                     .replace('{Z}', coord.zoom.toFixed(0))
-                    .replace('{Q}', this.quadKey(coord.row,
+                    .replace('{Q}', quadKey(coord.row,
                         coord.column,
                         coord.zoom));
             } else {
@@ -127,22 +135,15 @@
         MM.MapProvider.call(this, getTileUrl);
     };
 
-    MM.TemplatedMapProvider.prototype = {
+    MM.Template.prototype = {
         // quadKey generator
-        quadKey: function(row, column, zoom) {
-            var key = '';
-            for (var i = 1; i <= zoom; i++) {
-                key += (((row >> zoom - i) & 1) << 1) | ((column >> zoom - i) & 1);
-            }
-            return key || '0';
-        },
         getTile: function(coord) {
           return this.getTileUrl(coord);
         }
     };
 
-    MM.extend(MM.TemplatedMapProvider, MM.MapProvider);
+    MM.extend(MM.Template, MM.MapProvider);
 
     MM.TemplatedLayer = function(template, subdomains) {
-      return new MM.Layer(new MM.TemplatedMapProvider(template, subdomains));
+      return new MM.Layer(new MM.Template(template, subdomains));
     };
