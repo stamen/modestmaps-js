@@ -19,172 +19,162 @@
         return point;
     };
 
-    // A handler that allows mouse-wheel zooming - zooming in
-    // when page would scroll up, and out when the page would scroll down.
-    MM.MouseWheelHandler = function(map, precise) {
-        // only init() if we get a map
-        if (map) {
-            this.init(map, precise);
-        // allow (null, true) as constructor args
-        } else if (arguments.length > 1) {
-            this.precise = precise ? true : false;
-        }
-    };
+    MM.MouseWheelHandler = function() {
+        var handler = {},
+            map,
+            _zoomDiv,
+            prevTime,
+            precise = false;
 
-    MM.MouseWheelHandler.prototype = {
-        precise: false,
-
-        init: function(map) {
-            this.map = map;
-            this._mouseWheel = MM.bind(this.mouseWheel, this);
-
-            this._zoomDiv = document.body.appendChild(document.createElement('div'));
-            this._zoomDiv.style.cssText = 'visibility:hidden;top:0;height:0;width:0;overflow-y:scroll';
-            var innerDiv = this._zoomDiv.appendChild(document.createElement('div'));
-            innerDiv.style.height = '2000px';
-            MM.addEvent(map.parent, 'mousewheel', this._mouseWheel);
-        },
-
-        remove: function() {
-            MM.removeEvent(this.map.parent, 'mousewheel', this._mouseWheel);
-            this._zoomDiv.parentNode.removeChild(this._zoomDiv);
-        },
-
-        mouseWheel: function(e) {
+        function mouseWheel(e) {
             var delta = 0;
-            this.prevTime = this.prevTime || new Date().getTime();
+            prevTime = prevTime || new Date().getTime();
 
             try {
-                this._zoomDiv.scrollTop = 1000;
-                this._zoomDiv.dispatchEvent(e);
-                delta = 1000 - this._zoomDiv.scrollTop;
+                _zoomDiv.scrollTop = 1000;
+                _zoomDiv.dispatchEvent(e);
+                delta = 1000 - _zoomDiv.scrollTop;
             } catch (error) {
                 delta = e.wheelDelta || (-e.detail * 5);
             }
 
             // limit mousewheeling to once every 200ms
-            var timeSince = new Date().getTime() - this.prevTime;
+            var timeSince = new Date().getTime() - prevTime;
+            var point = MM.getMousePoint(e, map);
 
-            if (Math.abs(delta) > 0 && (timeSince > 200) && !this.precise) {
-                var point = MM.getMousePoint(e, this.map);
-                this.map.zoomByAbout(delta > 0 ? 1 : -1, point);
-
-                this.prevTime = new Date().getTime();
-            } else if (this.precise) {
-                var point = MM.getMousePoint(e, this.map);
-                this.map.zoomByAbout(delta * 0.001, point);
+            if (Math.abs(delta) > 0 && (timeSince > 200) && !precise) {
+                map.zoomByAbout(delta > 0 ? 1 : -1, point);
+                prevTime = new Date().getTime();
+            } else if (precise) {
+                map.zoomByAbout(delta * 0.001, point);
             }
 
             // Cancel the event so that the page doesn't scroll
             return MM.cancelEvent(e);
         }
+
+        handler.add = function(x) {
+            map = x;
+            _zoomDiv = document.body.appendChild(document.createElement('div'));
+            _zoomDiv.style.cssText = 'visibility:hidden;top:0;height:0;width:0;overflow-y:scroll';
+            var innerDiv = _zoomDiv.appendChild(document.createElement('div'));
+            innerDiv.style.height = '2000px';
+            MM.addEvent(map.parent, 'mousewheel', mouseWheel);
+            return handler;
+        };
+
+        handler.precise = function(x) {
+            if (!arguments.length) return precise;
+            precise = x;
+            return handler;
+        };
+
+        handler.remove = function() {
+            MM.removeEvent(map.parent, 'mousewheel', mouseWheel);
+            _zoomDiv.parentNode.removeChild(_zoomDiv);
+        };
+
+        return handler;
     };
 
-    // Handle double clicks, that zoom the map in one zoom level.
-    MM.DoubleClickHandler = function(map) {
-        if (map !== undefined) {
-            this.init(map);
-        }
-    };
+    MM.DoubleClickHandler = function() {
+        var handler = {},
+            map;
 
-    MM.DoubleClickHandler.prototype = {
-
-        init: function(map) {
-            this.map = map;
-            this._doubleClick = MM.bind(this.doubleClick, this);
-            MM.addEvent(map.parent, 'dblclick', this._doubleClick);
-        },
-
-        remove: function() {
-            MM.removeEvent(this.map.parent, 'dblclick', this._doubleClick);
-        },
-
-        doubleClick: function(e) {
+        function doubleClick(e) {
             // Ensure that this handler is attached once.
             // Get the point on the map that was double-clicked
-            var point = MM.getMousePoint(e, this.map);
-
+            var point = MM.getMousePoint(e, map);
             // use shift-double-click to zoom out
-            this.map.zoomByAbout(e.shiftKey ? -1 : 1, point);
-
+            map.zoomByAbout(e.shiftKey ? -1 : 1, point);
             return MM.cancelEvent(e);
         }
+
+        handler.add = function(x) {
+            map = x;
+            MM.addEvent(map.parent, 'dblclick', doubleClick);
+            return handler;
+        };
+
+        handler.remove = function() {
+            MM.removeEvent(map.parent, 'dblclick', doubleClick);
+        };
+
+        return handler;
     };
 
     // Handle the use of mouse dragging to pan the map.
-    MM.DragHandler = function(map) {
-        if (map !== undefined) {
-            this.init(map);
-        }
-    };
+    MM.DragHandler = function() {
+        var handler = {},
+            prevMouse,
+            map;
 
-    MM.DragHandler.prototype = {
+        function mouseDown(e) {
+            MM.addEvent(document, 'mouseup', mouseUp);
+            MM.addEvent(document, 'mousemove', mouseMove);
 
-        init: function(map) {
-            this.map = map;
-            this._mouseDown = MM.bind(this.mouseDown, this);
-            MM.addEvent(map.parent, 'mousedown', this._mouseDown);
-        },
-
-        remove: function() {
-            MM.removeEvent(this.map.parent, 'mousedown', this._mouseDown);
-        },
-
-        mouseDown: function(e) {
-            MM.addEvent(document, 'mouseup', this._mouseUp = MM.bind(this.mouseUp, this));
-            MM.addEvent(document, 'mousemove', this._mouseMove = MM.bind(this.mouseMove, this));
-
-            this.prevMouse = new MM.Point(e.clientX, e.clientY);
-            this.map.parent.style.cursor = 'move';
+            prevMouse = new MM.Point(e.clientX, e.clientY);
+            map.parent.style.cursor = 'move';
 
             return MM.cancelEvent(e);
-        },
+        }
 
-        mouseMove: function(e) {
-            if (this.prevMouse) {
-                this.map.panBy(
-                    e.clientX - this.prevMouse.x,
-                    e.clientY - this.prevMouse.y);
-                this.prevMouse.x = e.clientX;
-                this.prevMouse.y = e.clientY;
-                this.prevMouse.t = +new Date();
+        function mouseUp(e) {
+            MM.removeEvent(document, 'mouseup', mouseUp);
+            MM.removeEvent(document, 'mousemove', mouseMove);
+
+            prevMouse = null;
+            map.parent.style.cursor = '';
+
+            return MM.cancelEvent(e);
+        }
+
+        function mouseMove(e) {
+            if (prevMouse) {
+                map.panBy(
+                    e.clientX - prevMouse.x,
+                    e.clientY - prevMouse.y);
+                prevMouse.x = e.clientX;
+                prevMouse.y = e.clientY;
+                prevMouse.t = +new Date();
             }
 
             return MM.cancelEvent(e);
-        },
-
-        mouseUp: function(e) {
-            MM.removeEvent(document, 'mouseup', this._mouseUp);
-            MM.removeEvent(document, 'mousemove', this._mouseMove);
-
-            this.prevMouse = null;
-            this.map.parent.style.cursor = '';
-
-            return MM.cancelEvent(e);
         }
+
+        handler.add = function(x) {
+            map = x;
+            MM.addEvent(map.parent, 'mousedown', mouseDown);
+            return handler;
+        };
+
+        handler.remove = function() {
+            MM.removeEvent(map.parent, 'mousedown', mouseDown);
+        };
+
+        return handler;
     };
 
-    // A shortcut for adding drag, double click,
-    // and mouse wheel events to the map. This is the default
-    // handler attached to a map if the handlers argument isn't given.
-    MM.MouseHandler = function(map) {
-        if (map !== undefined) {
-            this.init(map);
-        }
-    };
+    MM.MouseHandler = function() {
+        var handler = {},
+            handlers;
 
-    MM.MouseHandler.prototype = {
-        init: function(map) {
-            this.map = map;
-            this.handlers = [
-                new MM.DragHandler(map),
-                new MM.DoubleClickHandler(map),
-                new MM.MouseWheelHandler(map)
+        handler.add = function(x) {
+            map = x;
+            handlers = [
+                MM.DragHandler().add(map),
+                MM.DoubleClickHandler().add(map),
+                MM.MouseWheelHandler().add(map)
             ];
-        },
-        remove: function() {
-            for (var i = 0; i < this.handlers.length; i++) {
-                this.handlers[i].remove();
+            return handler;
+        };
+
+        handler.remove = function() {
+            for (var i = 0; i < handlers.length; i++) {
+                handlers[i].remove();
             }
-        }
+            return handler;
+        };
+
+        return handler;
     };
