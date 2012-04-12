@@ -17,7 +17,6 @@
         levels: null,
         requestManager: null,
         provider: null,
-        enablePyramidLoading: false,
         _tileComplete: null,
 
         getTileComplete: function() {
@@ -148,39 +147,16 @@
                 var parent_coord = tile_coord.zoomBy(-pz).container();
                 var parent_key = parent_coord.toKey();
 
-                if (this.enablePyramidLoading) {
-                    // mark all parent tiles valid
+                // only mark it valid if we have it already
+                if (parent_key in this.tiles) {
                     valid_tile_keys.push(parent_key);
-                    var parentLevel = this.createOrGetLevel(parent_coord.zoom);
-
-                    //parentLevel.coordinate = parent_coord.copy();
-                    if (parent_key in this.tiles) {
-                        var parentTile = this.tiles[parent_key];
-                        if (parentTile.parentNode != parentLevel) {
-                            parentLevel.appendChild(parentTile);
-                        }
-                    } else if (!this.requestManager.hasRequest(parent_key)) {
-                        // force load of parent tiles we don't already have
-                        var tileToAdd = this.provider.getTile(parent_coord);
-
-                        if (typeof tileToAdd == 'string') {
-                            this.addTileImage(parent_key, parent_coord, tileToAdd);
-                        } else {
-                            this.addTileElement(parent_key, parent_coord, tileToAdd);
-                        }
-                    }
-                } else {
-                    // only mark it valid if we have it already
-                    if (parent_key in this.tiles) {
-                        valid_tile_keys.push(parent_key);
-                        tileCovered = true;
-                        break;
-                    }
+                    tileCovered = true;
+                    break;
                 }
             }
 
             // if we didn't find a parent, look at the children:
-            if (!tileCovered && !this.enablePyramidLoading) {
+            if (!tileCovered) {
                 var child_coord = tile_coord.zoomBy(1);
 
                 // mark everything valid whether or not we have it:
@@ -366,12 +342,10 @@
             }
 
             // first provider or not we'll init/reset some values...
-
             this.tiles = {};
 
             // for later: check geometry of old provider and set a new coordinate center
             // if needed (now? or when?)
-
             this.provider = newProvider;
 
             if (!firstProvider) {
