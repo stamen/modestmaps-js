@@ -135,7 +135,7 @@ var MM = com.modestmaps = {
     MM.coerceLayer = function(layerish) {
         if (typeof layerish == 'string') {
             // Probably a template string
-            return new MM.Layer(new MM.Template(layerish));
+            return new MM.Layer(new MM.TemplatedMapProvider(layerish));
         } else if ('draw' in layerish && typeof layerish.draw == 'function') {
             // good enough, though we should probably enforce .parent and .destroy() too
             return layerish;
@@ -780,7 +780,7 @@ var MM = com.modestmaps = {
      * var placeholder = new MM.TemplatedMapProvider("http://placehold.it/256/f0f/fff.png&text={Z}/{X}/{Y}");
      *
      */
-    MM.TemplatedMapProvider = function(template, subdomains) {
+    MM.Template = function(template, subdomains) {
         var isQuadKey = template.match(/{(Q|quadkey)}/);
         // replace Microsoft style substitution strings
         if (isQuadKey) template = template
@@ -790,6 +790,14 @@ var MM = com.modestmaps = {
 
         var hasSubdomains = (subdomains &&
             subdomains.length && template.indexOf("{S}") >= 0);
+
+        function quadKey (row, column, zoom) {
+            var key = '';
+            for (var i = 1; i <= zoom; i++) {
+                key += (((row >> zoom - i) & 1) << 1) | ((column >> zoom - i) & 1);
+            }
+            return key || '0';
+        }
 
         var getTileUrl = function(coordinate) {
             var coord = this.sourceCoordinate(coordinate);
@@ -805,7 +813,7 @@ var MM = com.modestmaps = {
             if (isQuadKey) {
                 return base
                     .replace('{Z}', coord.zoom.toFixed(0))
-                    .replace('{Q}', this.quadKey(coord.row,
+                    .replace('{Q}', quadKey(coord.row,
                         coord.column,
                         coord.zoom));
             } else {
@@ -819,24 +827,17 @@ var MM = com.modestmaps = {
         MM.MapProvider.call(this, getTileUrl);
     };
 
-    MM.TemplatedMapProvider.prototype = {
+    MM.Template.prototype = {
         // quadKey generator
-        quadKey: function(row, column, zoom) {
-            var key = '';
-            for (var i = 1; i <= zoom; i++) {
-                key += (((row >> zoom - i) & 1) << 1) | ((column >> zoom - i) & 1);
-            }
-            return key || '0';
-        },
         getTile: function(coord) {
           return this.getTileUrl(coord);
         }
     };
 
-    MM.extend(MM.TemplatedMapProvider, MM.MapProvider);
+    MM.extend(MM.Template, MM.MapProvider);
 
     MM.TemplatedLayer = function(template, subdomains) {
-      return new MM.Layer(new MM.TemplatedMapProvider(template, subdomains));
+      return new MM.Layer(new MM.Template(template, subdomains));
     };
     // Event Handlers
     // --------------
@@ -1579,6 +1580,28 @@ var MM = com.modestmaps = {
         },
 
         draw: function() {
+            // compares manhattan distance from center of
+            // requested tiles to current map center
+            // NB:- requested tiles are *popped* from queue, so we do a descending sort
+            var theCoord = this.map.coordinate.zoomTo(Math.round(this.map.coordinate.zoom));
+
+            function centerDistanceCompare(r1, r2) {
+                if (r1 && r2) {
+                    var c1 = r1.coord;
+                    var c2 = r2.coord;
+                    if (c1.zoom == c2.zoom) {
+                        var ds1 = Math.abs(theCoord.row - c1.row - 0.5) +
+                                  Math.abs(theCoord.column - c1.column - 0.5);
+                        var ds2 = Math.abs(theCoord.row - c2.row - 0.5) +
+                                  Math.abs(theCoord.column - c2.column - 0.5);
+                        return ds1 < ds2 ? 1 : ds1 > ds2 ? -1 : 0;
+                    } else {
+                        return c1.zoom < c2.zoom ? 1 : c1.zoom > c2.zoom ? -1 : 0;
+                    }
+                }
+                return r1 ? 1 : r2 ? -1 : 0;
+            }
+
             // if we're in between zoom levels, we need to choose the nearest:
             var baseZoom = Math.round(this.map.coordinate.zoom);
 
@@ -1648,7 +1671,7 @@ var MM = com.modestmaps = {
             this.requestManager.clearExcept(validTileKeys);
 
             // get newly requested tiles, sort according to current view:
-            this.requestManager.processQueue(this.getCenterDistanceCompare());
+            this.requestManager.processQueue(centerDistanceCompare);
         },
 
         // For a given tile coordinate in a given level element, ensure that it's
@@ -1901,29 +1924,6 @@ var MM = com.modestmaps = {
             }
         },
 
-        // compares manhattan distance from center of
-        // requested tiles to current map center
-        // NB:- requested tiles are *popped* from queue, so we do a descending sort
-        getCenterDistanceCompare: function() {
-            var theCoord = this.map.coordinate.zoomTo(Math.round(this.map.coordinate.zoom));
-
-            return function(r1, r2) {
-                if (r1 && r2) {
-                    var c1 = r1.coord;
-                    var c2 = r2.coord;
-                    if (c1.zoom == c2.zoom) {
-                        var ds1 = Math.abs(theCoord.row - c1.row - 0.5) +
-                                  Math.abs(theCoord.column - c1.column - 0.5);
-                        var ds2 = Math.abs(theCoord.row - c2.row - 0.5) +
-                                  Math.abs(theCoord.column - c2.column - 0.5);
-                        return ds1 < ds2 ? 1 : ds1 > ds2 ? -1 : 0;
-                    } else {
-                        return c1.zoom < c2.zoom ? 1 : c1.zoom > c2.zoom ? -1 : 0;
-                    }
-                }
-                return r1 ? 1 : r2 ? -1 : 0;
-            };
-        },
 
         // Remove this layer from the DOM, cancel all of its requests
         // and unbind any callbacks that are bound to it.

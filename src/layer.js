@@ -31,6 +31,28 @@
         },
 
         draw: function() {
+            // compares manhattan distance from center of
+            // requested tiles to current map center
+            // NB:- requested tiles are *popped* from queue, so we do a descending sort
+            var theCoord = this.map.coordinate.zoomTo(Math.round(this.map.coordinate.zoom));
+
+            function centerDistanceCompare(r1, r2) {
+                if (r1 && r2) {
+                    var c1 = r1.coord;
+                    var c2 = r2.coord;
+                    if (c1.zoom == c2.zoom) {
+                        var ds1 = Math.abs(theCoord.row - c1.row - 0.5) +
+                                  Math.abs(theCoord.column - c1.column - 0.5);
+                        var ds2 = Math.abs(theCoord.row - c2.row - 0.5) +
+                                  Math.abs(theCoord.column - c2.column - 0.5);
+                        return ds1 < ds2 ? 1 : ds1 > ds2 ? -1 : 0;
+                    } else {
+                        return c1.zoom < c2.zoom ? 1 : c1.zoom > c2.zoom ? -1 : 0;
+                    }
+                }
+                return r1 ? 1 : r2 ? -1 : 0;
+            }
+
             // if we're in between zoom levels, we need to choose the nearest:
             var baseZoom = Math.round(this.map.coordinate.zoom);
 
@@ -100,7 +122,7 @@
             this.requestManager.clearExcept(validTileKeys);
 
             // get newly requested tiles, sort according to current view:
-            this.requestManager.processQueue(this.getCenterDistanceCompare());
+            this.requestManager.processQueue(centerDistanceCompare);
         },
 
         // For a given tile coordinate in a given level element, ensure that it's
@@ -353,29 +375,6 @@
             }
         },
 
-        // compares manhattan distance from center of
-        // requested tiles to current map center
-        // NB:- requested tiles are *popped* from queue, so we do a descending sort
-        getCenterDistanceCompare: function() {
-            var theCoord = this.map.coordinate.zoomTo(Math.round(this.map.coordinate.zoom));
-
-            return function(r1, r2) {
-                if (r1 && r2) {
-                    var c1 = r1.coord;
-                    var c2 = r2.coord;
-                    if (c1.zoom == c2.zoom) {
-                        var ds1 = Math.abs(theCoord.row - c1.row - 0.5) +
-                                  Math.abs(theCoord.column - c1.column - 0.5);
-                        var ds2 = Math.abs(theCoord.row - c2.row - 0.5) +
-                                  Math.abs(theCoord.column - c2.column - 0.5);
-                        return ds1 < ds2 ? 1 : ds1 > ds2 ? -1 : 0;
-                    } else {
-                        return c1.zoom < c2.zoom ? 1 : c1.zoom > c2.zoom ? -1 : 0;
-                    }
-                }
-                return r1 ? 1 : r2 ? -1 : 0;
-            };
-        },
 
         // Remove this layer from the DOM, cancel all of its requests
         // and unbind any callbacks that are bound to it.
