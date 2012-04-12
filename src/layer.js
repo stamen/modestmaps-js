@@ -213,13 +213,8 @@
          * tiles based on values in valid_tile_keys from inventoryVisibleTile().
          */
         adjustVisibleLevel: function(level, zoom, valid_tile_keys) {
-            // for tracking time of tile usage:
-            var now = new Date().getTime();
-
-            if (!level) {
-                // no tiles for this level yet
-                return;
-            }
+            // no tiles for this level yet
+            if (!level) return;
 
             var scale = 1;
             var theCoord = this.map.coordinate.copy();
