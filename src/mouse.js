@@ -53,7 +53,7 @@
             return MM.cancelEvent(e);
         }
 
-        handler.add = function(x) {
+        handler.init = function(x) {
             map = x;
             _zoomDiv = document.body.appendChild(document.createElement('div'));
             _zoomDiv.style.cssText = 'visibility:hidden;top:0;height:0;width:0;overflow-y:scroll';
@@ -90,7 +90,7 @@
             return MM.cancelEvent(e);
         }
 
-        handler.add = function(x) {
+        handler.init = function(x) {
             map = x;
             MM.addEvent(map.parent, 'dblclick', doubleClick);
             return handler;
@@ -142,7 +142,7 @@
             return MM.cancelEvent(e);
         }
 
-        handler.add = function(x) {
+        handler.init = function(x) {
             map = x;
             MM.addEvent(map.parent, 'mousedown', mouseDown);
             return handler;
@@ -159,12 +159,12 @@
         var handler = {},
             handlers;
 
-        handler.add = function(x) {
+        handler.init = function(x) {
             map = x;
             handlers = [
-                MM.DragHandler().add(map),
-                MM.DoubleClickHandler().add(map),
-                MM.MouseWheelHandler().add(map)
+                MM.DragHandler().init(map),
+                MM.DoubleClickHandler().init(map),
+                MM.MouseWheelHandler().init(map)
             ];
             return handler;
         };

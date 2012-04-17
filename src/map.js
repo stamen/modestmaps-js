@@ -88,14 +88,14 @@
         // set up handlers last so that all required attributes/functions are in place if needed
         if (eventHandlers === undefined) {
             this.eventHandlers = [
-                MM.MouseHandler().add(this),
-                MM.TouchHandler().add(this)
+                MM.MouseHandler().init(this),
+                MM.TouchHandler().init(this)
             ];
         } else {
             this.eventHandlers = eventHandlers;
             if (eventHandlers instanceof Array) {
                 for (var j = 0; j < eventHandlers.length; j++) {
-                    eventHandlers[j].add(this);
+                    eventHandlers[j].init(this);
                 }
             }
         }

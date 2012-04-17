@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v1.1.0-alpha
+ * Modest Maps JS v1.0.1-alpha
  * http://modestmaps.com/
  *
  * Copyright (c) 2011 Stamen Design, All Rights Reserved.
@@ -81,10 +81,11 @@ var MM = com.modestmaps = {
 
         var scale = point.scale || 1;
         if (MM._browser.webkit3d) {
-            // return 'scale3d(' + scale + ',' + scale + ', 1) translate3d(' + point.x.toFixed(6) + 'px,' + point.y.toFixed(6) + 'px, 0px)';
-            return 'scale3d(' + scale + ',' + scale + ', 1) translate3d(' + point.x.toFixed(0) + 'px,' + point.y.toFixed(0) + 'px, 0px)';
+            return 'scale3d(' + scale + ',' + scale + ', 1) translate3d(' +
+                point.x.toFixed(0) + 'px,' + point.y.toFixed(0) + 'px, 0px)';
         } else {
-            return 'scale(' + scale + ',' + scale + ') translate(' + point.x.toFixed(6) + 'px,' + point.y.toFixed(6) + 'px)';
+            return 'scale(' + scale + ',' + scale + ') translate(' +
+                point.x.toFixed(6) + 'px,' + point.y.toFixed(6) + 'px)';
         }
     };
 
@@ -894,7 +895,7 @@ var MM = com.modestmaps = {
             return MM.cancelEvent(e);
         }
 
-        handler.add = function(x) {
+        handler.init = function(x) {
             map = x;
             _zoomDiv = document.body.appendChild(document.createElement('div'));
             _zoomDiv.style.cssText = 'visibility:hidden;top:0;height:0;width:0;overflow-y:scroll';
@@ -931,7 +932,7 @@ var MM = com.modestmaps = {
             return MM.cancelEvent(e);
         }
 
-        handler.add = function(x) {
+        handler.init = function(x) {
             map = x;
             MM.addEvent(map.parent, 'dblclick', doubleClick);
             return handler;
@@ -983,7 +984,7 @@ var MM = com.modestmaps = {
             return MM.cancelEvent(e);
         }
 
-        handler.add = function(x) {
+        handler.init = function(x) {
             map = x;
             MM.addEvent(map.parent, 'mousedown', mouseDown);
             return handler;
@@ -1000,12 +1001,12 @@ var MM = com.modestmaps = {
         var handler = {},
             handlers;
 
-        handler.add = function(x) {
+        handler.init = function(x) {
             map = x;
             handlers = [
-                MM.DragHandler().add(map),
-                MM.DoubleClickHandler().add(map),
-                MM.MouseWheelHandler().add(map)
+                MM.DragHandler().init(map),
+                MM.DoubleClickHandler().init(map),
+                MM.MouseWheelHandler().init(map)
             ];
             return handler;
         };
@@ -2029,14 +2030,14 @@ var MM = com.modestmaps = {
         // set up handlers last so that all required attributes/functions are in place if needed
         if (eventHandlers === undefined) {
             this.eventHandlers = [
-                MM.MouseHandler().add(this),
-                MM.TouchHandler().add(this)
+                MM.MouseHandler().init(this),
+                MM.TouchHandler().init(this)
             ];
         } else {
             this.eventHandlers = eventHandlers;
             if (eventHandlers instanceof Array) {
                 for (var j = 0; j < eventHandlers.length; j++) {
-                    eventHandlers[j].add(this);
+                    eventHandlers[j].init(this);
                 }
             }
         }
