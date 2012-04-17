@@ -110,6 +110,7 @@
             map;
 
         function mouseDown(e) {
+            if (e.shiftKey || e.button == 2) return;
             MM.addEvent(document, 'mouseup', mouseUp);
             MM.addEvent(document, 'mousemove', mouseMove);
 

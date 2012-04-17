@@ -952,6 +952,7 @@ var MM = com.modestmaps = {
             map;
 
         function mouseDown(e) {
+            if (e.shiftKey || e.button == 2) return;
             MM.addEvent(document, 'mouseup', mouseUp);
             MM.addEvent(document, 'mousemove', mouseMove);
 
@@ -1214,7 +1215,7 @@ var MM = com.modestmaps = {
             wasPinching = false;
         }
 
-        handler.add = function(x) {
+        handler.init = function(x) {
             map = x;
 
             // Fail early if this isn't a touch device.

@@ -192,7 +192,7 @@
             wasPinching = false;
         }
 
-        handler.add = function(x) {
+        handler.init = function(x) {
             map = x;
 
             // Fail early if this isn't a touch device.
