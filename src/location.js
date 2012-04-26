@@ -65,17 +65,6 @@
               Math.pow(Math.sin((lat1 - lat2) / 2), 2) +
               Math.cos(lat1) * Math.cos(lat2) *
               Math.pow(Math.sin((lon1 - lon2) / 2), 2)));
-        var bearing = Math.atan2(
-            Math.sin(lon1 - lon2) *
-            Math.cos(lat2),
-            Math.cos(lat1) *
-            Math.sin(lat2) -
-            Math.sin(lat1) *
-            Math.cos(lat2) *
-            Math.cos(lon1 - lon2)
-        )  / -(Math.PI / 180);
-
-        bearing = bearing < 0 ? 360 + bearing : bearing;
 
         var A = Math.sin((1-f)*d)/Math.sin(d);
         var B = Math.sin(f*d)/Math.sin(d);
@@ -89,4 +78,22 @@
         var lonN = Math.atan2(y,x);
 
         return new MM.Location(latN / deg2rad, lonN / deg2rad);
+    };
+    
+    // Returns bearing from one point to another
+    //
+    // * FIXME: bearing is not constant along significant great circle arcs.
+    MM.Location.bearing = function(l1, l2) {
+        var result = Math.atan2(
+            Math.sin(lon1 - lon2) *
+            Math.cos(lat2),
+            Math.cos(lat1) *
+            Math.sin(lat2) -
+            Math.sin(lat1) *
+            Math.cos(lat2) *
+            Math.cos(lon1 - lon2)
+        )  / -(Math.PI / 180);
+
+        // map it into 0-360 range
+        return (result < 0) ? result + 360 : result;
     };
