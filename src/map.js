@@ -216,7 +216,7 @@
             return this;
         },
 
-        setExtent: function(locations, precise) {
+        extentCoordinate: function(locations, precise) {
             // coerce locations to an array if it's a Extent instance
             if (locations instanceof MM.Extent) {
                 locations = locations.toArray();
@@ -271,8 +271,11 @@
             var centerRow = (TL.row + BR.row) / 2;
             var centerColumn = (TL.column + BR.column) / 2;
             var centerZoom = TL.zoom;
+            return new MM.Coordinate(centerRow, centerColumn, centerZoom).zoomTo(initZoom);
+        },
 
-            this.coordinate = new MM.Coordinate(centerRow, centerColumn, centerZoom).zoomTo(initZoom);
+        setExtent: function(locations, precise) {
+            this.coordinate = this.extentCoordinate(locations, precise);
             this.draw(); // draw calls enforceLimits
             // (if you switch to getFrame, call enforceLimits first)
 
