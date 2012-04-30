@@ -149,6 +149,12 @@ describe('Map', function() {
       });
   });
 
+  it('can transform an extent into a coord', function() {
+      expect(map.extentCoordinate([
+        { lat: -10, lon: -10 },
+        { lat: 10, lon: 10 }])).toEqual(new MM.Coordinate(8, 8, 4));
+  });
+
   it('binds and calls resized', function() {
       spyOn(sink, 'receive');
       map.addCallback('resized', sink.receive);
