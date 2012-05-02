@@ -158,6 +158,7 @@
 
     MM.MouseHandler = function() {
         var handler = {},
+            map,
             handlers;
 
         handler.init = function(x) {
