@@ -2379,12 +2379,15 @@ var MM = com.modestmaps = {
 
                 // clear existing layer at this index
                 if (index < this.layers.length) {
-                    this.layers[index].destroy();
+                    var other = this.layers[index];
+                    this.parent.insertBefore(layer.parent, other.parent);
+                    other.destroy();
+                } else {
+                // Or if this will be the last layer, it can be simply appended
+                    this.parent.appendChild(layer.parent);
                 }
 
-                // pass it on.
                 this.layers[index] = layer;
-                this.parent.appendChild(layer.parent);
                 layer.map = this; // TODO: remove map property from MM.Layer
 
                 MM.getFrame(this.getRedraw());
