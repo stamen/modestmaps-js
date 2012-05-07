@@ -8,6 +8,10 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment
     the major version." -- http://semver.org/
 
+v1.0.3
+- Fixes insertLayerAt behavior with indexes within the layers array.
+  Adds associated tests.
+
 v1.0.2
 - Removes cache infrastructure
 - Rewrites handlers to remove bind usage, now depends on browser cache
