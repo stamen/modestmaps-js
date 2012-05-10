@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v1.0.3
+ * Modest Maps JS v1.1.0
  * http://modestmaps.com/
  *
  * Copyright (c) 2011 Stamen Design, All Rights Reserved.
@@ -81,11 +81,13 @@ var MM = com.modestmaps = {
 
         var scale = point.scale || 1;
         if (MM._browser.webkit3d) {
-            return 'scale3d(' + scale + ',' + scale + ', 1) translate3d(' +
-                point.x.toFixed(0) + 'px,' + point.y.toFixed(0) + 'px, 0px)';
+            return  'translate3d(' +
+                point.x.toFixed(0) + 'px,' + point.y.toFixed(0) + 'px, 0px)' +
+                'scale3d(' + scale + ',' + scale + ', 1)';
         } else {
-            return 'scale(' + scale + ',' + scale + ') translate(' +
-                point.x.toFixed(6) + 'px,' + point.y.toFixed(6) + 'px)';
+            return  'translate(' +
+                point.x.toFixed(6) + 'px,' + point.y.toFixed(6) + 'px)' +
+                'scale(' + scale + ',' + scale + ')';
         }
     };
 
@@ -1784,26 +1786,32 @@ var MM = com.modestmaps = {
                 return false;
             }
 
+            var tileWidth = this.map.tileSize.x * scale;
+            var tileHeight = this.map.tileSize.y * scale;
+            var center = new MM.Point(this.map.dimensions.x/2, this.map.dimensions.y/2);
             var tiles = this.tileElementsInLevel(level);
 
             while (tiles.length) {
                 var tile = tiles.pop();
+
                 if (!valid_tile_keys[tile.id]) {
                     this.provider.releaseTile(tile.coord);
                     this.requestManager.clearRequest(tile.coord.toKey());
                     level.removeChild(tile);
+                } else {
+                    // position tiles
+                    MM.moveElement(tile, {
+                        x: Math.round(center.x +
+                            (tile.coord.column - theCoord.column) * tileWidth),
+                        y: Math.round(center.y +
+                            (tile.coord.row - theCoord.row) * tileHeight),
+                        scale: scale,
+                        // TODO: pass only scale or only w/h
+                        width: this.map.tileSize.x,
+                        height: this.map.tileSize.y
+                    });
                 }
             }
-
-            // position tiles
-            var center = new MM.Point(this.map.dimensions.x / 2,
-                this.map.dimensions.y / 2);
-
-            MM.moveElement(level, {
-                x: -(theCoord.column * 256) + center.x,
-                y: -(theCoord.row * 256) + center.y,
-                scale: scale
-            });
         },
 
         createOrGetLevel: function(zoom) {
@@ -1838,20 +1846,22 @@ var MM = com.modestmaps = {
             var theCoord = this.map.coordinate.zoomTo(tile.coord.zoom);
 
             // Start tile positioning and prevent drag for modern browsers
-            tile.style.cssText = 'position:absolute;-webkit-user-select:none;-webkit-user-drag:none;-moz-user-drag:none;';
+            tile.style.cssText = 'position:absolute;-webkit-user-select:none;' +
+                '-webkit-user-drag:none;-moz-user-drag:none;-webkit-transform-origin:0 0;' +
+                '-moz-transform-origin:0 0;-o-transform-origin:0 0;-ms-transform-origin:0 0;';
 
             // Prevent drag for IE
             tile.ondragstart = function() { return false; };
 
-            var tx = tile.coord.column *
-                this.map.tileSize.x;
-            var ty = tile.coord.row *
-                this.map.tileSize.y;
+            var scale = Math.pow(2, this.map.coordinate.zoom - tile.coord.zoom);
 
-            // TODO: pass only scale or only w/h
             MM.moveElement(tile, {
-                x: Math.round(tx),
-                y: Math.round(ty),
+                x: Math.round((this.map.dimensions.x/2) +
+                    (tile.coord.column - theCoord.column) * this.map.tileSize.x),
+                y: Math.round((this.map.dimensions.y/2) +
+                    (tile.coord.row - theCoord.row) * this.map.tileSize.y),
+                scale: scale,
+                // TODO: pass only scale or only w/h
                 width: this.map.tileSize.x,
                 height: this.map.tileSize.y
             });

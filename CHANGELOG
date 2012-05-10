@@ -8,6 +8,10 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment
     the major version." -- http://semver.org/
 
+v1.1.0
+- Revert futuristic layer-tile handling to cross-browser version
+  that touches all tiles on all moves.
+
 v1.0.3
 - Fixes insertLayerAt behavior with indexes within the layers array.
   Adds associated tests.
