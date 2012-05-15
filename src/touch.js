@@ -1,5 +1,6 @@
     MM.TouchHandler = function() {
         var handler = {},
+            map,
             maxTapTime = 250,
             maxTapDistance = 30,
             maxDoubleTapDelay = 350,
@@ -19,7 +20,7 @@
             for (var i = 0; i < e.touches.length; i += 1) {
                 var t = e.touches[i];
                 if (t.identifier in locations) {
-                    var l = this.locations[t.identifier];
+                    var l = locations[t.identifier];
                     l.x = t.screenX;
                     l.y = t.screenY;
                     l.scale = e.scale;

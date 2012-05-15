@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v1.1.0
+ * Modest Maps JS v1.1.1
  * http://modestmaps.com/
  *
  * Copyright (c) 2011 Stamen Design, All Rights Reserved.
@@ -1032,6 +1032,7 @@ var MM = com.modestmaps = {
     };
     MM.TouchHandler = function() {
         var handler = {},
+            map,
             maxTapTime = 250,
             maxTapDistance = 30,
             maxDoubleTapDelay = 350,
@@ -1051,7 +1052,7 @@ var MM = com.modestmaps = {
             for (var i = 0; i < e.touches.length; i += 1) {
                 var t = e.touches[i];
                 if (t.identifier in locations) {
-                    var l = this.locations[t.identifier];
+                    var l = locations[t.identifier];
                     l.x = t.screenX;
                     l.y = t.screenY;
                     l.scale = e.scale;
