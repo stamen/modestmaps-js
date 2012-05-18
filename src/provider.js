@@ -3,7 +3,7 @@
     // Providers provide tile URLs and possibly elements for layers.
     //
     // MapProvider ->
-    //   TemplatedMapProvider
+    //   Template
     //
     MM.MapProvider = function(getTile) {
         if (getTile) {

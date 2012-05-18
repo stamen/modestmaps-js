@@ -138,7 +138,7 @@ var MM = com.modestmaps = {
     MM.coerceLayer = function(layerish) {
         if (typeof layerish == 'string') {
             // Probably a template string
-            return new MM.Layer(new MM.TemplatedMapProvider(layerish));
+            return new MM.Layer(new MM.TemplatedLayer(layerish));
         } else if ('draw' in layerish && typeof layerish.draw == 'function') {
             // good enough, though we should probably enforce .parent and .destroy() too
             return layerish;
@@ -704,7 +704,7 @@ var MM = com.modestmaps = {
     // Providers provide tile URLs and possibly elements for layers.
     //
     // MapProvider ->
-    //   TemplatedMapProvider
+    //   Template
     //
     MM.MapProvider = function(getTile) {
         if (getTile) {
@@ -2653,7 +2653,7 @@ var MM = com.modestmaps = {
           Transformation: MM.Transformation,
           Location: MM.Location,
           MapProvider: MM.MapProvider,
-          TemplatedMapProvider: MM.TemplatedMapProvider,
+          Template: MM.Template,
           Coordinate: MM.Coordinate,
           deriveTransformation: MM.deriveTransformation
       };
