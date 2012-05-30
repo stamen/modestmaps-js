@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v1.1.1
+ * Modest Maps JS v1.1.2
  * http://modestmaps.com/
  *
  * Copyright (c) 2011 Stamen Design, All Rights Reserved.
@@ -2361,10 +2361,16 @@ var MM = com.modestmaps = {
         },
 
         // put the given layer on top of all the others
+        // Since this is called for the first layer, which is by definition
+        // added before the map has a valid `coordinate`, we request
+        // a redraw only if the map has a center coordinate.
         addLayer: function(layer) {
             this.layers.push(layer);
             this.parent.appendChild(layer.parent);
             layer.map = this; // TODO: remove map property from MM.Layer?
+            if (this.coordinate) {
+              MM.getFrame(this.getRedraw());
+            }
             return this;
         },
 
