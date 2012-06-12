@@ -6,6 +6,7 @@
         this.levels = {};
         this.requestManager = new MM.RequestManager();
         this.requestManager.addCallback('requestcomplete', this.getTileComplete());
+        this.requestManager.addCallback('requesterror', this.getTileError());
         if (provider) this.setProvider(provider);
     };
 
@@ -17,6 +18,7 @@
         levels: null,
         requestManager: null,
         provider: null,
+        emptyImage: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
         _tileComplete: null,
 
         getTileComplete: function() {
@@ -28,6 +30,18 @@
                 };
             }
             return this._tileComplete;
+        },
+
+        getTileError: function() {
+            if (!this._tileError) {
+                var theLayer = this;
+                this._tileError = function(manager, tile) {
+                    tile.src = theLayer.emptyImage;
+                    theLayer.tiles[tile.id] = tile;
+                    theLayer.positionTile(tile);
+                };
+            }
+            return this._tileError;
         },
 
         draw: function() {

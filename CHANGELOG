@@ -8,6 +8,12 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment
     the major version." -- http://semver.org/
 
+v2.0.0
+- Two breaking changes:
+- requesterror now calls its callbacks with the img element, like
+  requestcomplete, not img.src as before
+- TemplatedMapLayer renamed to Template, refs #14
+
 v1.1.3
 - Fix Location.bearing method
 

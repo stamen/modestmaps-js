@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v1.1.3
+ * Modest Maps JS v2.0.0
  * http://modestmaps.com/
  *
  * Copyright (c) 2011 Stamen Design, All Rights Reserved.
@@ -1548,7 +1548,7 @@ var MM = com.modestmaps = {
                         // really stops loading
                         // FIXME: we'll never retry because this id is still
                         // in requestsById - is that right?
-                        theManager.dispatchCallback('requesterror', img.src);
+                        theManager.dispatchCallback('requesterror', img);
                         img.src = null;
                     }
 
@@ -1572,6 +1572,7 @@ var MM = com.modestmaps = {
         this.levels = {};
         this.requestManager = new MM.RequestManager();
         this.requestManager.addCallback('requestcomplete', this.getTileComplete());
+        this.requestManager.addCallback('requesterror', this.getTileError());
         if (provider) this.setProvider(provider);
     };
 
@@ -1583,6 +1584,7 @@ var MM = com.modestmaps = {
         levels: null,
         requestManager: null,
         provider: null,
+        emptyImage: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
         _tileComplete: null,
 
         getTileComplete: function() {
@@ -1594,6 +1596,18 @@ var MM = com.modestmaps = {
                 };
             }
             return this._tileComplete;
+        },
+
+        getTileError: function() {
+            if (!this._tileError) {
+                var theLayer = this;
+                this._tileError = function(manager, tile) {
+                    tile.src = theLayer.emptyImage;
+                    theLayer.tiles[tile.id] = tile;
+                    theLayer.positionTile(tile);
+                };
+            }
+            return this._tileError;
         },
 
         draw: function() {
