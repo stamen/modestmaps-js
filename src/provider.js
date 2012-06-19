@@ -50,7 +50,7 @@
                 wrappedColumn;
 
             if (coord.column < 0) {
-                wrappedColumn = (coord.column + columnSize) % columnSize;
+                wrappedColumn = ((coord.column % columnSize) + columnSize) % columnSize;
             } else {
                 wrappedColumn = coord.column % columnSize;
             }
