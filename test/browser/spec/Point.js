@@ -20,4 +20,9 @@ describe('Point', function() {
         var q = new MM.Point(0, 10);
         expect(MM.Point.interpolate(p, q, 0.5).y).toEqual(5);
     });
+
+    it('can yield a copy', function() {
+        var p = new MM.Point(0, 0);
+        expect(p.copy()).toEqual(p);
+    });
 });
