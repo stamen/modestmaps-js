@@ -8,6 +8,9 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment
     the major version." -- http://semver.org/
 
+v2.0.1
+- Fixing negative coordinate wrapping, identified at https://github.com/mapbox/tilemill/issues/1395
+
 v2.0.0
 - Two breaking changes:
 - requesterror now calls its callbacks with the img element, like

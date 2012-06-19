@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v2.0.0
+ * Modest Maps JS v2.0.1
  * http://modestmaps.com/
  *
  * Copyright (c) 2011 Stamen Design, All Rights Reserved.
@@ -756,7 +756,7 @@ var MM = com.modestmaps = {
                 wrappedColumn;
 
             if (coord.column < 0) {
-                wrappedColumn = (coord.column + columnSize) % columnSize;
+                wrappedColumn = ((coord.column % columnSize) + columnSize) % columnSize;
             } else {
                 wrappedColumn = coord.column % columnSize;
             }
