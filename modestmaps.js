@@ -1547,7 +1547,7 @@ var MM = com.modestmaps = {
                         // really stops loading
                         // FIXME: we'll never retry because this id is still
                         // in requestsById - is that right?
-                        theManager.dispatchCallback('requesterror', img, img.src);
+                        theManager.dispatchCallback('requesterror', img, '' + img.src);
                         img.src = null;
                     }
 
