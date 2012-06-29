@@ -18,7 +18,6 @@ describe('Layer', function() {
         runs(function() {
             p = new MM.TemplatedLayer(fourohfour);
             p.requestManager.addCallback('requesterror', function(a, b, c) {
-                console.log(arguments);
                 manager = a;
                 message = b;
             });
