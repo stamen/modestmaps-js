@@ -14,10 +14,10 @@
   ],
   "keywords": ["map", "geo", "browser"],
   "main": "./modestmaps.js",
-  "homepage": "https://github.com/stamen/modestmaps-js",
+  "homepage": "https://github.com/modestmaps/modestmaps-js",
   "repositories": [{
     "type" : "git",
-    "url"  : "git://github.com/stamen/modestmaps-js.git"
+    "url"  : "git://github.com/modestmaps/modestmaps-js.git"
   }],
   "devDependencies": {
     "docco": "~0.3.0",
