@@ -1083,7 +1083,6 @@ var MM = com.modestmaps = {
 
         function touchStart(e) {
             updateTouches(e);
-            return MM.cancelEvent(e);
         }
 
         function touchMove(e) {
