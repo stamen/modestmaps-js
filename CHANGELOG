@@ -8,10 +8,10 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment
     the major version." -- http://semver.org/
 
-v2.1.0
-- Adds the tile URL as the third parameter to requesterror calls since it
-  will be changed to the empty image src and passed by reference because it's
-  a DOM element.
+v3.0.0
+- Instead of a tile URL or element, the message of the `requesterror` event
+  will be an object with `url` and `element` members relating to the source
+  element and its url / href
 
 v2.0.2
 - Allows `touchstart` events to propagate to handlers instead of stopping

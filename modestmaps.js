@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v2.1.0
+ * Modest Maps JS v3.0.0
  * http://modestmaps.com/
  *
  * Copyright (c) 2011 Stamen Design, All Rights Reserved.
@@ -1547,7 +1547,10 @@ var MM = com.modestmaps = {
                         // really stops loading
                         // FIXME: we'll never retry because this id is still
                         // in requestsById - is that right?
-                        theManager.dispatchCallback('requesterror', img, '' + img.src);
+                        theManager.dispatchCallback('requesterror', {
+                            element: img,
+                            url: ('' + img.src)
+                        });
                         img.src = null;
                     }
 
