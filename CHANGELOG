@@ -8,6 +8,12 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment
     the major version." -- http://semver.org/
 
+v2.0.2
+- Allows `touchstart` events to propagate to handlers instead of stopping
+  them at the TouchHandler level. This allows libraries that have elements
+  on the map that rely on `click` events to work. This does not fix the
+  problem of allowing scrollable elements in the map element.
+
 v2.0.1
 - Fixing negative coordinate wrapping, identified at https://github.com/mapbox/tilemill/issues/1395
 
