@@ -23,6 +23,12 @@ describe('Map', function() {
       expect(map.parent).toEqual(div);
   });
 
+  it('can be initialized without a layer', function() {
+      expect(function() {
+          map = new MM.Map(document.createElement('div'));
+      }).not.toThrow();
+  });
+
   describe('zoom restrictions and ranges', function() {
 
     it('has set a proper zoom level', function() {
