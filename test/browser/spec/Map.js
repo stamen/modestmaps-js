@@ -35,6 +35,13 @@ describe('Map', function() {
         expect(map.getZoom()).toEqual(6);
     });
 
+    it('returns itself from chainable functions', function() {
+        expect(map.setZoomRange(5, 6)).toEqual(map);
+        expect(map.setZoom(7)).toEqual(map);
+        expect(map.setCenter({ lat: 5, lon: 5 })).toEqual(map);
+        expect(map.getZoom()).toEqual(6);
+    });
+
   });
 
   it('has a center coordinate', function() {

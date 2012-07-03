@@ -8,6 +8,10 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment
     the major version." -- http://semver.org/
 
+v3.1.0
+- `map.setZoomRange()` returns the map object to allow it to be chained
+  with other calls. It previously returned undefined.
+
 v3.0.0
 - Instead of a tile URL or element, the message of the `requesterror` event
   will be an object with `url` and `element` members relating to the source

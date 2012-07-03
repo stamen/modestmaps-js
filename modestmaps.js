@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v3.0.0
+ * Modest Maps JS v3.1.0
  * http://modestmaps.com/
  *
  * Copyright (c) 2011 Stamen Design, All Rights Reserved.
@@ -2144,6 +2144,7 @@ var MM = com.modestmaps = {
         setZoomRange: function(minZoom, maxZoom) {
             this.coordLimits[0] = this.coordLimits[0].zoomTo(minZoom);
             this.coordLimits[1] = this.coordLimits[1].zoomTo(maxZoom);
+            return this;
         },
 
         // zooming

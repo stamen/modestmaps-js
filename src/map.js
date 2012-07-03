@@ -162,6 +162,7 @@
         setZoomRange: function(minZoom, maxZoom) {
             this.coordLimits[0] = this.coordLimits[0].zoomTo(minZoom);
             this.coordLimits[1] = this.coordLimits[1].zoomTo(maxZoom);
+            return this;
         },
 
         // zooming
