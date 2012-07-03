@@ -35,7 +35,12 @@
         }
 
         this.layers = [];
-        if(!(layerOrLayers instanceof Array)) {
+
+        if (!layerOrLayers) {
+            layerOrLayers = [];
+        }
+
+        if (!(layerOrLayers instanceof Array)) {
             layerOrLayers = [ layerOrLayers ];
         }
 
