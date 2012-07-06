@@ -21,16 +21,16 @@
                 var t = e.touches[i];
                 if (t.identifier in locations) {
                     var l = locations[t.identifier];
-                    l.x = t.screenX;
-                    l.y = t.screenY;
+                    l.x = t.clientX;
+                    l.y = t.clientY;
                     l.scale = e.scale;
                 }
                 else {
                     locations[t.identifier] = {
                         scale: e.scale,
-                        startPos: { x: t.screenX, y: t.screenY },
-                        x: t.screenX,
-                        y: t.screenY,
+                        startPos: { x: t.clientX, y: t.clientY },
+                        x: t.clientX,
+                        y: t.clientY,
                         time: new Date().getTime()
                     };
                 }
@@ -83,7 +83,7 @@
                 // matching touch that's just ended. Let's see
                 // what kind of event it is based on how long it
                 // lasted and how far it moved.
-                var pos = { x: t.screenX, y: t.screenY },
+                var pos = { x: t.clientX, y: t.clientY },
                     time = now - loc.time,
                     travel = MM.Point.distance(pos, loc.startPos);
                 if (travel > maxTapDistance) {
@@ -135,10 +135,10 @@
         // Handle a double tap by zooming in a single zoom level to a
         // round zoom.
         function onDoubleTap(tap) {
-
             var z = map.getZoom(), // current zoom
                 tz = Math.round(z) + 1, // target zoom
                 dz = tz - z;            // desired delate
+
             // zoom in to a round number
             var p = new MM.Point(tap.x, tap.y);
             map.zoomByAbout(dz, p);
@@ -146,7 +146,7 @@
 
         // Re-transform the actual map parent's CSS transformation
         function onPanning (touch) {
-            var pos = { x: touch.screenX, y: touch.screenY },
+            var pos = { x: touch.clientX, y: touch.clientY },
                 prev = locations[touch.identifier];
             map.panBy(pos.x - prev.x, pos.y - prev.y);
         }
@@ -155,8 +155,8 @@
             // use the first two touches and their previous positions
             var t0 = e.touches[0],
                 t1 = e.touches[1],
-                p0 = new MM.Point(t0.screenX, t0.screenY),
-                p1 = new MM.Point(t1.screenX, t1.screenY),
+                p0 = new MM.Point(t0.clientX, t0.clientY),
+                p1 = new MM.Point(t1.clientX, t1.clientY),
                 l0 = locations[t0.identifier],
                 l1 = locations[t1.identifier];
 
@@ -213,8 +213,6 @@
             MM.removeEvent(map.parent, 'touchend', touchEnd);
             return handler;
         };
-
-
 
         return handler;
     };
