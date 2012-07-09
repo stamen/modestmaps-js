@@ -8,6 +8,10 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment
     the major version." -- http://semver.org/
 
+v3.1.2
+- Fixes a bug in the TouchHandler leading to inaccurate movement
+  when on scalable devices like iPhones and not at native screen resolution.
+
 v3.1.1
 - Fixes a bug in the `MM.Map` constructor which prevent `null` or
   `undefined` being passed as the layers parameter. This makes it easier
