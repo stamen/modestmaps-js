@@ -8,6 +8,10 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment
     the major version." -- http://semver.org/
 
+v3.1.3
+- Explicitly set the size of tiles to the `tileSize` parameter in the Map
+  object in order to support tiles that are not 256x256
+
 v3.1.2
 - Fixes a bug in the TouchHandler leading to inaccurate movement
   when on scalable devices like iPhones and not at native screen resolution.

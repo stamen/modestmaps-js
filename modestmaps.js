@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v3.1.1
+ * Modest Maps JS v3.1.3
  * http://modestmaps.com/
  *
  * Copyright (c) 2011 Stamen Design, All Rights Reserved.
@@ -1868,7 +1868,8 @@ var MM = com.modestmaps = {
             // Start tile positioning and prevent drag for modern browsers
             tile.style.cssText = 'position:absolute;-webkit-user-select:none;' +
                 '-webkit-user-drag:none;-moz-user-drag:none;-webkit-transform-origin:0 0;' +
-                '-moz-transform-origin:0 0;-o-transform-origin:0 0;-ms-transform-origin:0 0;';
+                '-moz-transform-origin:0 0;-o-transform-origin:0 0;-ms-transform-origin:0 0;' +
+                'width:' + this.map.tileSize.x + 'px; height: ' + this.map.tileSize.y + 'px;';
 
             // Prevent drag for IE
             tile.ondragstart = function() { return false; };

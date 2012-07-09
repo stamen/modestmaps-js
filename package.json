@@ -1,7 +1,7 @@
 {
   "name": "modestmaps",
   "description": "a display and interaction library for tile-based maps",
-  "version": "3.1.2",
+  "version": "3.1.3",
   "author": {
     "name": "Tom Carden",
     "email": "tom@tom-carden.co.uk",
