@@ -400,6 +400,14 @@
             return this.layers.slice();
         },
 
+        // return the first layer with given name
+        getLayer: function(name) {
+            for (var i = 0; i < this.layers.length; i++) {
+                if (name == this.layers[i].name)
+                    return this.layers[i];
+            }
+        },
+
         // return the layer at the given index
         getLayerAt: function(index) {
             return this.layers[index];
@@ -422,7 +430,7 @@
         // find the given layer and remove it
         removeLayer: function(layer) {
             for (var i = 0; i < this.layers.length; i++) {
-                if (layer == this.layers[i]) {
+                if (layer == this.layers[i] || layer == this.layers[i].name) {
                     this.removeLayerAt(i);
                     break;
                 }
