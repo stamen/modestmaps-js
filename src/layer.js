@@ -420,8 +420,9 @@
         // Remove this layer from the DOM, cancel all of its requests
         // and unbind any callbacks that are bound to it.
         destroy: function() {
+            this.requestManager.clear();
             this.requestManager.removeCallback('requestcomplete', this.getTileComplete());
-            this.requestManager.addCallback('requesterror', this.getTileError());
+            this.requestManager.removeCallback('requesterror', this.getTileError());
             // TODO: does requestManager need a destroy function too?
             this.provider = null;
             // If this layer was ever attached to the DOM, detach it.
