@@ -1,8 +1,9 @@
 
     // Layer
-    MM.Layer = function(provider, parent) {
+    MM.Layer = function(provider, parent, name) {
         this.parent = parent || document.createElement('div');
         this.parent.style.cssText = 'position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; margin: 0; padding: 0; z-index: 0';
+        this.name = name;
         this.levels = {};
         this.requestManager = new MM.RequestManager();
         this.requestManager.addCallback('requestcomplete', this.getTileComplete());
@@ -14,6 +15,7 @@
 
         map: null, // TODO: remove
         parent: null,
+        name: null,
         tiles: null,
         levels: null,
         requestManager: null,

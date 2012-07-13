@@ -228,6 +228,21 @@ describe('Map', function() {
 
           expect(map.getLayers().length).toEqual(1);
       });
+
+      it('Can set and get a named layer', function() {
+          var l = new MM.TemplatedLayer(
+              'http://{S}.tile.openstreetmap.org/{Z}/{X}/{Y}.png', ['a'], 'name');
+          map.addLayer(l);
+          expect(map.getLayer('name')).toEqual(l);
+      });
+
+      it('Can remove a named layer', function() {
+          var l = new MM.TemplatedLayer(
+              'http://{S}.tile.openstreetmap.org/{Z}/{X}/{Y}.png', ['a'], 'name');
+          map.addLayer(l);
+          var numLayers = map.getLayers().length;
+          expect(map.removeLayer('name').getLayers().length).toEqual(numLayers - 1);
+      });
   });
 
   it('can transform an extent into a coord', function() {

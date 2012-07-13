@@ -144,6 +144,6 @@
 
     MM.extend(MM.Template, MM.MapProvider);
 
-    MM.TemplatedLayer = function(template, subdomains) {
-      return new MM.Layer(new MM.Template(template, subdomains));
+    MM.TemplatedLayer = function(template, subdomains, name) {
+      return new MM.Layer(new MM.Template(template, subdomains), null, name);
     };
