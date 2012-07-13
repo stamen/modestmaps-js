@@ -8,6 +8,10 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment
     the major version." -- http://semver.org/
 
+v3.2.1
+- Fixes bug in the MM.MapProvider.sourceCoordinate where tiles containing
+  areas within the tile limits were not loaded at lower zoom levels
+
 v3.2.0
 - Adds named layers: a third parameter to MM.Layer and MM.TemplatedLayer
   that sets the `.name` property of a layer. The layer name can be used
