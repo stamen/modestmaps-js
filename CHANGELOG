@@ -8,6 +8,14 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment
     the major version." -- http://semver.org/
 
+v3.2.0
+- Adds named layers: a third parameter to MM.Layer and MM.TemplatedLayer
+  that sets the `.name` property of a layer. The layer name can be used
+  with the new `map.getLayer()` method, which returns the first layer
+  matching that name, and `map.removeLayer()`, which now accepts either the
+  literal layer object or the layer name as its one argument.
+- Tests have moved from `/test/browser` to just `/test`
+
 v3.1.3
 - Explicitly set the size of tiles to the `tileSize` parameter in the Map
   object in order to support tiles that are not 256x256

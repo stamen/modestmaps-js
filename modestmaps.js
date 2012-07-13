@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v3.1.3
+ * Modest Maps JS v3.2.0
  * http://modestmaps.com/
  *
  * Copyright (c) 2011 Stamen Design, All Rights Reserved.
@@ -850,8 +850,8 @@ var MM = com.modestmaps = {
 
     MM.extend(MM.Template, MM.MapProvider);
 
-    MM.TemplatedLayer = function(template, subdomains) {
-      return new MM.Layer(new MM.Template(template, subdomains));
+    MM.TemplatedLayer = function(template, subdomains, name) {
+      return new MM.Layer(new MM.Template(template, subdomains), null, name);
     };
     // Event Handlers
     // --------------
@@ -1566,9 +1566,10 @@ var MM = com.modestmaps = {
     };
 
     // Layer
-    MM.Layer = function(provider, parent) {
+    MM.Layer = function(provider, parent, name) {
         this.parent = parent || document.createElement('div');
         this.parent.style.cssText = 'position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; margin: 0; padding: 0; z-index: 0';
+        this.name = name;
         this.levels = {};
         this.requestManager = new MM.RequestManager();
         this.requestManager.addCallback('requestcomplete', this.getTileComplete());
@@ -1580,6 +1581,7 @@ var MM = com.modestmaps = {
 
         map: null, // TODO: remove
         parent: null,
+        name: null,
         tiles: null,
         levels: null,
         requestManager: null,
@@ -2381,6 +2383,14 @@ var MM = com.modestmaps = {
             return this.layers.slice();
         },
 
+        // return the first layer with given name
+        getLayer: function(name) {
+            for (var i = 0; i < this.layers.length; i++) {
+                if (name == this.layers[i].name)
+                    return this.layers[i];
+            }
+        },
+
         // return the layer at the given index
         getLayerAt: function(index) {
             return this.layers[index];
@@ -2403,7 +2413,7 @@ var MM = com.modestmaps = {
         // find the given layer and remove it
         removeLayer: function(layer) {
             for (var i = 0; i < this.layers.length; i++) {
-                if (layer == this.layers[i]) {
+                if (layer == this.layers[i] || layer == this.layers[i].name) {
                     this.removeLayerAt(i);
                     break;
                 }
