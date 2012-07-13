@@ -39,13 +39,11 @@
             this.tileLimits[1] = this.tileLimits[1].zoomTo(maxZoom);
         },
 
-        // return null if coord is above/below row extents
-        // wrap column around the world if it's outside column extents
-        // ... you should override this function if you change the tile limits
-        // ... see enforce-limits in examples for details
+        // wrap column around the world if necessary
+        // return null if wrapped coordinate is outside of the tile limits
         sourceCoordinate: function(coord) {
-            var TL = this.tileLimits[0].zoomTo(coord.zoom),
-                BR = this.tileLimits[1].zoomTo(coord.zoom),
+            var TL = this.tileLimits[0].zoomTo(coord.zoom).container(),
+                BR = this.tileLimits[1].zoomTo(coord.zoom).container().right().down(),
                 columnSize = Math.pow(2, coord.zoom),
                 wrappedColumn;
 
