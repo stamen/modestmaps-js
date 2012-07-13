@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v3.2.1
+ * Modest Maps JS v3.3.0
  * http://modestmaps.com/
  *
  * Copyright (c) 2011 Stamen Design, All Rights Reserved.
@@ -1580,6 +1580,7 @@ var MM = com.modestmaps = {
         map: null, // TODO: remove
         parent: null,
         name: null,
+        enabled: true,
         tiles: null,
         levels: null,
         requestManager: null,
@@ -1611,6 +1612,7 @@ var MM = com.modestmaps = {
         },
 
         draw: function() {
+            if (!this.enabled) return;
             // compares manhattan distance from center of
             // requested tiles to current map center
             // NB:- requested tiles are *popped* from queue, so we do a descending sort
@@ -1964,12 +1966,27 @@ var MM = com.modestmaps = {
             }
         },
 
+        // Enable a layer and show its dom element
+        enable: function() {
+            this.enabled = true;
+            this.parent.style.display = '';
+            this.draw();
+        },
+
+        // Disable a layer, don't display in DOM, clear all requests
+        disable: function() {
+            this.enabled = false;
+            this.requestManager.clear();
+            this.parent.style.display = 'none';
+        },
+
 
         // Remove this layer from the DOM, cancel all of its requests
         // and unbind any callbacks that are bound to it.
         destroy: function() {
             this.requestManager.clear();
             this.requestManager.removeCallback('requestcomplete', this.getTileComplete());
+            this.requestManager.removeCallback('requesterror', this.getTileError());
             // TODO: does requestManager need a destroy function too?
             this.provider = null;
             // If this layer was ever attached to the DOM, detach it.
@@ -2512,6 +2529,34 @@ var MM = com.modestmaps = {
 
             return this;
         },
+
+        // Enable and disable layers.
+        // Disabled layers are not displayed, are not drawn, and do not request
+        // tiles. They do maintain their layer index on the map.
+        enableLayer: function(name) {
+            var l = this.getLayer(name);
+            if (l) l.enable();
+            return this;
+        },
+
+        enableLayerAt: function(index) {
+            var l = this.getLayerAt(index);
+            if (l) l.enable();
+            return this;
+        },
+
+        disableLayer: function(name) {
+            var l = this.getLayer(name);
+            if (l) l.disable();
+            return this;
+        },
+
+        disableLayerAt: function(index) {
+            var l = this.getLayerAt(index);
+            if (l) l.disable();
+            return this;
+        },
+
 
         // limits
 

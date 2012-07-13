@@ -8,6 +8,11 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment
     the major version." -- http://semver.org/
 
+v3.3.0
+- Adds `.enable()` and `.disable()` methods to layers, and
+  `.enableLayer()`/`.enableLayerAt()` and `.disableLayer()`/`.disableLayerAt()`
+  to the map object.
+
 v3.2.1
 - Fixes bug in the MM.MapProvider.sourceCoordinate where tiles containing
   areas within the tile limits were not loaded at lower zoom levels

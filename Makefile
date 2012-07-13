@@ -30,9 +30,3 @@ modestmaps.js: $(JS_FILES) Makefile
 clean:
 	rm modestmaps.js
 	rm modestmaps.min.js
-
-doc:
-	./node_modules/.bin/docco src/*.js
-
-tests:
-	./node_modules/.bin/expresso test/*.test.js
