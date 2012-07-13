@@ -532,6 +532,30 @@
             return this;
         },
 
+        // Enable and disable layers.
+        // Disabled layers are not displayed, are not drawn, and do not request
+        // tiles. They do maintain their layer index on the map.
+        enableLayer: function(name) {
+            this.getLayer(name).enable();
+            return this;
+        },
+
+        enableLayerAt: function(index) {
+            this.getLayerAt(index).enable();
+            return this;
+        },
+
+        disableLayer: function(name) {
+            this.getLayer(name).disable();
+            return this;
+        },
+
+        disableLayerAt: function(index) {
+            this.getLayerAt(index).disable();
+            return this;
+        },
+
+
         // limits
 
         enforceZoomLimits: function(coord) {

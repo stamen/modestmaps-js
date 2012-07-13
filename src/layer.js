@@ -16,6 +16,7 @@
         map: null, // TODO: remove
         parent: null,
         name: null,
+        enabled: true,
         tiles: null,
         levels: null,
         requestManager: null,
@@ -47,6 +48,7 @@
         },
 
         draw: function() {
+            if (!this.enabled) return;
             // compares manhattan distance from center of
             // requested tiles to current map center
             // NB:- requested tiles are *popped* from queue, so we do a descending sort
@@ -400,12 +402,26 @@
             }
         },
 
+        // Enable a layer and show its dom element
+        enable: function() {
+            this.enabled = true;
+            this.parent.style.display = '';
+            this.draw();
+        },
+
+        // Disable a layer, don't display in DOM, clear all requests
+        disable: function() {
+            this.enabled = false;
+            this.requestManager.clear();
+            this.parent.style.display = 'none';
+        },
+
 
         // Remove this layer from the DOM, cancel all of its requests
         // and unbind any callbacks that are bound to it.
         destroy: function() {
-            this.requestManager.clear();
             this.requestManager.removeCallback('requestcomplete', this.getTileComplete());
+            this.requestManager.addCallback('requesterror', this.getTileError());
             // TODO: does requestManager need a destroy function too?
             this.provider = null;
             // If this layer was ever attached to the DOM, detach it.
