@@ -536,22 +536,26 @@
         // Disabled layers are not displayed, are not drawn, and do not request
         // tiles. They do maintain their layer index on the map.
         enableLayer: function(name) {
-            this.getLayer(name).enable();
+            var l = this.getLayer(name);
+            if (l) l.enable();
             return this;
         },
 
         enableLayerAt: function(index) {
-            this.getLayerAt(index).enable();
+            var l = this.getLayerAt(index);
+            if (l) l.enable();
             return this;
         },
 
         disableLayer: function(name) {
-            this.getLayer(name).disable();
+            var l = this.getLayer(name);
+            if (l) l.disable();
             return this;
         },
 
         disableLayerAt: function(index) {
-            this.getLayerAt(index).disable();
+            var l = this.getLayerAt(index);
+            if (l) l.disable();
             return this;
         },
 
