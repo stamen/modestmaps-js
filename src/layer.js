@@ -48,7 +48,7 @@
         },
 
         draw: function() {
-            if (!this.enabled) return;
+            if (!this.enabled || !this.map) return;
             // compares manhattan distance from center of
             // requested tiles to current map center
             // NB:- requested tiles are *popped* from queue, so we do a descending sort
