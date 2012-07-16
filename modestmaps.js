@@ -1,5 +1,5 @@
 /*!
- * Modest Maps JS v3.3.0
+ * Modest Maps JS v3.3.1
  * http://modestmaps.com/
  *
  * Copyright (c) 2011 Stamen Design, All Rights Reserved.
@@ -1612,7 +1612,7 @@ var MM = com.modestmaps = {
         },
 
         draw: function() {
-            if (!this.enabled) return;
+            if (!this.enabled || !this.map) return;
             // compares manhattan distance from center of
             // requested tiles to current map center
             // NB:- requested tiles are *popped* from queue, so we do a descending sort
