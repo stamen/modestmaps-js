@@ -8,6 +8,9 @@ Following the semantic versioning recommendation best we can:
     minor version, and backwards incompatible API changes increment
     the major version." -- http://semver.org/
 
+v3.3.1
+- Fixes bug where Layer.draw would try to draw even if not attached to a map.
+
 v3.3.0
 - Adds `.enable()` and `.disable()` methods to layers, and
   `.enableLayer()`/`.enableLayerAt()` and `.disableLayer()`/`.disableLayerAt()`
