@@ -71,7 +71,7 @@ var MM = com.modestmaps = {
             }
         }
         return false;
-    })(['transformProperty', 'WebkitTransform', 'OTransform', 'MozTransform', 'msTransform']);
+    })(['transform', 'WebkitTransform', 'OTransform', 'MozTransform', 'msTransform']);
 
     MM.matrixString = function(point) {
         // Make the result of point.scale * point.width a whole number.
