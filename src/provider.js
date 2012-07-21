@@ -22,11 +22,11 @@
         ],
 
         getTileUrl: function(coordinate) {
-            throw "Abstract method not implemented by subclass.";
+            throw "Abstract method getTileUrl not implemented by subclass.";
         },
 
         getTile: function(coordinate) {
-            throw "Abstract method not implemented by subclass.";
+            throw "Abstract method getTile not implemented by subclass.";
         },
 
         // releaseTile is not required
