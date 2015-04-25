@@ -15,10 +15,11 @@
   "keywords": ["map", "geo", "browser"],
   "main": "./modestmaps.js",
   "homepage": "https://github.com/stamen/modestmaps-js",
-  "repositories": [{
+  "repository": {
     "type" : "git",
     "url"  : "git://github.com/stamen/modestmaps-js.git"
-  }],
+  },
+  "dependencies": {},
   "devDependencies": {
     "docco": "~0.3.0",
     "uglify-js": "~1.0.0"
