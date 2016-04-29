@@ -400,6 +400,13 @@ var MM = com.modestmaps = {
         // map it into 0-360 range
         return (result < 0) ? result + 360 : result;
     };
+    
+    // Location from string
+    MM.Location.fromString = function(location){
+        var split = feature.split(",");
+        return new MM.Location(split[1],split[0])
+    };
+    
     // Extent
     // ----------
     // An object representing a map's rectangular extent, defined by its north,
