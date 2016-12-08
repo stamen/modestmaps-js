@@ -17,4 +17,14 @@ describe('Coordinate', function() {
       expect((coordinate.zoomBy(-1)).zoom).toEqual(1);
   });
 
+  it('can be copied', function() {
+      expect(coordinate.copy()).toEqual(coordinate);
+  });
+
+  it('will yield a container', function() {
+      var oc = coordinate.copy();
+      coordinate.right(0.1);
+      expect(coordinate.container().column).toEqual(oc.column);
+  });
+
 });

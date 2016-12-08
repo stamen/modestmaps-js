@@ -41,7 +41,7 @@
             }
         }
         return false;
-    })(['transformProperty', 'WebkitTransform', 'OTransform', 'MozTransform', 'msTransform']);
+    })(['transform', 'WebkitTransform', 'OTransform', 'MozTransform', 'msTransform']);
 
     MM.matrixString = function(point) {
         // Make the result of point.scale * point.width a whole number.
@@ -51,10 +51,13 @@
 
         var scale = point.scale || 1;
         if (MM._browser.webkit3d) {
-            // return 'scale3d(' + scale + ',' + scale + ', 1) translate3d(' + point.x.toFixed(6) + 'px,' + point.y.toFixed(6) + 'px, 0px)';
-            return 'scale3d(' + scale + ',' + scale + ', 1) translate3d(' + point.x.toFixed(0) + 'px,' + point.y.toFixed(0) + 'px, 0px)';
+            return  'translate3d(' +
+                point.x.toFixed(0) + 'px,' + point.y.toFixed(0) + 'px, 0px)' +
+                'scale3d(' + scale + ',' + scale + ', 1)';
         } else {
-            return 'scale(' + scale + ',' + scale + ') translate(' + point.x.toFixed(6) + 'px,' + point.y.toFixed(6) + 'px)';
+            return  'translate(' +
+                point.x.toFixed(6) + 'px,' + point.y.toFixed(6) + 'px)' +
+                'scale(' + scale + ',' + scale + ')';
         }
     };
 
@@ -102,23 +105,10 @@
         return false;
     };
 
-    // From underscore.js
-    MM.bind = function(func, obj) {
-        var slice = Array.prototype.slice;
-        var nativeBind = Function.prototype.bind;
-        if (func.bind === nativeBind && nativeBind) {
-            return nativeBind.apply(func, slice.call(arguments, 1));
-        }
-        var args = slice.call(arguments, 2);
-        return function() {
-          return func.apply(obj, args.concat(slice.call(arguments)));
-        };
-    };
-
     MM.coerceLayer = function(layerish) {
         if (typeof layerish == 'string') {
             // Probably a template string
-            return new MM.Layer(new MM.TemplatedMapProvider(layerish));
+            return new MM.Layer(new MM.TemplatedLayer(layerish));
         } else if ('draw' in layerish && typeof layerish.draw == 'function') {
             // good enough, though we should probably enforce .parent and .destroy() too
             return layerish;

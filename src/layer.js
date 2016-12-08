@@ -1,65 +1,76 @@
 
     // Layer
-
-    MM.Layer = function(provider, parent) {
+    MM.Layer = function(provider, parent, name) {
         this.parent = parent || document.createElement('div');
         this.parent.style.cssText = 'position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; margin: 0; padding: 0; z-index: 0';
-
+        this.name = name;
         this.levels = {};
-
         this.requestManager = new MM.RequestManager();
         this.requestManager.addCallback('requestcomplete', this.getTileComplete());
-
-        if (provider) {
-            this.setProvider(provider);
-        }
+        this.requestManager.addCallback('requesterror', this.getTileError());
+        if (provider) this.setProvider(provider);
     };
 
     MM.Layer.prototype = {
 
         map: null, // TODO: remove
         parent: null,
+        name: null,
+        enabled: true,
         tiles: null,
         levels: null,
-
         requestManager: null,
-        tileCacheSize: null,
-        maxTileCacheSize: null,
-
         provider: null,
-        recentTiles: null,
-        recentTilesById: {},
-
-        enablePyramidLoading: false,
-
+        emptyImage: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=',
         _tileComplete: null,
 
         getTileComplete: function() {
             if (!this._tileComplete) {
                 var theLayer = this;
                 this._tileComplete = function(manager, tile) {
-
-                    // cache the tile itself:
                     theLayer.tiles[tile.id] = tile;
-                    theLayer.tileCacheSize++;
-
-                    // also keep a record of when we last touched this tile:
-                    var record = {
-                        id: tile.id,
-                        lastTouchedTime: new Date().getTime()
-                    };
-                    theLayer.recentTilesById[tile.id] = record;
-                    theLayer.recentTiles.push(record);
-
-                    // position this tile (avoids a full draw() call):
                     theLayer.positionTile(tile);
                 };
             }
-
             return this._tileComplete;
         },
 
+        getTileError: function() {
+            if (!this._tileError) {
+                var theLayer = this;
+                this._tileError = function(manager, tile) {
+                    tile.src = theLayer.emptyImage;
+                    theLayer.tiles[tile.id] = tile;
+                    theLayer.positionTile(tile);
+                };
+            }
+            return this._tileError;
+        },
+
         draw: function() {
+            if (!this.enabled || !this.map) return;
+            // compares manhattan distance from center of
+            // requested tiles to current map center
+            // NB:- requested tiles are *popped* from queue, so we do a descending sort
+            var theCoord = this.map.coordinate.zoomTo(Math.round(this.map.coordinate.zoom));
+
+            function centerDistanceCompare(r1, r2) {
+                if (r1 && r2) {
+                    var c1 = r1.coord;
+                    var c2 = r2.coord;
+                    if (c1.zoom == c2.zoom) {
+                        var ds1 = Math.abs(theCoord.row - c1.row - 0.5) +
+                                  Math.abs(theCoord.column - c1.column - 0.5);
+                        var ds2 = Math.abs(theCoord.row - c2.row - 0.5) +
+                                  Math.abs(theCoord.column - c2.column - 0.5);
+                        return ds1 < ds2 ? 1 : ds1 > ds2 ? -1 : 0;
+                    } else {
+                        return c1.zoom < c2.zoom ? 1 : c1.zoom > c2.zoom ? -1 : 0;
+                    }
+                }
+                return r1 ? 1 : r2 ? -1 : 0;
+            }
+
             // if we're in between zoom levels, we need to choose the nearest:
             var baseZoom = Math.round(this.map.coordinate.zoom);
 
@@ -129,10 +140,7 @@
             this.requestManager.clearExcept(validTileKeys);
 
             // get newly requested tiles, sort according to current view:
-            this.requestManager.processQueue(this.getCenterDistanceCompare());
-
-            // make sure we don't have too much stuff:
-            this.checkCache();
+            this.requestManager.processQueue(centerDistanceCompare);
         },
 
         // For a given tile coordinate in a given level element, ensure that it's
@@ -179,39 +187,16 @@
                 var parent_coord = tile_coord.zoomBy(-pz).container();
                 var parent_key = parent_coord.toKey();
 
-                if (this.enablePyramidLoading) {
-                    // mark all parent tiles valid
+                // only mark it valid if we have it already
+                if (parent_key in this.tiles) {
                     valid_tile_keys.push(parent_key);
-                    var parentLevel = this.createOrGetLevel(parent_coord.zoom);
-
-                    //parentLevel.coordinate = parent_coord.copy();
-                    if (parent_key in this.tiles) {
-                        var parentTile = this.tiles[parent_key];
-                        if (parentTile.parentNode != parentLevel) {
-                            parentLevel.appendChild(parentTile);
-                        }
-                    } else if (!this.requestManager.hasRequest(parent_key)) {
-                        // force load of parent tiles we don't already have
-                        var tileToAdd = this.provider.getTile(parent_coord);
-
-                        if (typeof tileToAdd == 'string') {
-                            this.addTileImage(parent_key, parent_coord, tileToAdd);
-                        } else {
-                            this.addTileElement(parent_key, parent_coord, tileToAdd);
-                        }
-                    }
-                } else {
-                    // only mark it valid if we have it already
-                    if (parent_key in this.tiles) {
-                        valid_tile_keys.push(parent_key);
-                        tileCovered = true;
-                        break;
-                    }
+                    tileCovered = true;
+                    break;
                 }
             }
 
             // if we didn't find a parent, look at the children:
-            if (!tileCovered && !this.enablePyramidLoading) {
+            if (!tileCovered) {
                 var child_coord = tile_coord.zoomBy(1);
 
                 // mark everything valid whether or not we have it:
@@ -244,13 +229,8 @@
          * tiles based on values in valid_tile_keys from inventoryVisibleTile().
          */
         adjustVisibleLevel: function(level, zoom, valid_tile_keys) {
-            // for tracking time of tile usage:
-            var now = new Date().getTime();
-
-            if (!level) {
-                // no tiles for this level yet
-                return;
-            }
+            // no tiles for this level yet
+            if (!level) return;
 
             var scale = 1;
             var theCoord = this.map.coordinate.copy();
@@ -261,6 +241,7 @@
                 theCoord = theCoord.zoomTo(zoom);
             } else {
                 level.style.display = 'none';
+                return false;
             }
 
             var tileWidth = this.map.tileSize.x * scale;
@@ -276,17 +257,19 @@
                     this.requestManager.clearRequest(tile.coord.toKey());
                     level.removeChild(tile);
                 } else {
-                    // log last-touched-time of currently cached tiles
-                    this.recentTilesById[tile.id].lastTouchedTime = now;
+                    // position tiles
+                    MM.moveElement(tile, {
+                        x: Math.round(center.x +
+                            (tile.coord.column - theCoord.column) * tileWidth),
+                        y: Math.round(center.y +
+                            (tile.coord.row - theCoord.row) * tileHeight),
+                        scale: scale,
+                        // TODO: pass only scale or only w/h
+                        width: this.map.tileSize.x,
+                        height: this.map.tileSize.y
+                    });
                 }
             }
-
-            // position tiles
-            MM.moveElement(level, {
-                x: -(theCoord.column * 256) + center.x,
-                y: -(theCoord.row * 256) + center.y,
-                scale: scale
-            });
         },
 
         createOrGetLevel: function(zoom) {
@@ -294,13 +277,14 @@
                 return this.levels[zoom];
             }
 
-            //console.log('creating level ' + zoom);
             var level = document.createElement('div');
-            level.id = this.parent.id+'-zoom-'+zoom;
+            level.id = this.parent.id + '-zoom-' + zoom;
             level.style.cssText = this.parent.style.cssText;
             level.style.zIndex = zoom;
+
             this.parent.appendChild(level);
             this.levels[zoom] = level;
+
             return level;
         },
 
@@ -312,19 +296,6 @@
             // Expected in draw()
             element.id = key;
             element.coord = coordinate.copy();
-
-            // cache the tile itself:
-            this.tiles[key] = element;
-            this.tileCacheSize++;
-
-            // also keep a record of when we last touched this tile:
-            var record = {
-                id: key,
-                lastTouchedTime: new Date().getTime()
-            };
-            this.recentTilesById[key] = record;
-            this.recentTiles.push(record);
-
             this.positionTile(element);
         },
 
@@ -333,20 +304,23 @@
             var theCoord = this.map.coordinate.zoomTo(tile.coord.zoom);
 
             // Start tile positioning and prevent drag for modern browsers
-            tile.style.cssText = 'position:absolute;-webkit-user-select: none;-webkit-user-drag: none;-moz-user-drag: none;';
+            tile.style.cssText = 'position:absolute;-webkit-user-select:none;' +
+                '-webkit-user-drag:none;-moz-user-drag:none;-webkit-transform-origin:0 0;' +
+                '-moz-transform-origin:0 0;-o-transform-origin:0 0;-ms-transform-origin:0 0;' +
+                'width:' + this.map.tileSize.x + 'px; height: ' + this.map.tileSize.y + 'px;';
 
             // Prevent drag for IE
             tile.ondragstart = function() { return false; };
 
-            var tx = tile.coord.column *
-                this.map.tileSize.x;
-            var ty = tile.coord.row *
-                this.map.tileSize.y;
+            var scale = Math.pow(2, this.map.coordinate.zoom - tile.coord.zoom);
 
-            // TODO: pass only scale or only w/h
             MM.moveElement(tile, {
-                x: Math.round(tx),
-                y: Math.round(ty),
+                x: Math.round((this.map.dimensions.x/2) +
+                    (tile.coord.column - theCoord.column) * this.map.tileSize.x),
+                y: Math.round((this.map.dimensions.y/2) +
+                    (tile.coord.row - theCoord.row) * this.map.tileSize.y),
+                scale: scale,
+                // TODO: pass only scale or only w/h
                 width: this.map.tileSize.x,
                 height: this.map.tileSize.y
             });
@@ -396,49 +370,6 @@
             return this._redraw;
         },
 
-        numTilesOnScreen: function() {
-            var tileCount = 0;
-            for (var name in this.levels) {
-                if (this.levels.hasOwnProperty(name)) {
-                    var level = this.levels[name];
-                    tileCount += this.tileElementsInLevel(level).length;
-                }
-            }
-            return tileCount;
-        },
-
-        // keeps cache below max size
-        // (called every time we receive a new tile and add it to the cache)
-        checkCache: function() {
-            var maxTiles = Math.max(this.numTilesOnScreen(), this.maxTileCacheSize);
-
-            if (this.tileCacheSize > maxTiles) {
-                // sort from newest (highest) to oldest (lowest)
-                this.recentTiles.sort(function(t1, t2) {
-                    return t2.lastTouchedTime < t1.lastTouchedTime ? -1 :
-                      t2.lastTouchedTime > t1.lastTouchedTime ? 1 : 0;
-                });
-            }
-
-            while (this.recentTiles.length && this.tileCacheSize > maxTiles) {
-                // delete the oldest record
-                var tileRecord = this.recentTiles.pop();
-                var now = new Date().getTime();
-                delete this.recentTilesById[tileRecord.id];
-                //window.console.log('removing ' + tileRecord.id +
-                //                   ' last seen ' + (now-tileRecord.lastTouchedTime) + 'ms ago');
-                // now actually remove it from the cache...
-                var tile = this.tiles[tileRecord.id];
-                if (tile.parentNode) {
-                    // I'm leaving this uncommented for now but you should never see it:
-                    alert("Gah: trying to removing cached tile even though it's still in the DOM");
-                } else {
-                    delete this.tiles[tileRecord.id];
-                    this.tileCacheSize--;
-                }
-            }
-        },
-
         setProvider: function(newProvider) {
             var firstProvider = (this.provider === null);
 
@@ -460,16 +391,10 @@
             }
 
             // first provider or not we'll init/reset some values...
-
             this.tiles = {};
-            this.tileCacheSize = 0;
-            this.maxTileCacheSize = 64;
-            this.recentTilesById = {};
-            this.recentTiles = [];
 
             // for later: check geometry of old provider and set a new coordinate center
             // if needed (now? or when?)
-
             this.provider = newProvider;
 
             if (!firstProvider) {
@@ -477,35 +402,27 @@
             }
         },
 
-        // compares manhattan distance from center of
-        // requested tiles to current map center
-        // NB:- requested tiles are *popped* from queue, so we do a descending sort
-        getCenterDistanceCompare: function() {
-            var theCoord = this.map.coordinate.zoomTo(Math.round(this.map.coordinate.zoom));
-
-            return function(r1, r2) {
-                if (r1 && r2) {
-                    var c1 = r1.coord;
-                    var c2 = r2.coord;
-                    if (c1.zoom == c2.zoom) {
-                        var ds1 = Math.abs(theCoord.row - c1.row - 0.5) +
-                                  Math.abs(theCoord.column - c1.column - 0.5);
-                        var ds2 = Math.abs(theCoord.row - c2.row - 0.5) +
-                                  Math.abs(theCoord.column - c2.column - 0.5);
-                        return ds1 < ds2 ? 1 : ds1 > ds2 ? -1 : 0;
-                    } else {
-                        return c1.zoom < c2.zoom ? 1 : c1.zoom > c2.zoom ? -1 : 0;
-                    }
-                }
-                return r1 ? 1 : r2 ? -1 : 0;
-            };
+        // Enable a layer and show its dom element
+        enable: function() {
+            this.enabled = true;
+            this.parent.style.display = '';
+            this.draw();
         },
+
+        // Disable a layer, don't display in DOM, clear all requests
+        disable: function() {
+            this.enabled = false;
+            this.requestManager.clear();
+            this.parent.style.display = 'none';
+        },
+
 
         // Remove this layer from the DOM, cancel all of its requests
         // and unbind any callbacks that are bound to it.
         destroy: function() {
             this.requestManager.clear();
             this.requestManager.removeCallback('requestcomplete', this.getTileComplete());
+            this.requestManager.removeCallback('requesterror', this.getTileError());
             // TODO: does requestManager need a destroy function too?
             this.provider = null;
             // If this layer was ever attached to the DOM, detach it.
@@ -514,5 +431,4 @@
             }
             this.map = null;
         }
-
     };

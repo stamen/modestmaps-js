@@ -1,8 +1,9 @@
 describe('Projection', function() {
-    var m;
+    var m, l;
 
     beforeEach(function() {
         m = new MM.MercatorProjection(10);
+        l = new MM.LinearProjection(10);
     });
 
     it('can instantiate a mercator projection', function() {
@@ -11,6 +12,13 @@ describe('Projection', function() {
         expect(m.locationCoordinate(new MM.Location(0, 0)).zoom).toEqual(10);
         expect(m.coordinateLocation(new MM.Coordinate(0, 0, 10)))
             .toEqual(new MM.Location(0, 0));
+    });
+
+    it('linear projects do not change normal points', function() {
+        expect(l.project({x: 10, y: 10}).x).toEqual(10);
+        expect(l.project({x: 10, y: 10}).y).toEqual(10);
+        expect(l.unproject({x: 10, y: 10}).x).toEqual(10);
+        expect(l.unproject({x: 10, y: 10}).y).toEqual(10);
     });
 
     it('is accurate up to 3 decimals', function() {
