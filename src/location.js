@@ -84,6 +84,11 @@
     //
     // * FIXME: bearing is not constant along significant great circle arcs.
     MM.Location.bearing = function(l1, l2) {
+        var deg2rad = Math.PI / 180.0,
+            lat1 = l1.lat * deg2rad,
+            lon1 = l1.lon * deg2rad,
+            lat2 = l2.lat * deg2rad,
+            lon2 = l2.lon * deg2rad;
         var result = Math.atan2(
             Math.sin(lon1 - lon2) *
             Math.cos(lat2),
