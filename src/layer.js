@@ -1,18 +1,12 @@
 
     // Layer
-
     MM.Layer = function(provider, parent) {
         this.parent = parent || document.createElement('div');
         this.parent.style.cssText = 'position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; margin: 0; padding: 0; z-index: 0';
-
         this.levels = {};
-
         this.requestManager = new MM.RequestManager();
         this.requestManager.addCallback('requestcomplete', this.getTileComplete());
-
-        if (provider) {
-            this.setProvider(provider);
-        }
+        if (provider) this.setProvider(provider);
     };
 
     MM.Layer.prototype = {
@@ -21,41 +15,19 @@
         parent: null,
         tiles: null,
         levels: null,
-
         requestManager: null,
-        tileCacheSize: null,
-        maxTileCacheSize: null,
-
         provider: null,
-        recentTiles: null,
-        recentTilesById: {},
-
         enablePyramidLoading: false,
-
         _tileComplete: null,
 
         getTileComplete: function() {
             if (!this._tileComplete) {
                 var theLayer = this;
                 this._tileComplete = function(manager, tile) {
-
-                    // cache the tile itself:
                     theLayer.tiles[tile.id] = tile;
-                    theLayer.tileCacheSize++;
-
-                    // also keep a record of when we last touched this tile:
-                    var record = {
-                        id: tile.id,
-                        lastTouchedTime: new Date().getTime()
-                    };
-                    theLayer.recentTilesById[tile.id] = record;
-                    theLayer.recentTiles.push(record);
-
-                    // position this tile (avoids a full draw() call):
                     theLayer.positionTile(tile);
                 };
             }
-
             return this._tileComplete;
         },
 
@@ -130,9 +102,6 @@
 
             // get newly requested tiles, sort according to current view:
             this.requestManager.processQueue(this.getCenterDistanceCompare());
-
-            // make sure we don't have too much stuff:
-            this.checkCache();
         },
 
         // For a given tile coordinate in a given level element, ensure that it's
@@ -244,13 +213,8 @@
          * tiles based on values in valid_tile_keys from inventoryVisibleTile().
          */
         adjustVisibleLevel: function(level, zoom, valid_tile_keys) {
-            // for tracking time of tile usage:
-            var now = new Date().getTime();
-
-            if (!level) {
-                // no tiles for this level yet
-                return;
-            }
+            // no tiles for this level yet
+            if (!level) return;
 
             var scale = 1;
             var theCoord = this.map.coordinate.copy();
@@ -275,9 +239,6 @@
                     this.provider.releaseTile(tile.coord);
                     this.requestManager.clearRequest(tile.coord.toKey());
                     level.removeChild(tile);
-                } else {
-                    // log last-touched-time of currently cached tiles
-                    this.recentTilesById[tile.id].lastTouchedTime = now;
                 }
             }
 
@@ -294,13 +255,14 @@
                 return this.levels[zoom];
             }
 
-            //console.log('creating level ' + zoom);
             var level = document.createElement('div');
-            level.id = this.parent.id+'-zoom-'+zoom;
+            level.id = this.parent.id + '-zoom-' + zoom;
             level.style.cssText = this.parent.style.cssText;
             level.style.zIndex = zoom;
+
             this.parent.appendChild(level);
             this.levels[zoom] = level;
+
             return level;
         },
 
@@ -312,19 +274,6 @@
             // Expected in draw()
             element.id = key;
             element.coord = coordinate.copy();
-
-            // cache the tile itself:
-            this.tiles[key] = element;
-            this.tileCacheSize++;
-
-            // also keep a record of when we last touched this tile:
-            var record = {
-                id: key,
-                lastTouchedTime: new Date().getTime()
-            };
-            this.recentTilesById[key] = record;
-            this.recentTiles.push(record);
-
             this.positionTile(element);
         },
 
@@ -333,7 +282,7 @@
             var theCoord = this.map.coordinate.zoomTo(tile.coord.zoom);
 
             // Start tile positioning and prevent drag for modern browsers
-            tile.style.cssText = 'position:absolute;-webkit-user-select: none;-webkit-user-drag: none;-moz-user-drag: none;';
+            tile.style.cssText = 'position:absolute;-webkit-user-select:none;-webkit-user-drag:none;-moz-user-drag:none;';
 
             // Prevent drag for IE
             tile.ondragstart = function() { return false; };
@@ -396,49 +345,6 @@
             return this._redraw;
         },
 
-        numTilesOnScreen: function() {
-            var tileCount = 0;
-            for (var name in this.levels) {
-                if (this.levels.hasOwnProperty(name)) {
-                    var level = this.levels[name];
-                    tileCount += this.tileElementsInLevel(level).length;
-                }
-            }
-            return tileCount;
-        },
-
-        // keeps cache below max size
-        // (called every time we receive a new tile and add it to the cache)
-        checkCache: function() {
-            var maxTiles = Math.max(this.numTilesOnScreen(), this.maxTileCacheSize);
-
-            if (this.tileCacheSize > maxTiles) {
-                // sort from newest (highest) to oldest (lowest)
-                this.recentTiles.sort(function(t1, t2) {
-                    return t2.lastTouchedTime < t1.lastTouchedTime ? -1 :
-                      t2.lastTouchedTime > t1.lastTouchedTime ? 1 : 0;
-                });
-            }
-
-            while (this.recentTiles.length && this.tileCacheSize > maxTiles) {
-                // delete the oldest record
-                var tileRecord = this.recentTiles.pop();
-                var now = new Date().getTime();
-                delete this.recentTilesById[tileRecord.id];
-                //window.console.log('removing ' + tileRecord.id +
-                //                   ' last seen ' + (now-tileRecord.lastTouchedTime) + 'ms ago');
-                // now actually remove it from the cache...
-                var tile = this.tiles[tileRecord.id];
-                if (tile.parentNode) {
-                    // I'm leaving this uncommented for now but you should never see it:
-                    alert("Gah: trying to removing cached tile even though it's still in the DOM");
-                } else {
-                    delete this.tiles[tileRecord.id];
-                    this.tileCacheSize--;
-                }
-            }
-        },
-
         setProvider: function(newProvider) {
             var firstProvider = (this.provider === null);
 
@@ -462,10 +368,6 @@
             // first provider or not we'll init/reset some values...
 
             this.tiles = {};
-            this.tileCacheSize = 0;
-            this.maxTileCacheSize = 64;
-            this.recentTilesById = {};
-            this.recentTiles = [];
 
             // for later: check geometry of old provider and set a new coordinate center
             // if needed (now? or when?)
@@ -514,5 +416,4 @@
             }
             this.map = null;
         }
-
     };
